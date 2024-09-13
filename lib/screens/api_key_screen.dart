@@ -1,4 +1,5 @@
 import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/components/ok_button.dart';
 import 'package:flutter/material.dart';
 
 class ApiKeyScreen extends StatefulWidget {
@@ -154,22 +155,9 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
               ],
             ),
           ),
-          Positioned(
-            bottom: 16.0,
-            right: 16.0, //
-            child: ElevatedButton(
-              onPressed: () {
-                // Handle button press
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppStyles.blue,
-              ),
-              child: Text(
-                'OK',
-                style: AppStyles.button1.copyWith(color: AppStyles.white),
-              ),
-            ),
-          ),
+          OKButton(
+            onPressed: () {},
+          )
         ],
       ),
     );

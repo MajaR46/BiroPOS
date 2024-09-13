@@ -1,3 +1,5 @@
+import 'package:biro_pos/screens/kopija_screen.dart';
+import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
@@ -7,6 +9,7 @@ class MeniScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("Meni",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
@@ -37,7 +40,12 @@ class MeniScreen extends StatelessWidget {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const StornoScreen()));
+                  },
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
                   child: Text(
@@ -54,7 +62,12 @@ class MeniScreen extends StatelessWidget {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const KopijaScreen()));
+                  },
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
                   child: Text(
