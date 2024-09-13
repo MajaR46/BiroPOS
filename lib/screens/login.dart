@@ -1,6 +1,6 @@
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
-import 'package:biro_pos/screens/test.dart';
+import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,7 +24,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_logininputcontroller.text == "1") {
       //TO DO: spremeni pogoj ko bo povezava na strežnik
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => const TestScreen()));
+          context, MaterialPageRoute(builder: (context) => const MeniScreen()));
     }
   }
 

@@ -6,6 +6,7 @@ class AppStyles {
   static const Color grey = Color(0xffF7F7F7);
   static const Color blue = Color(0xff2D70F4);
   static const Color silver = Color(0xFFBFBFBF);
+  static const Color red = Color(0xffFC4A4A);
 
   static const TextStyle heading1 = TextStyle(
     fontFamily: 'Poppins',
