@@ -1,3 +1,4 @@
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
 import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,12 @@ class MeniScreen extends StatelessWidget {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => BlagajnaScreen()));
+                },
                 style:
                     ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
                 child: Text(
