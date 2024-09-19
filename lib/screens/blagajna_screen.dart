@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
+import 'package:biro_pos/components/keyboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -20,11 +23,55 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   bool hasError = false;
   Map<String, List<dynamic>> categorizedItems = {};
   String selectedCategory = "Vse";
+  final TextEditingController searchController = TextEditingController();
+  dynamic selectedItem;
+  double itemQuantity = 1;
+  double sum = 0;
+  double finalSum = 0;
+  void _ouputselectedItem(dynamic outputtedItem) {
+    setState(() {
+      if (selectedItem != null && selectedItem['price'] != null) {
+        double previousItemSum = itemQuantity * (selectedItem['price'] ?? 0);
+        finalSum += previousItemSum;
+      }
+      selectedItem = outputtedItem;
+
+      itemQuantity = 1;
+      _handleSum();
+    });
+  }
+
+  void _handleMultiply(double result) {
+    setState(() {
+      itemQuantity = result;
+      _handleSum();
+    });
+  }
+
+  void _handleSum() {
+    if (selectedItem != null && selectedItem['price'] != null) {
+      setState(() {
+        double itemsum = itemQuantity * (selectedItem?['price'] ?? 0);
+        finalSum = finalSum - (sum ?? 0) + itemsum;
+
+        sum = itemsum;
+      });
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     loadCafeItems();
+    searchController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   List<Color> backgroundColors = [
@@ -54,7 +101,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
       });
     } catch (error) {
       setState(() {
-        print("Error loading cafe items: $error");
         hasError = true;
         isLoading = false;
       });
@@ -76,11 +122,29 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
 //filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
+    List<dynamic> filteredItems = [];
+
+    // filtriraj po kategoriji
     if (selectedCategory == "Vse") {
-      return cafeItems;
+      filteredItems = cafeItems;
     } else {
-      return categorizedItems[selectedCategory] ?? [];
+      filteredItems = categorizedItems[selectedCategory] ?? [];
     }
+
+    //filtriraj po searchu
+    String searchQuery = searchController.text.toUpperCase();
+
+    searchQuery = searchQuery.replaceAll(RegExp(r'\d'), '');
+
+    if (searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) {
+        String itemName =
+            item['name'].toUpperCase().replaceAll(RegExp(r'\d'), '');
+        return itemName.startsWith(searchQuery);
+      }).toList();
+    }
+
+    return filteredItems;
   }
 
 //category list na vrhu zaslona
@@ -89,7 +153,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height: 50,
+        height: 40,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: categories.length,
@@ -146,78 +210,76 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
       return const Center(child: Text("No items available"));
     }
 
+    // GLavni layout
     if (selectedCategory == "Vse") {
       Map<String, List<dynamic>> itemsByCategory =
           _categorizeItems(filteredItems);
-
-      List<String> categories = categorizedItems.keys.toList();
+      List<String> categories = itemsByCategory.keys.toList();
 
       return SizedBox(
-        height: 400,
         child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            itemBuilder: ((context, index) {
-              String category = categories[index];
-              List<dynamic> items = categorizedItems[category] ?? [];
+          scrollDirection: Axis.horizontal,
+          itemCount: categories.length,
+          itemBuilder: ((context, index) {
+            String category = categories[index];
+            List<dynamic> items = itemsByCategory[category] ?? [];
 
-              return SizedBox(
-                width: 200,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        category,
-                        style: AppStyles.heading4,
-                      ),
-                    ),
-                    Expanded(
-                        child: ListView.builder(
+            return SizedBox(
+              width: 180,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
                       itemCount: items.length,
                       itemBuilder: (context, itemIndex) {
                         final item = items[itemIndex];
 
-                        String category = item['category'];
+                        int categoryIndex = categorizedItems.keys
+                            .toList()
+                            .indexOf(item['category']);
 
-                        int categoryIndex =
-                            categorizedItems.keys.toList().indexOf(category);
-
+                        if (categoryIndex == -1) {
+                          categoryIndex = 0; // Fallback to the default color
+                        }
                         Color assignedBackgroundColor = backgroundColors[
                             categoryIndex % backgroundColors.length];
                         Color assignedTextColor =
                             textColors[categoryIndex % textColors.length];
 
-                        return ItemCard(
+                        return GestureDetector(
+                          onTap: () => _ouputselectedItem(item),
+                          child: ItemCard(
                             itemName: item['name'],
                             itemPrice: item['price'],
                             itemCategory: item['category'],
                             backgroundColor: assignedBackgroundColor,
-                            textColor: assignedTextColor);
+                            textColor: assignedTextColor,
+                          ),
+                        );
                       },
-                    ))
-                  ],
-                ),
-              );
-            })),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ),
       );
     } else {
-      //layout za posamezno kategorijo
+      // Layout za posamezno kategorijo
       return ListView.builder(
         itemCount: filteredItems.length,
         itemBuilder: (context, index) {
           final item = filteredItems[index];
-          String category = item['category'];
-
-          int categoryIndex = categorizedItems.keys.toList().indexOf(category);
-
+          int categoryIndex =
+              categorizedItems.keys.toList().indexOf(item['category']);
           Color assignedBackgroundColor =
               backgroundColors[categoryIndex % backgroundColors.length];
           Color assignedTextColor =
               textColors[categoryIndex % textColors.length];
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          return GestureDetector(
+            onTap: () => _ouputselectedItem(item),
             child: ItemCard(
               itemName: item['name'],
               itemPrice: item['price'],
@@ -235,38 +297,60 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+    final TextEditingController blagajnaController = TextEditingController();
 
     return Scaffold(
-        backgroundColor: AppStyles.grey,
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: AppStyles.white,
-          iconTheme: const IconThemeData(color: AppStyles.blue),
-          title: Text(
-            formattedDate,
-            style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.blue),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                formattedTime,
-                style:
-                    AppStyles.boldanparagraph1.copyWith(color: AppStyles.blue),
-              ),
-            )
-          ],
+      backgroundColor: AppStyles.grey,
+      appBar: AppBar(
+        centerTitle: true,
+        toolbarHeight: 32.0,
+        backgroundColor: AppStyles.white,
+        iconTheme: const IconThemeData(color: AppStyles.blue),
+        title: Text(
+          formattedDate,
+          style: AppStyles.paragraph3
+              .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
         ),
-        drawer: const CustomDrawer(),
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : hasError
-                ? const Center(child: Text('Failed to load data'))
-                : Column(
-                    children: [
-                      _categoryList(),
-                      Expanded(child: _buildItemList())
-                    ],
-                  ));
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Text(
+              formattedTime,
+              style: AppStyles.paragraph3
+                  .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+      drawer: const CustomDrawer(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : hasError
+              ? const Center(child: Text('Failed to load data'))
+              : Column(
+                  children: [
+                    _categoryList(),
+                    Expanded(
+                      child: _buildItemList(),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4.0),
+                      child: BlagajnaBanner(
+                          chosenItem: selectedItem != null
+                              ? selectedItem['name'] ?? ''
+                              : ' ',
+                          quantity: itemQuantity,
+                          sum: finalSum),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Keyboard(
+                          controller: searchController,
+                          multiply: _handleMultiply,
+                          quantity: itemQuantity),
+                    ),
+                  ],
+                ),
+    );
   }
 }

@@ -12,7 +12,7 @@ class AppStyles {
   static const Color darkBrown = Color(0xffA77B5B);
 
   static const Color lightOrange = Color(0xfffff5f0);
-  static const Color darkOrange = Color(0xfffb9762);
+  static const Color darkOrange = Color(0xfffb9761);
 
   static const Color lightGreen = Color(0xffe4f3f1);
   static const Color darkGreen = Color(0xff7cbaaf);
@@ -75,6 +75,12 @@ class AppStyles {
     fontFamily: 'Helvetica',
     fontWeight: FontWeight.normal,
     fontSize: 12,
+  );
+
+  static const TextStyle paragraph4 = TextStyle(
+    fontFamily: 'Helvetica',
+    fontWeight: FontWeight.normal,
+    fontSize: 10,
   );
 
   static const TextStyle button1 = TextStyle(

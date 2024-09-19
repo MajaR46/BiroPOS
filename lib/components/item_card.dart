@@ -22,28 +22,30 @@ class ItemCard extends StatelessWidget {
       elevation: 0,
       color: AppStyles.white,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(4.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(itemName, style: AppStyles.boldanparagraph1),
+              child: Text(itemName,
+                  style: AppStyles.paragraph3
+                      .copyWith(fontWeight: FontWeight.bold)),
             ),
-            Text('${itemPrice.toString()}\€', style: AppStyles.paragraph3),
-            SizedBox(
-              height: 8,
+            Text('${itemPrice.toString()}\€', style: AppStyles.paragraph4),
+            const SizedBox(
+              height: 2,
             ),
             Container(
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(12.0), // Rounded corners
+                  borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Text(itemCategory,
-                      style: AppStyles.paragraph3.copyWith(color: textColor)),
+                      style: AppStyles.paragraph4.copyWith(color: textColor)),
                 )),
           ],
         ),

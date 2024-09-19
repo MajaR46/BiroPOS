@@ -29,7 +29,7 @@ class MeniScreen extends StatelessWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => BlagajnaScreen()));
+                          builder: (context) => const BlagajnaScreen()));
                 },
                 style:
                     ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),

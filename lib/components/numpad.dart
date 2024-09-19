@@ -39,7 +39,11 @@ class Numpad extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            NumpadDelete(controller: controller),
+            NumpadDelete(
+              controller: controller,
+              fontSize: 24,
+              borderRadius: 40,
+            ),
             NumpadNumber(number: "0", controller: controller),
             NumpadOK(onOKPressed: onOKPressed)
           ],
@@ -85,33 +89,41 @@ class NumpadNumber extends StatelessWidget {
 
 class NumpadDelete extends StatelessWidget {
   final TextEditingController controller;
+  final int fontSize;
+  final int borderRadius;
 
-  const NumpadDelete({super.key, required this.controller});
+  const NumpadDelete(
+      {super.key,
+      required this.controller,
+      required this.fontSize,
+      required this.borderRadius});
 
   @override
   Widget build(BuildContext context) {
-    return (SizedBox(
+    return SizedBox(
       width: 80,
       height: 60,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppStyles.silver.withOpacity(0.1),
-            elevation: 0,
-          ),
+              backgroundColor: AppStyles.silver.withOpacity(0.1),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(borderRadius.toDouble()))),
           onPressed: () {
             if (controller.text.isNotEmpty) {
               controller.text =
                   controller.text.substring(0, controller.text.length - 1);
             }
           },
-          child: const Center(
+          child: Center(
             child: Icon(
               Icons.arrow_back,
               color: AppStyles.black,
-              size: 24,
+              size: fontSize.toDouble(),
             ),
           )),
-    ));
+    );
   }
 }
 
