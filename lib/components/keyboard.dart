@@ -8,17 +8,25 @@ class Keyboard extends StatelessWidget {
   final TextEditingController controller;
   final double quantity;
   final Function(double result) multiply;
+  final VoidCallback navigateToRacun;
+  final dynamic selectedItem;
+  final double finalSum;
+  final List<dynamic> chosenItems;
 
   const Keyboard(
       {super.key,
       required this.controller,
       required this.multiply,
-      required this.quantity});
+      required this.quantity,
+      required this.selectedItem,
+      required this.finalSum,
+      required this.chosenItems,
+      required this.navigateToRacun});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 8),
       color: AppStyles.white,
       child: Row(
         children: [
@@ -104,7 +112,7 @@ class Keyboard extends StatelessWidget {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.blue,
                     text: "RAČUN",
-                    onPressed: () {}),
+                    onPressed: navigateToRacun),
               ),
               Padding(
                 padding: const EdgeInsets.all(2.0),
@@ -160,26 +168,21 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
     setState(() {
       tapCount++;
 
-      // Remove spaces from the number string
       String numberWithoutSpace = widget.number.replaceAll(' ', '');
       int availableCharacters = numberWithoutSpace.length;
 
-      // Select the corresponding character from the available digits
       if (tapCount <= availableCharacters) {
         String selectedChar = numberWithoutSpace[tapCount - 1];
 
-        // If first tap or clear text when starting new input
         if (widget.controller.text.isEmpty || tapCount == 1) {
           widget.controller.text = selectedChar;
         } else {
-          // Replace last character with the newly tapped one
           widget.controller.text = widget.controller.text
                   .substring(0, widget.controller.text.length - 1) +
               selectedChar;
         }
       }
 
-      // Reset the tap count after 1 second of inactivity
       tapTimer?.cancel();
       tapTimer = Timer(const Duration(seconds: 1), () {
         tapCount = 0;

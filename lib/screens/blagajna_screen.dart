@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -28,36 +28,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   double itemQuantity = 1;
   double sum = 0;
   double finalSum = 0;
-  void _ouputselectedItem(dynamic outputtedItem) {
-    setState(() {
-      if (selectedItem != null && selectedItem['price'] != null) {
-        double previousItemSum = itemQuantity * (selectedItem['price'] ?? 0);
-        finalSum += previousItemSum;
-      }
-      selectedItem = outputtedItem;
-
-      itemQuantity = 1;
-      _handleSum();
-    });
-  }
-
-  void _handleMultiply(double result) {
-    setState(() {
-      itemQuantity = result;
-      _handleSum();
-    });
-  }
-
-  void _handleSum() {
-    if (selectedItem != null && selectedItem['price'] != null) {
-      setState(() {
-        double itemsum = itemQuantity * (selectedItem?['price'] ?? 0);
-        finalSum = finalSum - (sum ?? 0) + itemsum;
-
-        sum = itemsum;
-      });
-    }
-  }
+  late List<dynamic> chosenItems = [];
 
   @override
   void initState() {
@@ -72,6 +43,110 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void _ouputselectedItem(dynamic outputtedItem) {
+    setState(() {
+      bool isNewItem = true;
+
+      for (var item in chosenItems) {
+        if (item['name'] == outputtedItem['name']) {
+          //ali item že obstaja v chosenItems
+          isNewItem = false; //to pomen da je novi item
+          break;
+        }
+      }
+
+      // If it's a new item, reset the itemQuantity to 1
+      if (isNewItem) {
+        itemQuantity = 1;
+      }
+
+      // Now handle the item, add or update in chosenItems list
+      bool itemExists = false;
+
+      // Check if the item is already in the list
+      for (var item in chosenItems) {
+        if (item['name'] == outputtedItem['name']) {
+          // Item already exists, update its quantity
+          itemExists = true;
+          item['quantity'] = itemQuantity; // Update the quantity in chosenItems
+          break;
+        }
+      }
+
+      if (!itemExists) {
+        // New item, add it to the list with default quantity 1
+        chosenItems.add({
+          'name': outputtedItem['name'],
+          'price': outputtedItem['price'],
+          'quantity': itemQuantity,
+        });
+      }
+
+      // Update the selectedItem
+      selectedItem = outputtedItem;
+
+      // Recalculate the total sum after the changes
+      _updateFinalSum();
+    });
+  }
+
+  void _updateFinalSum() {
+    double newFinalSum = 0;
+
+    // Recalculate final sum based on chosen items and their quantities
+    for (var item in chosenItems) {
+      double itemTotal = item['quantity'] * (item['price'] ?? 0);
+      newFinalSum += itemTotal;
+    }
+
+    setState(() {
+      finalSum = newFinalSum; // Update finalSum with the new total
+    });
+  }
+
+  void _handleMultiply(double result) {
+    setState(() {
+      itemQuantity = result;
+      print('Result : ${result}');
+
+      if (selectedItem != null) {
+        for (var item in chosenItems) {
+          if (item['name'] == selectedItem['name']) {
+            item['quantity'] = itemQuantity;
+            break;
+          }
+        }
+        _updateFinalSum();
+      }
+    });
+  }
+
+  void _navigateToRacunScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RacunScreen(
+          selectedItem: selectedItem,
+          itemQuantity: itemQuantity,
+          finalSum: finalSum,
+          chosenItems: chosenItems,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        List<double> updatedQuantities =
+            List<double>.from(result['updatedQuantity']);
+        finalSum = result['updatedFinalSum'];
+
+        for (int i = 0; i < chosenItems.length; i++) {
+          chosenItems[i]['quantity'] = updatedQuantities[i];
+        }
+      });
+    }
   }
 
   List<Color> backgroundColors = [
@@ -297,7 +372,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    final TextEditingController blagajnaController = TextEditingController();
+    print('item quantitiy ${itemQuantity}');
 
     return Scaffold(
       backgroundColor: AppStyles.grey,
@@ -345,6 +420,10 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Keyboard(
+                          navigateToRacun: _navigateToRacunScreen,
+                          selectedItem: selectedItem,
+                          chosenItems: chosenItems,
+                          finalSum: finalSum,
                           controller: searchController,
                           multiply: _handleMultiply,
                           quantity: itemQuantity),
