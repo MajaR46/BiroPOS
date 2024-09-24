@@ -46,7 +46,6 @@ class _EditItemScreenState extends State<EditItemScreen> {
         centerTitle: true,
       ),
       body: Stack(
-        // Ensure the body is a Stack
         children: [
           Padding(
             padding: const EdgeInsets.only(top: 32, left: 16, right: 16),

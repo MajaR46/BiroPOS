@@ -9,6 +9,7 @@ class Keyboard extends StatelessWidget {
   final double quantity;
   final Function(double result) multiply;
   final VoidCallback navigateToRacun;
+  final VoidCallback navigateToMizaScreen;
   final dynamic selectedItem;
   final double finalSum;
   final List<dynamic> chosenItems;
@@ -21,7 +22,8 @@ class Keyboard extends StatelessWidget {
       required this.selectedItem,
       required this.finalSum,
       required this.chosenItems,
-      required this.navigateToRacun});
+      required this.navigateToRacun,
+      required this.navigateToMizaScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +135,7 @@ class Keyboard extends StatelessWidget {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.darkPurple,
                     text: "MIZA",
-                    onPressed: () {}),
+                    onPressed: navigateToMizaScreen),
               ),
               Padding(
                 padding: const EdgeInsets.all(2.0),

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
+import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -146,6 +148,16 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
           chosenItems[i]['quantity'] = updatedQuantities[i];
         }
       });
+    }
+  }
+
+  void _navigateToMizaScreen() async {
+    if (chosenItems.isNotEmpty) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => AddToTableScreen()));
+    } else {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => OpenTablesScreen()));
     }
   }
 
@@ -421,6 +433,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                       alignment: Alignment.bottomCenter,
                       child: Keyboard(
                           navigateToRacun: _navigateToRacunScreen,
+                          navigateToMizaScreen: _navigateToMizaScreen,
                           selectedItem: selectedItem,
                           chosenItems: chosenItems,
                           finalSum: finalSum,

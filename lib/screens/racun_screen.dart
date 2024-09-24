@@ -280,7 +280,7 @@ class _RacunScreenState extends State<RacunScreen> {
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: Text('${item['price'].toString()}€',
-                                style: AppStyles.boldanparagraph1),
+                                style: AppStyles.heading3),
                           ),
                         ],
                       ),
