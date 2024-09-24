@@ -10,14 +10,18 @@ class OKButton extends StatelessWidget {
     return Positioned(
       bottom: 16.0,
       right: 16.0, //
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppStyles.blue,
-        ),
-        child: Text(
-          'OK',
-          style: AppStyles.button1.copyWith(color: AppStyles.white),
+      child: SizedBox(
+        height: 50,
+        width: 80,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppStyles.blue,
+          ),
+          child: Text(
+            'OK',
+            style: AppStyles.button1.copyWith(color: AppStyles.white),
+          ),
         ),
       ),
     );

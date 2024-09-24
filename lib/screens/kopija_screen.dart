@@ -23,7 +23,7 @@ class _KopijaScreenState extends State<KopijaScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            "Storno računa",
+            "Kopija računa",
             style: AppStyles.heading3.copyWith(color: AppStyles.black),
           ),
           centerTitle: true,
@@ -69,11 +69,7 @@ class _KopijaScreenState extends State<KopijaScreen> {
                 const SizedBox(height: 32),
               ],
             ),
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: OKButton(onPressed: () {}),
-            ),
+            OKButton(onPressed: () {}),
           ],
         ),
       ),

@@ -1,4 +1,6 @@
+import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
+import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/widgets.dart';
@@ -23,16 +25,18 @@ class RacunScreen extends StatefulWidget {
 
 class _RacunScreenState extends State<RacunScreen> {
   late double finalSum;
+  double _totalDiscount = 0.0;
   late List<dynamic> chosenItems;
+  final TextEditingController discountController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     finalSum = widget.finalSum;
     chosenItems = widget.chosenItems;
+    _updateFinalSum();
   }
 
-  // Function to handle quantity changes
   void _handleQuantityChange(double newQuantity, int index) {
     setState(() {
       chosenItems[index]['quantity'] = newQuantity;
@@ -40,18 +44,185 @@ class _RacunScreenState extends State<RacunScreen> {
     });
   }
 
-  // Function to update the final sum based on item quantities and prices
+  void _removeItem(int index) {
+    setState(() {
+      chosenItems.removeAt(index);
+      _updateFinalSum();
+    });
+  }
+
+// Updated _navigateToEdit function to check for null values
+  void _navigateToEdit(int index) async {
+    var item = chosenItems[index];
+    String itemName = item['name'] ?? 'Unknown'; // Provide a fallback for null
+    double itemPrice = item['price'] ?? 0;
+    double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditItemScreen(
+          itemName: itemName,
+          itemDiscountedPrice: itemDiscountedPrice,
+        ),
+      ),
+    );
+
+    if (result != null && result['opis'] != null) {
+      setState(() {
+        chosenItems[index]['opis'] = result['opis'] ?? ''; // Handle null safely
+      });
+    }
+  }
+
+  double totalDiscount = 0;
+
   void _updateFinalSum() {
     double newFinalSum = 0;
+    double totalDiscount = 0;
 
     for (var item in chosenItems) {
-      double itemTotal = item['quantity'] * (item['price'] ?? 0);
-      newFinalSum += itemTotal;
+      double itemQuantity = item['quantity'] ?? 1;
+      double itemPrice = item['price'] ?? 0;
+
+      double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
+
+      newFinalSum += itemDiscountedPrice * itemQuantity;
+
+      double itemDiscountValue =
+          (itemPrice - itemDiscountedPrice) * itemQuantity;
+
+      totalDiscount += itemDiscountValue;
     }
 
     setState(() {
       finalSum = newFinalSum;
+      _totalDiscount = totalDiscount;
     });
+  }
+
+  void _clearText() {
+    discountController.clear();
+  }
+
+  void _submit(int? index, bool isFinalDiscount, [double? discount]) {
+    if (isFinalDiscount) {
+      double finalDiscount = discount ?? 0;
+
+      double finalDiscountPercentage = finalDiscount / 100;
+
+      setState(() {
+        for (var item in chosenItems) {
+          if (item['discountedPrice'] == null) {
+            double itemPrice = item['price'] ?? 0;
+            item['discountedPrice'] = itemPrice * (1 - finalDiscountPercentage);
+          }
+        }
+        _updateFinalSum();
+      });
+      Navigator.of(context).pop();
+      return;
+    }
+
+    // Item-specific discount logic
+    double itemDiscount = 0;
+
+    if (discountController.text.isNotEmpty) {
+      try {
+        itemDiscount = double.parse(discountController.text);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Please enter a valid number for discount")),
+        );
+        return;
+      }
+    }
+
+    if (index != null) {
+      var item = chosenItems[index];
+      double itemPrice = item['price'] ?? 0;
+      double itemQuantity = item['quantity'] ?? 1;
+
+      double itemTotal = itemPrice * itemQuantity;
+      double discountedPrice =
+          itemTotal * (1 - (itemDiscount / 100)) / itemQuantity;
+
+      setState(() {
+        chosenItems[index]['discountedPrice'] = discountedPrice;
+        _updateFinalSum();
+      });
+    }
+
+    Navigator.of(context).pop(); // Close the dialog
+  }
+
+  Future openDialog(int? index, bool isFinalDiscount, [double? discount]) {
+    // če urejamo popust za posamezen izdelek
+    if (index != null && !isFinalDiscount) {
+      var item = chosenItems[index];
+
+      // Če ima izdelek poseben popust
+      if (item['discountedPrice'] != null) {
+        double originalPrice = item['price'] ?? 0;
+        double discountedPrice = item['discountedPrice'] ?? originalPrice;
+        double discountPercentage =
+            100 - ((discountedPrice / originalPrice) * 100);
+
+        discountController.text = discountPercentage.toStringAsFixed(0);
+      } else if (discount != null) {
+        // Če ne, prikaži popust za celoten nakup (finalSUm)
+        double globalDiscountPercentage =
+            100 - (finalSum / (finalSum / (1 - discount! / 100)));
+        discountController.text = globalDiscountPercentage.toString();
+      }
+    }
+
+    if (isFinalDiscount && discount != null) {
+      discountController.text = discount.toString();
+    }
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppStyles.white,
+        title: const Text(
+          textAlign: TextAlign.center,
+          "Popust",
+          style: AppStyles.heading2,
+        ),
+        content: TextField(
+          controller: discountController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppStyles.silver.withOpacity(0.1),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearText,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _submit(index, isFinalDiscount,
+                  double.tryParse(discountController.text));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppStyles.blue,
+            ),
+            child: Text("OK",
+                style: AppStyles.button1.copyWith(color: AppStyles.white)),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
   }
 
   @override
@@ -67,10 +238,8 @@ class _RacunScreenState extends State<RacunScreen> {
             'updatedFinalSum': finalSum,
           }),
         ),
-        title: Text(
-          "Račun",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
-        ),
+        title: Text("Račun",
+            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
       ),
       body: Column(
@@ -84,42 +253,68 @@ class _RacunScreenState extends State<RacunScreen> {
                 final item = chosenItems[index];
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16.0,
+                  ),
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item['name'],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item['name'],
+                                    style: AppStyles.boldanparagraph1),
+                                Text(
+                                  item['opis'] != null
+                                      ? item['opis'].toString()
+                                      : '',
+                                  style: AppStyles.paragraph4
+                                      .copyWith(fontStyle: FontStyle.italic),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text('${item['price'].toString()}€',
                                 style: AppStyles.boldanparagraph1),
-                            Text('${item['price'].toString()}€',
-                                style: AppStyles.paragraph4),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      IconButton.filled(
-                        style: IconButton.styleFrom(
-                            backgroundColor: AppStyles.blue),
-                        onPressed: () {},
-                        icon: const Icon(Icons.edit),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: IconButton.filled(
-                          style: IconButton.styleFrom(
-                              backgroundColor: AppStyles.darkGreen),
-                          onPressed: () {},
-                          icon: const Icon(Icons.percent),
-                        ),
-                      ),
-                      QuantityIncrease(
-                        quantity: item['quantity'],
-                        onQuantityChanged: (newQuantity) {
-                          _handleQuantityChange(newQuantity, index);
-                        },
-                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                                backgroundColor: AppStyles.blue),
+                            onPressed: () => _navigateToEdit(index),
+                            icon: const Icon(Icons.edit),
+                          ),
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                                backgroundColor: AppStyles.darkGreen),
+                            onPressed: () {
+                              openDialog(index, false);
+                            },
+                            icon: const Icon(Icons.percent),
+                          ),
+                          IconButton.filled(
+                              style: IconButton.styleFrom(
+                                  backgroundColor: AppStyles.red),
+                              onPressed: () => _removeItem(index),
+                              icon: const Icon(Icons.delete)),
+                          Spacer(),
+                          QuantityIncrease(
+                            quantity: item['quantity'],
+                            onQuantityChanged: (newQuantity) {
+                              _handleQuantityChange(newQuantity, index);
+                            },
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 );
@@ -132,7 +327,7 @@ class _RacunScreenState extends State<RacunScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
                   child: Row(
                     children: [
                       Text(
@@ -142,7 +337,9 @@ class _RacunScreenState extends State<RacunScreen> {
                       ),
                       const Spacer(),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _submit(null, true, 5);
+                        },
                         child: Text("5%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
@@ -155,7 +352,9 @@ class _RacunScreenState extends State<RacunScreen> {
                       ),
                       const SizedBox(width: 4),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _submit(null, true, 10);
+                        },
                         child: Text("10%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
@@ -170,7 +369,9 @@ class _RacunScreenState extends State<RacunScreen> {
                         width: 4,
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          _submit(null, true, 15);
+                        },
                         child: Text("15%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
@@ -185,7 +386,9 @@ class _RacunScreenState extends State<RacunScreen> {
                         width: 4,
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          openDialog(null, true);
+                        },
                         child: Text("?%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
@@ -199,15 +402,28 @@ class _RacunScreenState extends State<RacunScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Text(
+                        "Vrednost popusta: ",
+                      ),
+                      const Spacer(),
+                      Text(_totalDiscount.toStringAsFixed(2) + ' €')
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
                   child: Row(
                     children: [
                       const Text("SKUPAJ:", style: AppStyles.heading3),
                       const Spacer(),
                       Text(
-                        '$finalSum €',
+                        finalSum.toStringAsFixed(2) + ' €',
                         style: AppStyles.cardItemName.copyWith(
                             color: AppStyles.black,
                             fontWeight: FontWeight.normal),
@@ -215,7 +431,7 @@ class _RacunScreenState extends State<RacunScreen> {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 ),
                 Padding(
@@ -261,7 +477,7 @@ class _RacunScreenState extends State<RacunScreen> {
                     ],
                   ),
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 16,
                 )
               ],
