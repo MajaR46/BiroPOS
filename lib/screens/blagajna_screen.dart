@@ -4,6 +4,7 @@ import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
+import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -49,22 +50,8 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   void _ouputselectedItem(dynamic outputtedItem) {
     setState(() {
-      bool isNewItem = true;
+      itemQuantity = 1;
 
-      for (var item in chosenItems) {
-        if (item['name'] == outputtedItem['name']) {
-          //ali item že obstaja v chosenItems
-          isNewItem = false; //to pomen da je novi item
-          break;
-        }
-      }
-
-      // If it's a new item, reset the itemQuantity to 1
-      if (isNewItem) {
-        itemQuantity = 1;
-      }
-
-      // Now handle the item, add or update in chosenItems list
       bool itemExists = false;
 
       // Check if the item is already in the list
@@ -72,7 +59,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         if (item['name'] == outputtedItem['name']) {
           // Item already exists, update its quantity
           itemExists = true;
-          item['quantity'] = itemQuantity; // Update the quantity in chosenItems
+          item['quantity'] = itemQuantity;
           break;
         }
       }
@@ -86,10 +73,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         });
       }
 
-      // Update the selectedItem
       selectedItem = outputtedItem;
-
-      // Recalculate the total sum after the changes
       _updateFinalSum();
     });
   }
@@ -97,21 +81,19 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   void _updateFinalSum() {
     double newFinalSum = 0;
 
-    // Recalculate final sum based on chosen items and their quantities
     for (var item in chosenItems) {
       double itemTotal = item['quantity'] * (item['price'] ?? 0);
       newFinalSum += itemTotal;
     }
 
     setState(() {
-      finalSum = newFinalSum; // Update finalSum with the new total
+      finalSum = newFinalSum;
     });
   }
 
   void _handleMultiply(double result) {
     setState(() {
       itemQuantity = result;
-      print('Result : ${result}');
 
       if (selectedItem != null) {
         for (var item in chosenItems) {
@@ -123,42 +105,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         _updateFinalSum();
       }
     });
-  }
-
-  void _navigateToRacunScreen() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RacunScreen(
-          selectedItem: selectedItem,
-          itemQuantity: itemQuantity,
-          finalSum: finalSum,
-          chosenItems: chosenItems,
-        ),
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        List<double> updatedQuantities =
-            List<double>.from(result['updatedQuantity']);
-        finalSum = result['updatedFinalSum'];
-
-        for (int i = 0; i < chosenItems.length; i++) {
-          chosenItems[i]['quantity'] = updatedQuantities[i];
-        }
-      });
-    }
-  }
-
-  void _navigateToMizaScreen() async {
-    if (chosenItems.isNotEmpty) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => AddToTableScreen()));
-    } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => OpenTablesScreen()));
-    }
   }
 
   List<Color> backgroundColors = [
@@ -384,7 +330,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    print('item quantitiy ${itemQuantity}');
 
     return Scaffold(
       backgroundColor: AppStyles.grey,
@@ -421,7 +366,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                       child: _buildItemList(),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(bottom: 4.0),
+                      padding: const EdgeInsets.only(bottom: 4.0),
                       child: BlagajnaBanner(
                           chosenItem: selectedItem != null
                               ? selectedItem['name'] ?? ''
@@ -434,6 +379,8 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                       child: Keyboard(
                           navigateToRacun: _navigateToRacunScreen,
                           navigateToMizaScreen: _navigateToMizaScreen,
+                          navigateToNacinPlacilaScreen:
+                              _navigateToNacinPlacilaScreen,
                           selectedItem: selectedItem,
                           chosenItems: chosenItems,
                           finalSum: finalSum,
@@ -444,5 +391,67 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                   ],
                 ),
     );
+  }
+
+  /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
+  void _navigateToRacunScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RacunScreen(
+          selectedItem: selectedItem,
+          itemQuantity: itemQuantity,
+          finalSum: finalSum,
+          chosenItems: chosenItems,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        List<double> updatedQuantities =
+            List<double>.from(result['updatedQuantity']);
+        finalSum = result['updatedFinalSum'];
+
+        for (int i = 0; i < chosenItems.length; i++) {
+          chosenItems[i]['quantity'] = updatedQuantities[i];
+        }
+      });
+    }
+  }
+
+  void _navigateToMizaScreen() async {
+    if (chosenItems.isNotEmpty) {
+      double currentFinalSum = finalSum;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AddToTableScreen(
+            finalSum: currentFinalSum,
+          ),
+        ),
+      ).then((_) {
+        setState(() {
+          chosenItems.clear();
+          finalSum = 0.0;
+          selectedItem = null;
+        });
+      });
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const OpenTablesScreen(),
+        ),
+      );
+    }
+  }
+
+  void _navigateToNacinPlacilaScreen() async {
+    final result = Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
   }
 }

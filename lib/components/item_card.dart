@@ -33,7 +33,7 @@ class ItemCard extends StatelessWidget {
                   style: AppStyles.paragraph3
                       .copyWith(fontWeight: FontWeight.bold)),
             ),
-            Text('${itemPrice.toString()}\€', style: AppStyles.paragraph4),
+            Text('${itemPrice.toString()} €', style: AppStyles.paragraph4),
             const SizedBox(
               height: 2,
             ),

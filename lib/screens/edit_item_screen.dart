@@ -1,9 +1,6 @@
 import 'package:biro_pos/components/ok_button.dart';
-import 'package:biro_pos/screens/api_key_screen.dart';
-import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:flutter/widgets.dart';
 
 class EditItemScreen extends StatefulWidget {
   final String itemName;
@@ -60,9 +57,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
                     child: Row(
                       children: [
                         Text(widget.itemName, style: AppStyles.heading3),
-                        Spacer(),
+                        const Spacer(),
                         Text(
-                          widget.itemDiscountedPrice.toStringAsFixed(2) + ' €',
+                          '${widget.itemDiscountedPrice.toStringAsFixed(2)} €',
                           style: AppStyles.heading3
                               .copyWith(fontWeight: FontWeight.normal),
                         ),
@@ -201,10 +198,16 @@ class _EditItemScreenState extends State<EditItemScreen> {
               ],
             ),
           ),
-          OKButton(onPressed: () {
-            final result = {'opis': itemOpis.join(' ')};
-            Navigator.of(context).pop(result);
-          }),
+          Padding(
+            padding: const EdgeInsets.only(right: 16, bottom: 32),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: OKButton(onPressed: () {
+                final result = {'opis': itemOpis.join(' ')};
+                Navigator.of(context).pop(result);
+              }),
+            ),
+          ),
         ],
       ),
     );

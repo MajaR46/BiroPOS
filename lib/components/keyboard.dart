@@ -10,6 +10,7 @@ class Keyboard extends StatelessWidget {
   final Function(double result) multiply;
   final VoidCallback navigateToRacun;
   final VoidCallback navigateToMizaScreen;
+  final VoidCallback navigateToNacinPlacilaScreen;
   final dynamic selectedItem;
   final double finalSum;
   final List<dynamic> chosenItems;
@@ -23,7 +24,8 @@ class Keyboard extends StatelessWidget {
       required this.finalSum,
       required this.chosenItems,
       required this.navigateToRacun,
-      required this.navigateToMizaScreen});
+      required this.navigateToMizaScreen,
+      required this.navigateToNacinPlacilaScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +144,7 @@ class Keyboard extends StatelessWidget {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.darkGreen,
                     text: "OK",
-                    onPressed: () {}),
+                    onPressed: navigateToNacinPlacilaScreen),
               )
             ],
           )
@@ -156,7 +158,8 @@ class KeyboardNumber extends StatefulWidget {
   final String number;
   final TextEditingController controller;
 
-  const KeyboardNumber({required this.number, required this.controller});
+  const KeyboardNumber(
+      {Key? key, required this.number, required this.controller});
 
   @override
   State<KeyboardNumber> createState() => _KeyboardNumberState();

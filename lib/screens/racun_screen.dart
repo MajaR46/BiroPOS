@@ -1,9 +1,8 @@
-import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
+import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:flutter/widgets.dart';
 
 class RacunScreen extends StatefulWidget {
   final dynamic selectedItem;
@@ -11,7 +10,7 @@ class RacunScreen extends StatefulWidget {
   final double finalSum;
   final List<dynamic> chosenItems;
 
-  RacunScreen({
+  const RacunScreen({
     Key? key,
     required this.selectedItem,
     required this.itemQuantity,
@@ -51,10 +50,9 @@ class _RacunScreenState extends State<RacunScreen> {
     });
   }
 
-// Updated _navigateToEdit function to check for null values
   void _navigateToEdit(int index) async {
     var item = chosenItems[index];
-    String itemName = item['name'] ?? 'Unknown'; // Provide a fallback for null
+    String itemName = item['name'] ?? 'Unknown';
     double itemPrice = item['price'] ?? 0;
     double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
 
@@ -70,7 +68,7 @@ class _RacunScreenState extends State<RacunScreen> {
 
     if (result != null && result['opis'] != null) {
       setState(() {
-        chosenItems[index]['opis'] = result['opis'] ?? ''; // Handle null safely
+        chosenItems[index]['opis'] = result['opis'] ?? '';
       });
     }
   }
@@ -108,19 +106,16 @@ class _RacunScreenState extends State<RacunScreen> {
   void _submit(int? index, bool isFinalDiscount, [double? discount]) {
     if (isFinalDiscount) {
       double finalDiscount = discount ?? 0;
-
       double finalDiscountPercentage = finalDiscount / 100;
 
       setState(() {
         for (var item in chosenItems) {
-          if (item['discountedPrice'] == null) {
-            double itemPrice = item['price'] ?? 0;
-            item['discountedPrice'] = itemPrice * (1 - finalDiscountPercentage);
-          }
+          double itemPrice = item['price'] ?? 0;
+          item['discountedPrice'] = itemPrice * (1 - finalDiscountPercentage);
         }
         _updateFinalSum();
       });
-      Navigator.of(context).pop();
+
       return;
     }
 
@@ -132,8 +127,7 @@ class _RacunScreenState extends State<RacunScreen> {
         itemDiscount = double.parse(discountController.text);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Please enter a valid number for discount")),
+          const SnackBar(content: Text("Vnesi popust")),
         );
         return;
       }
@@ -149,12 +143,12 @@ class _RacunScreenState extends State<RacunScreen> {
           itemTotal * (1 - (itemDiscount / 100)) / itemQuantity;
 
       setState(() {
-        chosenItems[index]['discountedPrice'] = discountedPrice;
+        item['discountedPrice'] = discountedPrice;
         _updateFinalSum();
       });
     }
 
-    Navigator.of(context).pop(); // Close the dialog
+    // Close the dialog
   }
 
   Future openDialog(int? index, bool isFinalDiscount, [double? discount]) {
@@ -173,7 +167,7 @@ class _RacunScreenState extends State<RacunScreen> {
       } else if (discount != null) {
         // Če ne, prikaži popust za celoten nakup (finalSUm)
         double globalDiscountPercentage =
-            100 - (finalSum / (finalSum / (1 - discount! / 100)));
+            100 - (finalSum / (finalSum / (1 - discount / 100)));
         discountController.text = globalDiscountPercentage.toString();
       }
     }
@@ -212,6 +206,7 @@ class _RacunScreenState extends State<RacunScreen> {
             onPressed: () {
               _submit(index, isFinalDiscount,
                   double.tryParse(discountController.text));
+              Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppStyles.blue,
@@ -306,7 +301,7 @@ class _RacunScreenState extends State<RacunScreen> {
                                   backgroundColor: AppStyles.red),
                               onPressed: () => _removeItem(index),
                               icon: const Icon(Icons.delete)),
-                          Spacer(),
+                          const Spacer(),
                           QuantityIncrease(
                             quantity: item['quantity'],
                             onQuantityChanged: (newQuantity) {
@@ -340,30 +335,30 @@ class _RacunScreenState extends State<RacunScreen> {
                         onPressed: () {
                           _submit(null, true, 5);
                         },
-                        child: Text("5%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(50, 50),
                         ),
+                        child: Text("5%",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.black)),
                       ),
                       const SizedBox(width: 4),
                       ElevatedButton(
                         onPressed: () {
                           _submit(null, true, 10);
                         },
-                        child: Text("10%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(50, 50),
                         ),
+                        child: Text("10%",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.black)),
                       ),
                       const SizedBox(
                         width: 4,
@@ -372,15 +367,15 @@ class _RacunScreenState extends State<RacunScreen> {
                         onPressed: () {
                           _submit(null, true, 15);
                         },
-                        child: Text("15%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(50, 50),
                         ),
+                        child: Text("15%",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.black)),
                       ),
                       const SizedBox(
                         width: 4,
@@ -389,15 +384,15 @@ class _RacunScreenState extends State<RacunScreen> {
                         onPressed: () {
                           openDialog(null, true);
                         },
-                        child: Text("?%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(50, 50),
                         ),
+                        child: Text("?%",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.black)),
                       ),
                     ],
                   ),
@@ -411,7 +406,7 @@ class _RacunScreenState extends State<RacunScreen> {
                         "Vrednost popusta: ",
                       ),
                       const Spacer(),
-                      Text(_totalDiscount.toStringAsFixed(2) + ' €')
+                      Text('${_totalDiscount.toStringAsFixed(2)} €')
                     ],
                   ),
                 ),
@@ -423,7 +418,7 @@ class _RacunScreenState extends State<RacunScreen> {
                       const Text("SKUPAJ:", style: AppStyles.heading3),
                       const Spacer(),
                       Text(
-                        finalSum.toStringAsFixed(2) + ' €',
+                        '${finalSum.toStringAsFixed(2)} €',
                         style: AppStyles.cardItemName.copyWith(
                             color: AppStyles.black,
                             fontWeight: FontWeight.normal),
@@ -441,38 +436,38 @@ class _RacunScreenState extends State<RacunScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {},
-                        child: Text(
-                          "GOTOVINA",
-                          style: AppStyles.button2
-                              .copyWith(color: AppStyles.white),
-                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.darkOrange,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(100, 50),
                         ),
+                        child: Text(
+                          "GOTOVINA",
+                          style: AppStyles.button2
+                              .copyWith(color: AppStyles.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {},
-                        child: Text("KARTICA",
-                            style: AppStyles.button2
-                                .copyWith(color: AppStyles.white)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.red,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(100, 50),
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text("OSTALO",
+                        child: Text("KARTICA",
                             style: AppStyles.button2
                                 .copyWith(color: AppStyles.white)),
+                      ),
+                      ElevatedButton(
+                        onPressed: _navigateToNacinPlacilaScreen,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.blue,
                           padding: EdgeInsets.zero,
                           minimumSize: const Size(100, 50),
                         ),
+                        child: Text("OSTALO",
+                            style: AppStyles.button2
+                                .copyWith(color: AppStyles.white)),
                       ),
                     ],
                   ),
@@ -486,5 +481,12 @@ class _RacunScreenState extends State<RacunScreen> {
         ],
       ),
     );
+  }
+
+  void _navigateToNacinPlacilaScreen() async {
+    final result = Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
   }
 }

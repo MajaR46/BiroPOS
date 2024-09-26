@@ -1,6 +1,5 @@
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
-import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
@@ -122,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => TestScreen()));
+                              builder: (context) => const TestScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,

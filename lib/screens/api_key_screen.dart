@@ -155,8 +155,14 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
               ],
             ),
           ),
-          OKButton(
-            onPressed: () {},
+          Padding(
+            padding: const EdgeInsets.only(right: 16, bottom: 32),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: OKButton(
+                onPressed: () {},
+              ),
+            ),
           )
         ],
       ),

@@ -65,10 +65,17 @@ class _NewTableScreenState extends State<NewTableScreen> {
               const SizedBox(height: 32),
             ],
           ),
-          OKButton(onPressed: () {
-            String tableNumber = _newTableController.text;
-            Navigator.of(context).pop(tableNumber);
-          }),
+          Padding(
+            padding: const EdgeInsets.only(right: 16, bottom: 32),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: OKButton(onPressed: () {
+                // Pass the table number back to the previous screen
+                String tableNumber = _newTableController.text;
+                Navigator.of(context).pop(tableNumber);
+              }),
+            ),
+          ),
         ],
       ),
     );

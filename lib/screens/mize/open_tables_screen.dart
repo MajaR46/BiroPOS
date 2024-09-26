@@ -4,6 +4,7 @@ import 'package:biro_pos/app_styles.dart';
 class OpenTablesScreen extends StatefulWidget {
   const OpenTablesScreen({super.key});
 
+  @override
   State<OpenTablesScreen> createState() => _OpenTablesScreenState();
 }
 
@@ -21,7 +22,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
               style: AppStyles.heading3.copyWith(color: AppStyles.black)),
           centerTitle: true,
         ),
-        body: Center(
+        body: const Center(
           child: Text("To je screen za z odprtimi mizami"),
         ));
   }

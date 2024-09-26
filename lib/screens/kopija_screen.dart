@@ -69,7 +69,13 @@ class _KopijaScreenState extends State<KopijaScreen> {
                 const SizedBox(height: 32),
               ],
             ),
-            OKButton(onPressed: () {}),
+            Padding(
+              padding: const EdgeInsets.only(right: 16, bottom: 32),
+              child: Align(
+                alignment: Alignment.bottomRight,
+                child: OKButton(onPressed: () {}),
+              ),
+            ),
           ],
         ),
       ),
