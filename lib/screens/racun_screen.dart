@@ -11,12 +11,12 @@ class RacunScreen extends StatefulWidget {
   final List<dynamic> chosenItems;
 
   const RacunScreen({
-    Key? key,
+    super.key,
     required this.selectedItem,
     required this.itemQuantity,
     required this.finalSum,
     required this.chosenItems,
-  }) : super(key: key);
+  });
 
   @override
   State<RacunScreen> createState() => _RacunScreenState();
@@ -484,7 +484,7 @@ class _RacunScreenState extends State<RacunScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    final result = Navigator.push(
+    Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));

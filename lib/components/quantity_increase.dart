@@ -5,14 +5,14 @@ class QuantityIncrease extends StatefulWidget {
   final double quantity;
   final Function(double) onQuantityChanged;
 
-  QuantityIncrease(
+  const QuantityIncrease(
       {super.key, required this.quantity, required this.onQuantityChanged});
 
   @override
-  _QuantityIncreaseState createState() => _QuantityIncreaseState();
+  QuantityIncreaseState createState() => QuantityIncreaseState();
 }
 
-class _QuantityIncreaseState extends State<QuantityIncrease> {
+class QuantityIncreaseState extends State<QuantityIncrease> {
   late double _currentQuantity;
 
   @override

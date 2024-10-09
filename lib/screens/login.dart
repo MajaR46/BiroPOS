@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
@@ -37,6 +38,44 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       throw 'Could not launch $url';
     }
+  }
+
+  void _showEchoDialog(List<String> response) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text(
+              "Test povezave",
+              style: AppStyles.heading3,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Stanje: ${response[0].replaceAll('|', '')}'),
+                  Text('Datum in čas: ${response[1].replaceAll('|', '')}'),
+                  Text('Verzija: ${response[2].replaceAll('|', '')}')
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                  style: TextButton.styleFrom(foregroundColor: AppStyles.blue),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("OK"))
+            ],
+          );
+        });
+  }
+
+  void _handleTestConnection() async {
+    List<String> responseList = await sendRequest("1", "echo");
+
+    _showEchoDialog(responseList);
   }
 
   @override
@@ -117,12 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 80,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const TestScreen()));
-                    },
+                    onPressed: _handleTestConnection,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
                     ),
@@ -154,7 +188,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 80,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: _handleOKPressed,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TestScreen()));
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
                     ),

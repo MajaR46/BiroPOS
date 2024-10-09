@@ -1,11 +1,11 @@
-import 'package:biro_pos/screens/davcna_DOB_screen.dart';
+import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
 class NacinPlacilaScreen extends StatelessWidget {
   final double finalSum;
-  NacinPlacilaScreen({super.key, required this.finalSum});
+  const NacinPlacilaScreen({super.key, required this.finalSum});
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +132,7 @@ class NacinPlacilaScreen extends StatelessWidget {
                                 .copyWith(color: AppStyles.black),
                           )),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     SizedBox(
                       width: 150,
                       height: 60,

@@ -159,7 +159,7 @@ class KeyboardNumber extends StatefulWidget {
   final TextEditingController controller;
 
   const KeyboardNumber(
-      {Key? key, required this.number, required this.controller});
+      {super.key, required this.number, required this.controller});
 
   @override
   State<KeyboardNumber> createState() => _KeyboardNumberState();

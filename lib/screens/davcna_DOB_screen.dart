@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
 class DavcnaDOBScreen extends StatelessWidget {
-  final TextEditingController _DOBController = TextEditingController();
+  final TextEditingController _dobController = TextEditingController();
 
   DavcnaDOBScreen({
     super.key,
   });
 
   void _clearText() {
-    _DOBController.clear();
+    _dobController.clear();
   }
 
   @override
@@ -40,7 +40,7 @@ class DavcnaDOBScreen extends StatelessWidget {
             SizedBox(
               width: 300,
               child: TextField(
-                controller: _DOBController,
+                controller: _dobController,
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(
                   filled: true,
@@ -59,7 +59,7 @@ class DavcnaDOBScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            Numpad(controller: _DOBController, onOKPressed: () {})
+            Numpad(controller: _dobController, onOKPressed: () {})
           ],
         ),
       ),
