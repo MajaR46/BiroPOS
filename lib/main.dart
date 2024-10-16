@@ -1,8 +1,11 @@
+import 'package:biro_pos/controllers/ble_controller.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ChangeNotifierProvider(
+      create: (context) => BleProvider(), child: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {

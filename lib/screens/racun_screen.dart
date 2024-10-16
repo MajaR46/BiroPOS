@@ -53,7 +53,8 @@ class _RacunScreenState extends State<RacunScreen> {
   void _navigateToEdit(int index) async {
     var item = chosenItems[index];
     String itemName = item['name'] ?? 'Unknown';
-    double itemPrice = item['price'] ?? 0;
+    double itemPrice =
+        double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
     double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
 
     final result = await Navigator.push(
@@ -81,9 +82,13 @@ class _RacunScreenState extends State<RacunScreen> {
 
     for (var item in chosenItems) {
       double itemQuantity = item['quantity'] ?? 1;
-      double itemPrice = item['price'] ?? 0;
 
-      double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
+      double itemPrice =
+          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0.0;
+
+      double itemDiscountedPrice = double.tryParse(
+              item['discountedPrice'].toString().replaceAll(',', '.')) ??
+          itemPrice;
 
       newFinalSum += itemDiscountedPrice * itemQuantity;
 
@@ -110,7 +115,9 @@ class _RacunScreenState extends State<RacunScreen> {
 
       setState(() {
         for (var item in chosenItems) {
-          double itemPrice = item['price'] ?? 0;
+          double itemPrice =
+              double.tryParse(item['price'].toString().replaceAll(',', '.')) ??
+                  0;
           item['discountedPrice'] = itemPrice * (1 - finalDiscountPercentage);
         }
         _updateFinalSum();
@@ -135,7 +142,8 @@ class _RacunScreenState extends State<RacunScreen> {
 
     if (index != null) {
       var item = chosenItems[index];
-      double itemPrice = item['price'] ?? 0;
+      double itemPrice =
+          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
       double itemQuantity = item['quantity'] ?? 1;
 
       double itemTotal = itemPrice * itemQuantity;
@@ -158,7 +166,8 @@ class _RacunScreenState extends State<RacunScreen> {
 
       // Če ima izdelek poseben popust
       if (item['discountedPrice'] != null) {
-        double originalPrice = item['price'] ?? 0;
+        double originalPrice =
+            double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
         double discountedPrice = item['discountedPrice'] ?? originalPrice;
         double discountPercentage =
             100 - ((discountedPrice / originalPrice) * 100);

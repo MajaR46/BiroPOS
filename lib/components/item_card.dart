@@ -3,7 +3,7 @@ import 'package:biro_pos/app_styles.dart';
 
 class ItemCard extends StatelessWidget {
   final String itemName;
-  final double itemPrice;
+  final String itemPrice;
   final String itemCategory;
   final Color backgroundColor;
   final Color textColor;

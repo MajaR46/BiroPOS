@@ -1,4 +1,4 @@
-import 'package:biro_pos/components/klic.dart';
+import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("OK"))
+                  child: const Text("OK"))
             ],
           );
         });
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => TestScreen()));
+                              builder: (context) => const TestScreen()));
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,

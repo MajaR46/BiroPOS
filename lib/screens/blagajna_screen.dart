@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
@@ -12,6 +13,25 @@ import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
 
+enum ResponseCategory { izdelki, dodatki }
+
+abstract class ResponseItem {
+  final String ime;
+  final ResponseCategory kategorija;
+
+  ResponseItem(this.ime, this.kategorija);
+
+  @override
+  String toString() {
+    return ime;
+  }
+}
+
+class Izdelek extends ResponseItem {
+  final String cena;
+  Izdelek(String ime, this.cena) : super(ime, ResponseCategory.izdelki);
+}
+
 class BlagajnaScreen extends StatefulWidget {
   const BlagajnaScreen({super.key});
 
@@ -21,7 +41,7 @@ class BlagajnaScreen extends StatefulWidget {
 
 class _BlagajnaScreenState extends State<BlagajnaScreen> {
   final DateTime currentDate = DateTime.now();
-  late List<dynamic> cafeItems;
+  //late List<dynamic> cafeItems;
   bool isLoading = true;
   bool hasError = false;
   Map<String, List<dynamic>> categorizedItems = {};
@@ -32,11 +52,12 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   double sum = 0;
   double finalSum = 0;
   late List<dynamic> chosenItems = [];
+  List<Izdelek> izdelki = [];
 
   @override
   void initState() {
     super.initState();
-    loadCafeItems();
+    _handleData();
     searchController.addListener(() {
       setState(() {});
     });
@@ -46,6 +67,56 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleData() async {
+    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+    print("Data fetched: $apiResponseList");
+
+    _categorizeResponseItems(apiResponseList);
+  }
+
+  void _categorizeResponseItems(List<String> items) {
+    List<Izdelek> izdelki2 = [];
+    Map<String, List<dynamic>> categorized = {};
+
+    for (String item in items) {
+      if (item.startsWith('1')) {
+        String imeIzdelka = item.split('|')[2];
+        String cena = item.split('|')[3];
+        String HHcena = item.split('|')[4];
+        String podkategorija = item.split('|')[5];
+        String eanKoda = item.split('|')[6];
+        Izdelek newIzdelek = Izdelek(imeIzdelka, cena);
+
+        // Add to the izdelki2 list
+        izdelki2.add(newIzdelek);
+
+        // Categorize the item
+        if (categorized.containsKey(podkategorija)) {
+          categorized[podkategorija]!.add({
+            'name': imeIzdelka,
+            'price': cena,
+            'category': podkategorija,
+          });
+        } else {
+          categorized[podkategorija] = [
+            {
+              'name': imeIzdelka,
+              'price': cena,
+              'category': podkategorija,
+            }
+          ];
+        }
+      }
+    }
+
+    // Update state with categorized items
+    setState(() {
+      izdelki = izdelki2;
+      categorizedItems = categorized;
+      isLoading = false;
+    });
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
@@ -82,9 +153,20 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
     double newFinalSum = 0;
 
     for (var item in chosenItems) {
-      double itemTotal = item['quantity'] * (item['price'] ?? 0);
+      print(
+          "Item: ${item['name']}, Price: ${item['price']},  Quantity: ${item['quantity']}");
+
+      double price =
+          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
+      double quantity = item['quantity'] is num
+          ? item['quantity']
+          : double.tryParse(item['quantity'].toString()) ?? 0;
+
+      double itemTotal = quantity * price;
       newFinalSum += itemTotal;
+      print("Item Total: $itemTotal");
     }
+    print("Final Sum: $newFinalSum finalsumtype: ${newFinalSum.runtimeType}");
 
     setState(() {
       finalSum = newFinalSum;
@@ -123,7 +205,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
     AppStyles.darkPurple
   ];
 
-  Future<void> loadCafeItems() async {
+  /*  Future<void> loadCafeItems() async {
     try {
       String jsonString = await rootBundle.loadString('assets/cafe_items.json');
       List<dynamic> items = jsonDecode(jsonString);
@@ -138,7 +220,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         isLoading = false;
       });
     }
-  }
+  } */
 
   Map<String, List<dynamic>> _categorizeItems(List<dynamic> items) {
     Map<String, List<dynamic>> categories = {};
@@ -157,14 +239,18 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   List<dynamic> _getFilteredItems() {
     List<dynamic> filteredItems = [];
 
-    // filtriraj po kategoriji
+    // Filter by category
     if (selectedCategory == "Vse") {
-      filteredItems = cafeItems;
+      // Combine all items if "Vse" (All) is selected
+      for (var categoryItems in categorizedItems.values) {
+        filteredItems.addAll(categoryItems);
+      }
     } else {
+      // Get items for the selected category
       filteredItems = categorizedItems[selectedCategory] ?? [];
     }
 
-    //filtriraj po searchu
+    // Filter by search query
     String searchQuery = searchController.text.toUpperCase();
 
     searchQuery = searchQuery.replaceAll(RegExp(r'\d'), '');
@@ -283,7 +369,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                           onTap: () => _ouputselectedItem(item),
                           child: ItemCard(
                             itemName: item['name'],
-                            itemPrice: item['price'],
+                            itemPrice: item['price'].toString(),
                             itemCategory: item['category'],
                             backgroundColor: assignedBackgroundColor,
                             textColor: assignedTextColor,
@@ -330,6 +416,8 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+    print("final sum type1: ${finalSum.runtimeType}");
+    print("quantity type ${itemQuantity.runtimeType}");
 
     return Scaffold(
       backgroundColor: AppStyles.grey,
@@ -395,6 +483,9 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
   void _navigateToRacunScreen() async {
+    print("final sum type2: ${finalSum.runtimeType}");
+    print("quantity2 type ${itemQuantity.runtimeType}");
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -406,7 +497,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         ),
       ),
     );
-
     if (result != null) {
       setState(() {
         List<double> updatedQuantities =
