@@ -1,5 +1,7 @@
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
+import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -9,6 +11,17 @@ class MeniScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoggedIn = SessionManager().isLoggedIn();
+    print(isLoggedIn);
+
+    void _logout() {
+      SessionManager().clearSession();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -107,7 +120,7 @@ class MeniScreen extends StatelessWidget {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () => _logout(),
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.red),
                   child: Text(

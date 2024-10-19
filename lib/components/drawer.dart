@@ -1,12 +1,29 @@
+import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 
-class CustomDrawer extends StatelessWidget {
+class CustomDrawer extends StatefulWidget {
   const CustomDrawer({super.key});
 
   @override
+  State<CustomDrawer> createState() => _CustomDrawerState();
+}
+
+class _CustomDrawerState extends State<CustomDrawer> {
+  void _logout() {
+    SessionManager().clearSession();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final String? user = SessionManager().getLoggedInUserName();
+
     return Drawer(
       child: Column(
         crossAxisAlignment:
@@ -15,7 +32,7 @@ class CustomDrawer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 64.0, left: 16.0),
             child: Text(
-              'Demo Blagajnk',
+              user!,
               style: AppStyles.heading2.copyWith(color: AppStyles.black),
             ),
           ),
@@ -47,7 +64,7 @@ class CustomDrawer extends StatelessWidget {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () => _logout(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.red,
                 ),

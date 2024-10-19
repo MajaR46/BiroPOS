@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:flutter/material.dart';
 
-enum ResponseCategory { izdelki, dodatki }
+enum ResponseCategory { izdelki, dodatki, osebje }
 
 abstract class ResponseItem {
   final String ime;
@@ -30,6 +30,11 @@ class Dodatek extends ResponseItem {
   Dodatek(String ime) : super(ime, ResponseCategory.dodatki);
 }
 
+class Osebje extends ResponseItem {
+  final String password;
+  Osebje(String ime, this.password) : super(ime, ResponseCategory.osebje);
+}
+
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
 
@@ -40,6 +45,7 @@ class TestScreen extends StatefulWidget {
 class _TestScreenState extends State<TestScreen> {
   List<Izdelek> izdelki = [];
   List<Dodatek> dodatki = [];
+  List<Osebje> osebje = [];
   String response = "";
 
   Future<void> _handleData() async {
@@ -52,6 +58,7 @@ class _TestScreenState extends State<TestScreen> {
   void _categoriseItems(List<String> items) {
     List<Izdelek> izdelki2 = [];
     List<Dodatek> dodatki2 = [];
+    List<Osebje> osebje2 = [];
 
     for (String item in items) {
       if (item.startsWith('1')) {
@@ -65,12 +72,17 @@ class _TestScreenState extends State<TestScreen> {
         String imeDodatka = item.split('|')[1];
         String kategorijaDodatka = item.split('|')[2];
         dodatki2.add(Dodatek(imeDodatka + kategorijaDodatka));
+      } else if (item.startsWith('4')) {
+        String userName = item.split('|')[2];
+        String password = item.split('|')[3];
+        osebje2.add(Osebje(userName, password));
       }
     }
 
     setState(() {
       izdelki = izdelki2;
       dodatki = dodatki2;
+      osebje = osebje2;
     });
   }
 
@@ -97,7 +109,11 @@ class _TestScreenState extends State<TestScreen> {
             ...izdelki.map((item) => Text(item.cena)).toList(),
             const SizedBox(height: 20),
             const Text('Dodatki'),
-            ...dodatki.map((item) => Text(item.toString())).toList()
+            ...dodatki.map((item) => Text(item.toString())).toList(),
+
+            const SizedBox(height: 20),
+            const Text('Osebje'),
+            ...osebje.map((item) => Text(item.password)).toList()
           ],
         ),
       ),

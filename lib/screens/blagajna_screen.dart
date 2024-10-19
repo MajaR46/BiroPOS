@@ -3,6 +3,7 @@ import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
@@ -164,9 +165,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
       double itemTotal = quantity * price;
       newFinalSum += itemTotal;
-      print("Item Total: $itemTotal");
     }
-    print("Final Sum: $newFinalSum finalsumtype: ${newFinalSum.runtimeType}");
 
     setState(() {
       finalSum = newFinalSum;
@@ -416,9 +415,10 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    print("final sum type1: ${finalSum.runtimeType}");
-    print("quantity type ${itemQuantity.runtimeType}");
-
+    final bool isLoggedIn = SessionManager().isLoggedIn();
+    final String? user = SessionManager().getLoggedInUserName();
+    print(user);
+    print(isLoggedIn);
     return Scaffold(
       backgroundColor: AppStyles.grey,
       appBar: AppBar(
@@ -483,9 +483,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
   void _navigateToRacunScreen() async {
-    print("final sum type2: ${finalSum.runtimeType}");
-    print("quantity2 type ${itemQuantity.runtimeType}");
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -519,6 +516,9 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         MaterialPageRoute(
           builder: (context) => AddToTableScreen(
             finalSum: currentFinalSum,
+            selectedItem: selectedItem,
+            itemQuantity: itemQuantity,
+            chosenItems: chosenItems,
           ),
         ),
       ).then((_) {

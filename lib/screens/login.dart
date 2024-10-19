@@ -1,11 +1,33 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+enum ResponseCategory { osebje }
+
+abstract class ResponseItem {
+  final String ime;
+  final ResponseCategory kategorija;
+
+  ResponseItem(this.ime, this.kategorija);
+
+  @override
+  String toString() {
+    return ime;
+  }
+}
+
+class Osebje extends ResponseItem {
+  final String password;
+  final String sfira;
+  Osebje(String ime, this.password, this.sfira)
+      : super(ime, ResponseCategory.osebje);
+}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,16 +39,59 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
+  List<Osebje> osebje = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _handleData();
+  }
+
+  Future<void> _handleData() async {
+    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+    _categorizeResponse(apiResponseList);
+  }
+
+  void _categorizeResponse(List<String> items) {
+    List<Osebje> osebje2 = [];
+
+    for (String item in items) {
+      if (item.startsWith('4')) {
+        String sifra = item.split('|')[1];
+        String username = item.split('|')[2];
+        String password = item.split('|')[3];
+
+        osebje2.add(Osebje(username, password, sifra));
+      }
+    }
+
+    setState(() {
+      osebje = osebje2;
+    });
+  }
 
   void _clearText() {
     _logininputcontroller.clear();
   }
 
   void _handleOKPressed() {
-    if (_logininputcontroller.text == "1") {
-      //TO DO: spremeni pogoj ko bo povezava na strežnik
+    final inputPassword = _logininputcontroller.text;
+    Osebje? matchedUser;
+
+    for (var user in osebje) {
+      if (user.password == inputPassword) {
+        matchedUser = user;
+        break;
+      }
+    }
+
+    if (matchedUser != null) {
+      SessionManager().saveSession(matchedUser.ime, matchedUser.sfira);
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => const MeniScreen()));
+    } else {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: const Text('Nepravilno geslo')));
     }
   }
 
@@ -80,6 +145,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isLoggedIn = SessionManager().isLoggedIn();
+    print(isLoggedIn);
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Padding(

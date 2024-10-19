@@ -1,11 +1,17 @@
 import 'package:biro_pos/controllers/ble_controller.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
-  runApp(ChangeNotifierProvider(
-      create: (context) => BleProvider(), child: const MyApp()));
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  await Hive.openBox('sessionBox');
+  Hive.box('sessionBox').clear();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -14,6 +20,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final bool loggedIn = SessionManager().isLoggedIn();
+    print(loggedIn);
     return const MaterialApp(
       home: LoginScreen(),
       debugShowCheckedModeBanner: false,
