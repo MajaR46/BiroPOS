@@ -1,6 +1,13 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/controllers/klic.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+
+class Dodatek {
+  final String ime;
+
+  Dodatek(this.ime);
+}
 
 class EditItemScreen extends StatefulWidget {
   final String itemName;
@@ -15,12 +22,45 @@ class EditItemScreen extends StatefulWidget {
 
 class _EditItemScreenState extends State<EditItemScreen> {
   final TextEditingController _opisController = TextEditingController();
-  final List<String> itemOpis = [];
+  List<String> itemOpis = [];
+  List<Dodatek> dodatki = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _handleData();
+  }
 
   void _updateTextField(String text) {
     setState(() {
       itemOpis.add(text);
       _opisController.text = itemOpis.join(' ');
+    });
+  }
+
+  Future<void> _handleData() async {
+    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+    print("Data fetched: $apiResponseList");
+
+    _categorizeResponseItems(apiResponseList);
+  }
+
+  void _categorizeResponseItems(List<String> items) {
+    List<Dodatek> dodatki2 = [];
+    Map<String, List<dynamic>> categorized = {};
+
+    for (String item in items) {
+      if (item.startsWith('D')) {
+        String imeDodatka = item.split('|')[1];
+
+        Dodatek newDodatek = Dodatek(imeDodatka);
+
+        dodatki2.add(newDodatek);
+      }
+    }
+
+    setState(() {
+      dodatki = dodatki2;
     });
   }
 
@@ -98,103 +138,38 @@ class _EditItemScreenState extends State<EditItemScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 32),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppStyles.blue,
-                            ),
-                            onPressed: () {
-                              _updateTextField("Z");
-                            },
-                            child: Text(
-                              "Z",
-                              style: AppStyles.button1
-                                  .copyWith(color: AppStyles.white),
-                            )),
-                      ),
-                      SizedBox(
-                        height: 50,
-                        width: 120,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppStyles.blue,
-                            ),
-                            onPressed: () {
-                              _updateTextField("Brez");
-                            },
-                            child: Text("Brez",
-                                style: AppStyles.button1
-                                    .copyWith(color: AppStyles.white))),
-                      ),
-                    ],
+                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
+                  child: SizedBox(
+                    height: 500,
+                    child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 300,
+                            childAspectRatio: 3,
+                            mainAxisSpacing: 16.0,
+                            crossAxisSpacing: 20.0),
+                        itemCount: dodatki.length,
+                        itemBuilder: (context, index) {
+                          return GestureDetector(
+                              onTap: () {
+                                _updateTextField(dodatki[index].ime);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppStyles.blue, // Background color
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.all(8),
+                                child: Center(
+                                  child: Text(
+                                    dodatki[index].ime,
+                                    style: AppStyles.button1
+                                        .copyWith(color: AppStyles.white),
+                                  ),
+                                ),
+                              ));
+                        }),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 64),
-                  child: Wrap(
-                    spacing: 30,
-                    runSpacing: 30,
-                    children: <Widget>[
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              _updateTextField("Sladkor");
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    AppStyles.silver.withOpacity(0.1),
-                                elevation: 0),
-                            child: Text(
-                              "Sladkor",
-                              style: AppStyles.button1
-                                  .copyWith(color: AppStyles.black),
-                            )),
-                      ),
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              _updateTextField("Mleko");
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    AppStyles.silver.withOpacity(0.1),
-                                elevation: 0),
-                            child: Text(
-                              "Mleko",
-                              style: AppStyles.button1
-                                  .copyWith(color: AppStyles.black),
-                            )),
-                      ),
-                      SizedBox(
-                        width: 120,
-                        height: 50,
-                        child: ElevatedButton(
-                            onPressed: () {
-                              _updateTextField("Smetana");
-                            },
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    AppStyles.silver.withOpacity(0.1),
-                                elevation: 0),
-                            child: Text(
-                              "Smetana",
-                              style: AppStyles.button1
-                                  .copyWith(color: AppStyles.black),
-                            )),
-                      ),
-                    ],
-                  ),
-                ),
+                )
               ],
             ),
           ),

@@ -3,7 +3,6 @@ import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
@@ -74,15 +73,30 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
     List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
     print("Data fetched: $apiResponseList");
 
-    _categorizeResponseItems(apiResponseList);
+    Map<String, String> itemToCategoryMap = {};
+
+    for (String line in apiResponseList) {
+      if (line.startsWith('T')) {
+        List<String> parts = line.split('|');
+        if (parts.length >= 3) {
+          String categoryName = parts[1];
+          String itemId = parts[2];
+          itemToCategoryMap[itemId] = categoryName;
+        }
+      }
+    }
+
+    _categorizeResponseItems(apiResponseList, itemToCategoryMap);
   }
 
-  void _categorizeResponseItems(List<String> items) {
+  void _categorizeResponseItems(
+      List<String> items, Map<String, String> itemToCategoryMap) {
     List<Izdelek> izdelki2 = [];
     Map<String, List<dynamic>> categorized = {};
 
     for (String item in items) {
       if (item.startsWith('1')) {
+        String izdelekId = item.split('|')[1];
         String imeIzdelka = item.split('|')[2];
         String cena = item.split('|')[3];
         String HHcena = item.split('|')[4];
@@ -90,24 +104,23 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         String eanKoda = item.split('|')[6];
         Izdelek newIzdelek = Izdelek(imeIzdelka, cena);
 
+        String? categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
         // Add to the izdelki2 list
         izdelki2.add(newIzdelek);
 
-        // Categorize the item
-        if (categorized.containsKey(podkategorija)) {
-          categorized[podkategorija]!.add({
-            'name': imeIzdelka,
-            'price': cena,
-            'category': podkategorija,
-          });
-        } else {
-          categorized[podkategorija] = [
-            {
-              'name': imeIzdelka,
-              'price': cena,
-              'category': podkategorija,
-            }
-          ];
+        if (categoryName != null) {
+          if (categorized.containsKey(categoryName)) {
+            categorized[categoryName]!.add(
+                {'name': imeIzdelka, 'price': cena, 'category': categoryName});
+          } else {
+            categorized[categoryName] = [
+              {
+                'name': imeIzdelka,
+                'price': cena,
+                'category': categoryName,
+              }
+            ];
+          }
         }
       }
     }
@@ -154,9 +167,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
     double newFinalSum = 0;
 
     for (var item in chosenItems) {
-      print(
-          "Item: ${item['name']}, Price: ${item['price']},  Quantity: ${item['quantity']}");
-
       double price =
           double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
       double quantity = item['quantity'] is num
@@ -415,10 +425,9 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    final bool isLoggedIn = SessionManager().isLoggedIn();
-    final String? user = SessionManager().getLoggedInUserName();
-    print(user);
-    print(isLoggedIn);
+    print("final sum type1: ${finalSum.runtimeType}");
+    print("quantity type ${itemQuantity.runtimeType}");
+
     return Scaffold(
       backgroundColor: AppStyles.grey,
       appBar: AppBar(
@@ -483,6 +492,9 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
   void _navigateToRacunScreen() async {
+    print("final sum type2: ${finalSum.runtimeType}");
+    print("quantity2 type ${itemQuantity.runtimeType}");
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(

@@ -1,4 +1,5 @@
 import 'package:biro_pos/components/quantity_increase.dart';
+import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
