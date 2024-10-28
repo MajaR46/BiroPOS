@@ -1,14 +1,13 @@
-import 'dart:convert';
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -28,8 +27,11 @@ abstract class ResponseItem {
 }
 
 class Izdelek extends ResponseItem {
+  final String izdelekID;
   final String cena;
-  Izdelek(String ime, this.cena) : super(ime, ResponseCategory.izdelki);
+
+  Izdelek(String ime, this.cena, this.izdelekID)
+      : super(ime, ResponseCategory.izdelki);
 }
 
 class BlagajnaScreen extends StatefulWidget {
@@ -51,6 +53,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   double itemQuantity = 1;
   double sum = 0;
   double finalSum = 0;
+  double discount = 0;
   late List<dynamic> chosenItems = [];
   List<Izdelek> izdelki = [];
 
@@ -71,7 +74,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   Future<void> _handleData() async {
     List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-    print("Data fetched: $apiResponseList");
 
     Map<String, String> itemToCategoryMap = {};
 
@@ -99,28 +101,31 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         String izdelekId = item.split('|')[1];
         String imeIzdelka = item.split('|')[2];
         String cena = item.split('|')[3];
-        String HHcena = item.split('|')[4];
+        String hhcena = item.split('|')[4];
         String podkategorija = item.split('|')[5];
         String eanKoda = item.split('|')[6];
-        Izdelek newIzdelek = Izdelek(imeIzdelka, cena);
+        Izdelek newIzdelek = Izdelek(imeIzdelka, cena, izdelekId);
 
         String? categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
         // Add to the izdelki2 list
         izdelki2.add(newIzdelek);
 
-        if (categoryName != null) {
-          if (categorized.containsKey(categoryName)) {
-            categorized[categoryName]!.add(
-                {'name': imeIzdelka, 'price': cena, 'category': categoryName});
-          } else {
-            categorized[categoryName] = [
-              {
-                'name': imeIzdelka,
-                'price': cena,
-                'category': categoryName,
-              }
-            ];
-          }
+        if (categorized.containsKey(categoryName)) {
+          categorized[categoryName]!.add({
+            'name': imeIzdelka,
+            'price': cena,
+            'category': categoryName,
+            'itemId': izdelekId
+          });
+        } else {
+          categorized[categoryName] = [
+            {
+              'name': imeIzdelka,
+              'price': cena,
+              'category': categoryName,
+              'itemId': izdelekId
+            }
+          ];
         }
       }
     }
@@ -155,6 +160,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
           'name': outputtedItem['name'],
           'price': outputtedItem['price'],
           'quantity': itemQuantity,
+          'itemId': outputtedItem['itemId']
         });
       }
 
@@ -375,10 +381,15 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                             textColors[categoryIndex % textColors.length];
 
                         return GestureDetector(
-                          onTap: () => _ouputselectedItem(item),
+                          onTap: () => _ouputselectedItem({
+                            'name': item['name'],
+                            'price': item['price'],
+                            'category': item['category'],
+                            'itemId': item['itemId'],
+                          }),
                           child: ItemCard(
                             itemName: item['name'],
-                            itemPrice: item['price'].toString(),
+                            itemPrice: item['price'],
                             itemCategory: item['category'],
                             backgroundColor: assignedBackgroundColor,
                             textColor: assignedTextColor,
@@ -425,8 +436,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    print("final sum type1: ${finalSum.runtimeType}");
-    print("quantity type ${itemQuantity.runtimeType}");
 
     return Scaffold(
       backgroundColor: AppStyles.grey,
@@ -492,8 +501,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
   void _navigateToRacunScreen() async {
-    print("final sum type2: ${finalSum.runtimeType}");
-    print("quantity2 type ${itemQuantity.runtimeType}");
+    print("chosen items: $chosenItems");
 
     final result = await Navigator.push(
       context,

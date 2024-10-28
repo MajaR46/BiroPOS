@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 enum ResponseCategory { izdelki, dodatki, osebje }
 
 class ResponseItem {

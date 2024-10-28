@@ -1,5 +1,5 @@
 import 'package:biro_pos/components/quantity_increase.dart';
-import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +35,38 @@ class _RacunScreenState extends State<RacunScreen> {
     finalSum = widget.finalSum;
     chosenItems = widget.chosenItems;
     _updateFinalSum();
+  }
+
+  _createOrder() {
+    String? userId = SessionManager().getLoggedInUserSifra();
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No user logged in!")),
+      );
+      return;
+    }
+
+    String table = "Test"; // Placeholder
+
+    List<String> narociloItems = chosenItems.map((item) {
+      String artikelSifra = item['itemId']?.toString() ?? '';
+      double kolicina = (item['quantity'] ?? 1.0).toDouble();
+
+      double originalPrice =
+          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0.0;
+      double cena = item['discountedPrice'] ?? originalPrice;
+
+      double popust = (originalPrice - cena) * kolicina;
+
+      String narociloItem =
+          '$userId\t$table\t$artikelSifra\t$kolicina\t$cena\t$popust\t${item['opis'] ?? ''}';
+      print("Narocilo item: $narociloItem");
+
+      return narociloItem;
+    }).toList();
+    print(narociloItems.toString());
+    //seznam elementov za račun
+    return (narociloItems.toString());
   }
 
   void _handleQuantityChange(double newQuantity, int index) {
@@ -445,7 +477,7 @@ class _RacunScreenState extends State<RacunScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _createOrder,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.darkOrange,
                           padding: EdgeInsets.zero,
@@ -499,4 +531,38 @@ class _RacunScreenState extends State<RacunScreen> {
         MaterialPageRoute(
             builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
   }
+}
+
+class NarociloItem {
+  final String artikelSifra;
+  final double kolicina;
+  final double cena;
+  final double popust;
+  final String opis;
+  final String kategorijaSifra;
+
+  NarociloItem({
+    required this.artikelSifra,
+    required this.kolicina,
+    required this.cena,
+    required this.popust,
+    required this.opis,
+    required this.kategorijaSifra,
+  });
+}
+
+class Narocilo {
+  final String uporabnikSifra;
+  final String oznakaMize;
+  final double skupnaCena;
+  final double skupniPopust;
+  final List<NarociloItem> items;
+
+  Narocilo({
+    required this.uporabnikSifra,
+    required this.oznakaMize,
+    required this.skupnaCena,
+    required this.skupniPopust,
+    required this.items,
+  });
 }

@@ -1,4 +1,6 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
@@ -11,9 +13,32 @@ class StornoScreen extends StatefulWidget {
 
 class _StornoScreenState extends State<StornoScreen> {
   final TextEditingController _stornoRacunController = TextEditingController();
+  final String? userSifra = SessionManager().getLoggedInUserSifra();
+  String? _apiResponse;
 
   void _clearText() {
     _stornoRacunController.clear();
+    setState(() {
+      _apiResponse = null; //
+    });
+  }
+
+  //to printaj
+  _handleData() async {
+    try {
+      String stRacuna = _stornoRacunController.text;
+
+      String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
+      List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
+      setState(() {
+        _apiResponse = apiResponse.join("\n");
+      });
+    } catch (e) {
+      print("Error fetching data: $e");
+      setState(() {
+        _apiResponse = 'Error fetching data';
+      });
+    }
   }
 
   @override
@@ -67,13 +92,14 @@ class _StornoScreenState extends State<StornoScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
+                if (_apiResponse != null) Text(_apiResponse!),
               ],
             ),
             Padding(
               padding: const EdgeInsets.only(right: 16, bottom: 32),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: () {}),
+                child: OKButton(onPressed: _handleData),
               ),
             ),
           ],

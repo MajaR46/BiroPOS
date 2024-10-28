@@ -40,14 +40,12 @@ class _EditItemScreenState extends State<EditItemScreen> {
 
   Future<void> _handleData() async {
     List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-    print("Data fetched: $apiResponseList");
 
     _categorizeResponseItems(apiResponseList);
   }
 
   void _categorizeResponseItems(List<String> items) {
     List<Dodatek> dodatki2 = [];
-    Map<String, List<dynamic>> categorized = {};
 
     for (String item in items) {
       if (item.startsWith('D')) {
@@ -142,11 +140,12 @@ class _EditItemScreenState extends State<EditItemScreen> {
                   child: SizedBox(
                     height: 500,
                     child: GridView.builder(
-                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 300,
-                            childAspectRatio: 3,
-                            mainAxisSpacing: 16.0,
-                            crossAxisSpacing: 20.0),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 3,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16),
                         itemCount: dodatki.length,
                         itemBuilder: (context, index) {
                           return GestureDetector(
@@ -158,7 +157,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
                                   color: AppStyles.blue, // Background color
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                padding: EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(8),
                                 child: Center(
                                   child: Text(
                                     dodatki[index].ime,

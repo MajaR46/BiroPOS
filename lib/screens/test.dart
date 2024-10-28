@@ -1,6 +1,4 @@
-import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/controllers/ble_controller.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'package:provider/provider.dart';
 
@@ -50,7 +48,6 @@ class _TestScreenState extends State<TestScreen> {
 
   Future<void> _handleData() async {
     List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-    print("Data fetched: $apiResponseList");
 
     _categoriseItems(apiResponseList);
   }
@@ -64,7 +61,7 @@ class _TestScreenState extends State<TestScreen> {
       if (item.startsWith('1')) {
         String imeIzdelka = item.split('|')[2];
         String cena = item.split('|')[3];
-        String HHcena = item.split('|')[4];
+        String hhcena = item.split('|')[4];
         String podkategorija = item.split('|')[5];
         String eanKoda = item.split('|')[6];
         izdelki2.add(Izdelek(imeIzdelka, cena));
@@ -88,8 +85,6 @@ class _TestScreenState extends State<TestScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bleProvider = Provider.of<BleProvider>(context);
-
     return Scaffold(
       appBar: AppBar(title: const Text("Test Screen")),
       body: SingleChildScrollView(
@@ -106,14 +101,14 @@ class _TestScreenState extends State<TestScreen> {
             const Text(
               'Izdelki:',
             ),
-            ...izdelki.map((item) => Text(item.cena)).toList(),
+            ...izdelki.map((item) => Text(item.cena)),
             const SizedBox(height: 20),
             const Text('Dodatki'),
-            ...dodatki.map((item) => Text(item.toString())).toList(),
+            ...dodatki.map((item) => Text(item.toString())),
 
             const SizedBox(height: 20),
             const Text('Osebje'),
-            ...osebje.map((item) => Text(item.password)).toList()
+            ...osebje.map((item) => Text(item.password))
           ],
         ),
       ),

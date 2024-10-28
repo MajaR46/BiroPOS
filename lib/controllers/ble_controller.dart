@@ -29,7 +29,7 @@ class BleProvider with ChangeNotifier {
       notifyListeners();
 
       // Start scanning for BLE devices
-      FlutterBluePlus.startScan(timeout: Duration(seconds: 30));
+      FlutterBluePlus.startScan(timeout: const Duration(seconds: 30));
 
       // Listen to scan results
       FlutterBluePlus.scanResults.listen((results) {
@@ -38,7 +38,7 @@ class BleProvider with ChangeNotifier {
       });
 
       // Stop scanning after a timeout
-      await Future.delayed(Duration(seconds: 30));
+      await Future.delayed(const Duration(seconds: 30));
       await FlutterBluePlus.stopScan();
       _isScanning = false;
       notifyListeners();

@@ -7,6 +7,7 @@ import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 enum ResponseCategory { osebje }
 
@@ -37,6 +38,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  DateTime currentDate = DateTime.now();
+
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
   List<Osebje> osebje = [];
@@ -47,9 +50,24 @@ class _LoginScreenState extends State<LoginScreen> {
     _handleData();
   }
 
-  Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-    _categorizeResponse(apiResponseList);
+  Future<bool> _handleData() async {
+    try {
+      List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+      _categorizeResponse(apiResponseList);
+      return true;
+    } catch (e) {
+      print("Error fetching data: $e");
+      return false;
+    }
+  }
+
+  void _refresh() async {
+    bool isDataHandled = await _handleData();
+    if (isDataHandled) {
+      setState(() {
+        currentDate = DateTime.now();
+      });
+    }
   }
 
   void _categorizeResponse(List<String> items) {
@@ -91,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
           context, MaterialPageRoute(builder: (context) => const MeniScreen()));
     } else {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: const Text('Nepravilno geslo')));
+          .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
     }
   }
 
@@ -146,6 +164,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
+    String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
+    String formattedTime = DateFormat("HH:mm").format(currentDate);
     print(isLoggedIn);
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -239,7 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: 80,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _handleOKPressed,
+                    onPressed: _refresh,
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
                     ),
@@ -280,12 +300,19 @@ class _LoginScreenState extends State<LoginScreen> {
               GestureDetector(
                   onTap: () => _launchURL("https://www.biropos.si/"),
                   child: const Text("BiroPOS", style: AppStyles.paragraph1)),
-              const Spacer(),
+              Spacer(),
               GestureDetector(
                   onTap: () => _launchURL(
                       "https://play.google.com/store/apps/datasafety?id=si.Flop.BiroPOS&pli=1"),
                   child:
                       const Text("Pogoji uporabe", style: AppStyles.paragraph1))
+            ]),
+            Row(children: [
+              Text(
+                formattedDate + " " + formattedTime,
+                style: AppStyles.heading4
+                    .copyWith(color: AppStyles.black, fontSize: 10),
+              ),
             ])
           ],
         ),

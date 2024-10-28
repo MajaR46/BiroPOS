@@ -128,7 +128,7 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
       body: Stack(
         children: [
           if (_isLoading)
-            Center(
+            const Center(
                 child:
                     CircularProgressIndicator()) // Show a loading spinner if loading
           else
@@ -147,7 +147,6 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
                   child: GestureDetector(
                     onTap: () {
                       _addToTableList(tableNumber, widget.finalSum);
-                      print('Added ${widget.finalSum} to table $tableNumber');
                     },
                     child: Card(
                       color: AppStyles.silver.withOpacity(0.1),
@@ -172,11 +171,11 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
                               ],
                             ),
                             const SizedBox(height: 8.0),
-                            Text(
+                            const Text(
                               'Items:',
                               style: AppStyles.heading4,
                             ),
-                            ...itemsForTable.map((item) => Text(item)).toList(),
+                            ...itemsForTable.map((item) => Text(item)),
                           ],
                         ),
                       ),

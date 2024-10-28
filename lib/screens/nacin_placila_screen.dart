@@ -3,10 +3,15 @@ import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
-class NacinPlacilaScreen extends StatelessWidget {
+class NacinPlacilaScreen extends StatefulWidget {
   final double finalSum;
   const NacinPlacilaScreen({super.key, required this.finalSum});
 
+  @override
+  State<NacinPlacilaScreen> createState() => _NacinPlacilaScreenState();
+}
+
+class _NacinPlacilaScreenState extends State<NacinPlacilaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +46,7 @@ class NacinPlacilaScreen extends StatelessWidget {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 16),
-                        child: Text('${finalSum.toStringAsFixed(2)} €',
+                        child: Text('${widget.finalSum.toStringAsFixed(2)} €',
                             style: AppStyles.heading1.copyWith(
                                 fontWeight: FontWeight.normal,
                                 color: AppStyles.blue)),

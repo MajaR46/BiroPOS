@@ -1,4 +1,6 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
@@ -11,9 +13,40 @@ class KopijaScreen extends StatefulWidget {
 
 class _KopijaScreenState extends State<KopijaScreen> {
   final TextEditingController _kopijaRacunController = TextEditingController();
+  final String? userSifra = SessionManager().getLoggedInUserSifra();
+  String? _apiResponse;
 
   void _clearText() {
     _kopijaRacunController.clear();
+    setState(() {
+      _apiResponse = null; //
+    });
+  }
+
+  //to printaj
+  _handleData() async {
+    try {
+      String stRacuna = _kopijaRacunController.text;
+      List<String> apiResponse;
+
+      if (stRacuna.isEmpty) {
+        String txt_datazadnjiracun = 'VrniZadnjiRacun\t$userSifra';
+        apiResponse = await sendRequest(userSifra ?? '', txt_datazadnjiracun);
+      } else {
+        String txtData = 'VrniKopijoRacuna\t$userSifra\t$stRacuna';
+        apiResponse = await sendRequest(userSifra ?? '', txtData);
+      }
+
+      //to je samo za izpis na ekranu. potem to briši
+      setState(() {
+        _apiResponse = apiResponse.join("\n");
+      });
+    } catch (e) {
+      print("Error fetching data: $e");
+      setState(() {
+        _apiResponse = 'Error fetching data';
+      });
+    }
   }
 
   @override
@@ -66,14 +99,25 @@ class _KopijaScreenState extends State<KopijaScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+
+                // Display the API response below the TextField
+                if (_apiResponse != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      _apiResponse!,
+                      style:
+                          AppStyles.paragraph1.copyWith(color: AppStyles.black),
+                    ),
+                  ),
               ],
             ),
             Padding(
               padding: const EdgeInsets.only(right: 16, bottom: 32),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: () {}),
+                child: OKButton(onPressed: _handleData),
               ),
             ),
           ],
