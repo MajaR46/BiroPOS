@@ -1,9 +1,22 @@
 import 'package:biro_pos/components/quantity_increase.dart';
+import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+
+class NacinPlacila {
+  final String kodaNacinaPlacila;
+  final String nacinPlacila;
+
+  NacinPlacila(this.kodaNacinaPlacila, this.nacinPlacila);
+
+  @override
+  String toString() {
+    return 'NacinPlacila(kodaNacinaPlacila: $kodaNacinaPlacila, nacinPlacila: $nacinPlacila)';
+  }
+}
 
 class RacunScreen extends StatefulWidget {
   final dynamic selectedItem;
@@ -28,6 +41,8 @@ class _RacunScreenState extends State<RacunScreen> {
   double _totalDiscount = 0.0;
   late List<dynamic> chosenItems;
   final TextEditingController discountController = TextEditingController();
+  List<NacinPlacila> naciniPlacila = [];
+  String itemOpis = '';
 
   @override
   void initState() {
@@ -35,10 +50,38 @@ class _RacunScreenState extends State<RacunScreen> {
     finalSum = widget.finalSum;
     chosenItems = widget.chosenItems;
     _updateFinalSum();
+    _handleData();
   }
 
-  _createOrder() {
+  Future<void> _handleData() async {
+    List<String> apiResponseList = await sendRequest("1", "Biropos.txt");
+
+    _kategorizirajNacinePlacila(apiResponseList);
+  }
+
+  _kategorizirajNacinePlacila(List<String> items) {
+    List<NacinPlacila> naciniPlacila2 = [];
+
+    for (String item in items) {
+      if (item.startsWith('7')) {
+        String kodaNacinaPlacila = item.split('|')[1];
+        String nacinPlacila = item.split('|')[2];
+
+        NacinPlacila newNacinPlacila =
+            NacinPlacila(kodaNacinaPlacila, nacinPlacila);
+        naciniPlacila2.add(newNacinPlacila);
+      }
+    }
+
+    setState(() {
+      naciniPlacila = naciniPlacila2;
+    });
+    print(naciniPlacila.toString());
+  }
+
+  Future<void> _createOrder(String izbranNacinPlacila) async {
     String? userId = SessionManager().getLoggedInUserSifra();
+
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No user logged in!")),
@@ -46,27 +89,65 @@ class _RacunScreenState extends State<RacunScreen> {
       return;
     }
 
-    String table = "Test"; // Placeholder
-
     List<String> narociloItems = chosenItems.map((item) {
       String artikelSifra = item['itemId']?.toString() ?? '';
       double kolicina = (item['quantity'] ?? 1.0).toDouble();
+      String artikelSkupina = item['categoryID'].toString();
 
       double originalPrice =
           double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0.0;
-      double cena = item['discountedPrice'] ?? originalPrice;
+      double cena = originalPrice ?? 0.0;
+      double itemDiscountedPrice = item['discountedPrice'] ?? cena;
 
-      double popust = (originalPrice - cena) * kolicina;
+      num popust = (cena != 0) ? ((1 - (itemDiscountedPrice / cena)) * 100) : 0;
 
-      String narociloItem =
-          '$userId\t$table\t$artikelSifra\t$kolicina\t$cena\t$popust\t${item['opis'] ?? ''}';
-      print("Narocilo item: $narociloItem");
+      if (izbranNacinPlacila == "GOT") {
+        String sifraGotovina = naciniPlacila[0].kodaNacinaPlacila;
+        String narociloItem =
+            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraGotovina;;${item['opis'] ?? ''};\t$artikelSkupina';
+        print("Narocilo item: $narociloItem");
 
-      return narociloItem;
+        return narociloItem;
+      } else if (izbranNacinPlacila == "KAR") {
+        String sifraKartica = naciniPlacila[1].kodaNacinaPlacila;
+        String narociloItem =
+            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraKartica;;${item['opis'] ?? ''};\t$artikelSkupina';
+        return narociloItem;
+      }
+      return '';
     }).toList();
-    print(narociloItems.toString());
-    //seznam elementov za račun
-    return (narociloItems.toString());
+
+    List<String> posljiNaStreznik =
+        await sendRequest("1", narociloItems.join('\r\n'));
+
+    _showResponseDialog(posljiNaStreznik);
+  }
+
+// Function to show the response in a dialog
+  void _showResponseDialog(List<String> response) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Server Response"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(response.join('\n')), // Display the response line by line
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _handleQuantityChange(double newQuantity, int index) {
@@ -102,7 +183,8 @@ class _RacunScreenState extends State<RacunScreen> {
 
     if (result != null && result['opis'] != null) {
       setState(() {
-        chosenItems[index]['opis'] = result['opis'] ?? '';
+        chosenItems[index]['opis'] = result['opis'];
+        ;
       });
     }
   }
@@ -193,6 +275,7 @@ class _RacunScreenState extends State<RacunScreen> {
   }
 
   Future openDialog(int? index, bool isFinalDiscount, [double? discount]) {
+    discountController.clear();
     // če urejamo popust za posamezen izdelek
     if (index != null && !isFinalDiscount) {
       var item = chosenItems[index];
@@ -273,6 +356,9 @@ class _RacunScreenState extends State<RacunScreen> {
             'updatedQuantity':
                 chosenItems.map((item) => item['quantity'] as double).toList(),
             'updatedFinalSum': finalSum,
+            // Collect each item's description in a list
+            'itemDescriptions':
+                chosenItems.map((item) => item['opis'] ?? '').toList(),
           }),
         ),
         title: Text("Račun",
@@ -436,6 +522,18 @@ class _RacunScreenState extends State<RacunScreen> {
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
                       ),
+                      const SizedBox(
+                        width: 4,
+                      ),
+                      IconButton.filled(
+                        iconSize: 32,
+                        style: IconButton.styleFrom(
+                            backgroundColor: AppStyles.red),
+                        onPressed: () {
+                          _submit(null, true, 0);
+                        },
+                        icon: const Icon(Icons.close),
+                      ),
                     ],
                   ),
                 ),
@@ -477,7 +575,7 @@ class _RacunScreenState extends State<RacunScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: _createOrder,
+                        onPressed: () => _createOrder("GOT"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.darkOrange,
                           padding: EdgeInsets.zero,
@@ -490,7 +588,7 @@ class _RacunScreenState extends State<RacunScreen> {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _createOrder("KAR"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.red,
                           padding: EdgeInsets.zero,

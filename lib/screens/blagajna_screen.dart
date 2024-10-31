@@ -29,8 +29,9 @@ abstract class ResponseItem {
 class Izdelek extends ResponseItem {
   final String izdelekID;
   final String cena;
+  final String kategorijaID;
 
-  Izdelek(String ime, this.cena, this.izdelekID)
+  Izdelek(String ime, this.cena, this.izdelekID, this.kategorijaID)
       : super(ime, ResponseCategory.izdelki);
 }
 
@@ -98,16 +99,16 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
     for (String item in items) {
       if (item.startsWith('1')) {
+        // Parse the item details
         String izdelekId = item.split('|')[1];
         String imeIzdelka = item.split('|')[2];
         String cena = item.split('|')[3];
-        String hhcena = item.split('|')[4];
-        String podkategorija = item.split('|')[5];
-        String eanKoda = item.split('|')[6];
-        Izdelek newIzdelek = Izdelek(imeIzdelka, cena, izdelekId);
+        String kategorijaID =
+            item.split('|')[5]; // Ensure categoryID is assigned
+
+        Izdelek newIzdelek = Izdelek(imeIzdelka, cena, izdelekId, kategorijaID);
 
         String? categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
-        // Add to the izdelki2 list
         izdelki2.add(newIzdelek);
 
         if (categorized.containsKey(categoryName)) {
@@ -115,7 +116,8 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
             'name': imeIzdelka,
             'price': cena,
             'category': categoryName,
-            'itemId': izdelekId
+            'itemId': izdelekId,
+            'categoryID': kategorijaID // Ensure categoryID is included
           });
         } else {
           categorized[categoryName] = [
@@ -123,14 +125,14 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
               'name': imeIzdelka,
               'price': cena,
               'category': categoryName,
-              'itemId': izdelekId
+              'itemId': izdelekId,
+              'categoryID': kategorijaID // Ensure categoryID is included
             }
           ];
         }
       }
     }
 
-    // Update state with categorized items
     setState(() {
       izdelki = izdelki2;
       categorizedItems = categorized;
@@ -139,6 +141,11 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
+    if (outputtedItem['categoryID'] == null) {
+      print("Error: categoryID is missing for the selected item.");
+    } else {
+      print("kategorija; ${outputtedItem['categoryID']}");
+    }
     setState(() {
       itemQuantity = 1;
 
@@ -155,18 +162,21 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
       }
 
       if (!itemExists) {
-        // New item, add it to the list with default quantity 1
         chosenItems.add({
           'name': outputtedItem['name'],
           'price': outputtedItem['price'],
           'quantity': itemQuantity,
-          'itemId': outputtedItem['itemId']
+          'itemId': outputtedItem['itemId'],
+          'category': outputtedItem['category'],
+          'categoryID':
+              outputtedItem['categoryID'] // Ensure categoryID is added here
         });
       }
 
       selectedItem = outputtedItem;
       _updateFinalSum();
     });
+    print("kategorija; ${outputtedItem['categoryID']}");
   }
 
   void _updateFinalSum() {
@@ -386,6 +396,7 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                             'price': item['price'],
                             'category': item['category'],
                             'itemId': item['itemId'],
+                            'categoryID': item['categoryID']
                           }),
                           child: ItemCard(
                             itemName: item['name'],

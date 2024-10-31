@@ -1,9 +1,16 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
 class NewTableScreen extends StatefulWidget {
-  const NewTableScreen({super.key});
+  final List<Map<String, dynamic>> items;
+  const NewTableScreen({
+    Key? key,
+    required this.items,
+  }) : super(key: key);
 
   @override
   State<NewTableScreen> createState() => _NewTableScreenState();
@@ -14,6 +21,32 @@ class _NewTableScreenState extends State<NewTableScreen> {
 
   void _clearText() {
     _newTableController.clear();
+  }
+
+  void _addToNewTable(String tableNumber) async {
+    String? userId = SessionManager().getLoggedInUserSifra();
+
+    List<String> narociloItems = [];
+
+    for (var item in widget.items) {
+      String artikelSifra = item['artikelSifra'] ?? '';
+      double kolicina = item['kolicina'] ?? 1.0;
+      double originalPrice = item['originalPrice'] ?? 0.0;
+      num popust = item['popust'] ?? 0;
+      String opis = item['opis'] ?? '';
+      String artikelSkupina = item['artikelSkupina'] ?? '';
+
+      String narociloItem =
+          '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
+
+      print("Narocilo item: $narociloItem");
+
+      narociloItems.add(narociloItem);
+    }
+
+    List<String> posljiNaStreznik =
+        await sendRequest("1", narociloItems.join('\r\n'));
+    print("Poslji na streznik $posljiNaStreznik");
   }
 
   @override
@@ -70,9 +103,9 @@ class _NewTableScreenState extends State<NewTableScreen> {
             child: Align(
               alignment: Alignment.bottomRight,
               child: OKButton(onPressed: () {
-                // Pass the table number back to the previous screen
-                String tableNumber = _newTableController.text;
-                Navigator.of(context).pop(tableNumber);
+                _addToNewTable(_newTableController.text);
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => BlagajnaScreen()));
               }),
             ),
           ),
