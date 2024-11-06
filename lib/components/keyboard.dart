@@ -11,6 +11,8 @@ class Keyboard extends StatelessWidget {
   final VoidCallback navigateToRacun;
   final VoidCallback navigateToMizaScreen;
   final VoidCallback navigateToNacinPlacilaScreen;
+  final VoidCallback navigateToOpisScreen;
+
   final dynamic selectedItem;
   final double finalSum;
   final List<dynamic> chosenItems;
@@ -25,7 +27,8 @@ class Keyboard extends StatelessWidget {
       required this.chosenItems,
       required this.navigateToRacun,
       required this.navigateToMizaScreen,
-      required this.navigateToNacinPlacilaScreen});
+      required this.navigateToNacinPlacilaScreen,
+      required this.navigateToOpisScreen});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +104,7 @@ class Keyboard extends StatelessWidget {
                       KeyboardRedirect(
                         backgroundColor: AppStyles.blue,
                         text: "OPIS ",
-                        onPressed: () {},
+                        onPressed: navigateToOpisScreen,
                       )
                     ],
                   ),

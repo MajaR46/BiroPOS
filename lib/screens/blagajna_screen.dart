@@ -3,46 +3,29 @@ import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/item.dart';
+import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:provider/provider.dart';
 
-enum ResponseCategory { izdelki, dodatki }
-
-abstract class ResponseItem {
-  final String ime;
-  final ResponseCategory kategorija;
-
-  ResponseItem(this.ime, this.kategorija);
-
-  @override
-  String toString() {
-    return ime;
-  }
-}
-
-class Izdelek extends ResponseItem {
-  final String izdelekID;
-  final String cena;
-  final String kategorijaID;
-
-  Izdelek(String ime, this.cena, this.izdelekID, this.kategorijaID)
-      : super(ime, ResponseCategory.izdelki);
-}
-
-class BlagajnaScreen extends StatefulWidget {
+class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
 
   @override
-  State<BlagajnaScreen> createState() => _BlagajnaScreenState();
+  ConsumerState<BlagajnaScreen> createState() => _BlagajnaScreenState();
 }
 
-class _BlagajnaScreenState extends State<BlagajnaScreen> {
+class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   final DateTime currentDate = DateTime.now();
   //late List<dynamic> cafeItems;
   bool isLoading = true;
@@ -55,8 +38,8 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   double sum = 0;
   double finalSum = 0;
   double discount = 0;
-  late List<dynamic> chosenItems = [];
-  List<Izdelek> izdelki = [];
+  late List<NarociloItem> chosenItems = [];
+  List<Item> izdelki = [];
 
   @override
   void initState() {
@@ -94,45 +77,65 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
 
   void _categorizeResponseItems(
       List<String> items, Map<String, String> itemToCategoryMap) {
-    List<Izdelek> izdelki2 = [];
+    List<Item> izdelki2 = [];
     Map<String, List<dynamic>> categorized = {};
 
     for (String item in items) {
       if (item.startsWith('1')) {
-        // Parse the item details
-        String izdelekId = item.split('|')[1];
-        String imeIzdelka = item.split('|')[2];
-        String cena = item.split('|')[3];
-        String kategorijaID =
-            item.split('|')[5]; // Ensure categoryID is assigned
+        List<String> parts = item.split('|');
 
-        Izdelek newIzdelek = Izdelek(imeIzdelka, cena, izdelekId, kategorijaID);
+        // Ensure the item has all expected fields to avoid out-of-range issues
+        if (parts.length < 7) continue;
+
+        // Parse the item details safely
+        String izdelekId = parts[1];
+        String imeIzdelka = parts[2];
+        String? cenaString = parts[3];
+        String? hhCenaString = parts[4];
+        String kategorijaID = parts[5];
+        String eancode = parts[6];
+
+        // Safely parse prices, defaulting to 0.0 if parsing fails
+        double? cena = double.tryParse(cenaString) ?? 0.0;
+        double? hhCena = double.tryParse(hhCenaString) ?? 0.0;
+
+        Item newIzdelek = Item(
+          id: izdelekId,
+          name: imeIzdelka,
+          price: cena,
+          discountedPrice: 0.0,
+          HHprice: hhCena,
+          categoryID: kategorijaID,
+          eanCode: eancode,
+        );
 
         String? categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
         izdelki2.add(newIzdelek);
 
+        // Check if category already exists in the map
         if (categorized.containsKey(categoryName)) {
           categorized[categoryName]!.add({
             'name': imeIzdelka,
-            'price': cena,
+            'price': cenaString,
             'category': categoryName,
             'itemId': izdelekId,
-            'categoryID': kategorijaID // Ensure categoryID is included
+            'categoryID': kategorijaID,
           });
         } else {
           categorized[categoryName] = [
             {
               'name': imeIzdelka,
-              'price': cena,
+              'price': cenaString,
               'category': categoryName,
               'itemId': izdelekId,
-              'categoryID': kategorijaID // Ensure categoryID is included
+              'categoryID': kategorijaID,
             }
           ];
         }
       }
     }
 
+    // Update state
     setState(() {
       izdelki = izdelki2;
       categorizedItems = categorized;
@@ -141,77 +144,50 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
-    if (outputtedItem['categoryID'] == null) {
-      print("Error: categoryID is missing for the selected item.");
-    } else {
-      print("kategorija; ${outputtedItem['categoryID']}");
-    }
     setState(() {
       itemQuantity = 1;
 
       bool itemExists = false;
 
-      // Check if the item is already in the list
-      for (var item in chosenItems) {
-        if (item['name'] == outputtedItem['name']) {
-          // Item already exists, update its quantity
-          itemExists = true;
-          item['quantity'] = itemQuantity;
-          break;
-        }
-      }
+      Item newItem = Item.fromMap(outputtedItem);
+      NarociloItem newNarociloItem = NarociloItem(product: newItem);
 
       if (!itemExists) {
-        chosenItems.add({
-          'name': outputtedItem['name'],
-          'price': outputtedItem['price'],
-          'quantity': itemQuantity,
-          'itemId': outputtedItem['itemId'],
-          'category': outputtedItem['category'],
-          'categoryID':
-              outputtedItem['categoryID'] // Ensure categoryID is added here
-        });
+        ref.read(narociloNotifierProvider.notifier).addToRacun(newNarociloItem);
+        print("Added item to the bill: ${newNarociloItem.product.name}");
+        print("Added item to the bill: ${newNarociloItem.product.price}");
       }
 
       selectedItem = outputtedItem;
+      print("Selected item: $selectedItem");
+      print("Selected item name: ${selectedItem['name']}");
+
       _updateFinalSum();
     });
-    print("kategorija; ${outputtedItem['categoryID']}");
   }
 
   void _updateFinalSum() {
-    double newFinalSum = 0;
-
-    for (var item in chosenItems) {
-      double price =
-          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
-      double quantity = item['quantity'] is num
-          ? item['quantity']
-          : double.tryParse(item['quantity'].toString()) ?? 0;
-
-      double itemTotal = quantity * price;
-      newFinalSum += itemTotal;
-    }
-
+    final newSum = ref.read(narociloNotifierProvider.notifier).totalSum();
     setState(() {
-      finalSum = newFinalSum;
+      finalSum = newSum;
     });
   }
 
-  void _handleMultiply(double result) {
-    setState(() {
-      itemQuantity = result;
+  void _handleMultiply(double factor) {
+    if (selectedItem != null) {
+      final newQuantity = itemQuantity * factor;
+      setState(() {
+        itemQuantity = newQuantity;
+      });
 
-      if (selectedItem != null) {
-        for (var item in chosenItems) {
-          if (item['name'] == selectedItem['name']) {
-            item['quantity'] = itemQuantity;
-            break;
-          }
-        }
-        _updateFinalSum();
-      }
-    });
+      // Update the quantity in the provider
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateQuantity(selectedItem['itemId'], newQuantity);
+
+      // Update the final sum based on the new quantity
+      _updateFinalSum();
+    }
   }
 
   List<Color> backgroundColors = [
@@ -447,7 +423,6 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-
     return Scaffold(
       backgroundColor: AppStyles.grey,
       appBar: AppBar(
@@ -494,16 +469,26 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Keyboard(
-                          navigateToRacun: _navigateToRacunScreen,
-                          navigateToMizaScreen: _navigateToMizaScreen,
-                          navigateToNacinPlacilaScreen:
-                              _navigateToNacinPlacilaScreen,
-                          selectedItem: selectedItem,
-                          chosenItems: chosenItems,
-                          finalSum: finalSum,
-                          controller: searchController,
-                          multiply: _handleMultiply,
-                          quantity: itemQuantity),
+                        navigateToRacun: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => RacunScreen()),
+                          ).then((_) {
+                            _updateFinalSum(); // Update final sum on return
+                          });
+                        },
+                        navigateToMizaScreen: _navigateToMizaScreen,
+                        navigateToNacinPlacilaScreen:
+                            _navigateToNacinPlacilaScreen,
+                        selectedItem: selectedItem,
+                        chosenItems: chosenItems,
+                        finalSum: finalSum,
+                        controller: searchController,
+                        multiply: _handleMultiply,
+                        quantity: itemQuantity,
+                        navigateToOpisScreen: _navigateToOpisScreen,
+                      ),
                     ),
                   ],
                 ),
@@ -511,54 +496,17 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
   }
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
-  void _navigateToRacunScreen() async {
-    print("chosen items: $chosenItems");
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RacunScreen(
-          selectedItem: selectedItem,
-          itemQuantity: itemQuantity,
-          finalSum: finalSum,
-          chosenItems: chosenItems,
-        ),
-      ),
-    );
-    if (result != null) {
-      setState(() {
-        List<double> updatedQuantities =
-            List<double>.from(result['updatedQuantity']);
-        finalSum = result['updatedFinalSum'];
-
-        for (int i = 0; i < chosenItems.length; i++) {
-          chosenItems[i]['quantity'] = updatedQuantities[i];
-        }
-      });
-    }
-  }
 
   void _navigateToMizaScreen() async {
-    if (chosenItems.isNotEmpty) {
-      double currentFinalSum = finalSum;
+    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
 
+    if (currentChosenItems.isNotEmpty) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddToTableScreen(
-            finalSum: currentFinalSum,
-            selectedItem: selectedItem,
-            itemQuantity: itemQuantity,
-            chosenItems: chosenItems,
-          ),
+          builder: (context) => AddToTableScreen(),
         ),
-      ).then((_) {
-        setState(() {
-          chosenItems.clear();
-          finalSum = 0.0;
-          selectedItem = null;
-        });
-      });
+      );
     } else {
       Navigator.push(
         context,
@@ -574,5 +522,13 @@ class _BlagajnaScreenState extends State<BlagajnaScreen> {
         context,
         MaterialPageRoute(
             builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
+  }
+
+  void _navigateToOpisScreen() async {
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                EditItemScreen(itemName: selectedItem['name'])));
   }
 }

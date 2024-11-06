@@ -1,33 +1,27 @@
+import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/new_table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AddToTableScreen extends StatefulWidget {
-  final String? tableNumber;
-  final double finalSum;
-  final dynamic selectedItem;
-  final double itemQuantity;
-  final List<dynamic> chosenItems;
+class AddToTableScreen extends ConsumerStatefulWidget {
   const AddToTableScreen({
     super.key,
-    this.tableNumber,
-    required this.finalSum,
-    required this.itemQuantity,
-    required this.chosenItems,
-    required this.selectedItem,
   });
 
-  // Use a map to store table numbers with their finalSum
   static Map<String, double> tableSums = {};
 
   @override
-  State<AddToTableScreen> createState() => _AddToTableScreenState();
+  ConsumerState<AddToTableScreen> createState() => _AddToTableScreenState();
 }
 
-class _AddToTableScreenState extends State<AddToTableScreen> {
+class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   List<Map<String, String>> tables = [];
   Map<String, List<String>> tableItems = {};
 
@@ -40,7 +34,6 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
   void initState() {
     super.initState();
     _fetchTables();
-    chosenItems = widget.chosenItems;
   }
 
   Future<void> _fetchTables() async {
@@ -84,23 +77,25 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
 
   void _addToExistingTable(String tableNumber) async {
     String? userId = SessionManager().getLoggedInUserSifra();
+    List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
 
     List<String> narociloItems = chosenItems.map((item) {
-      String artikelSifra =
-          item['itemId']?.toString() ?? ''; // fallback to empty string
-      double kolicina = (item['quantitiy'] ?? 1.0).toDouble();
+      String artikelSifra = item.product.id?.toString() ?? '';
+      double kolicina = (item.quantity ?? 1.0).toDouble();
 
       double originalPrice = double.tryParse(
-              item['price']?.toString()?.replaceAll(',', '.') ?? '0.0') ??
+              item.product.price?.toString().replaceAll(',', '.') ?? '0.0') ??
           0.0;
-      double itemDiscountedPrice = item['discountedPrice'] ?? originalPrice;
+      double itemDiscountedPrice = item.product.discountedPrice > 0
+          ? item.product.discountedPrice
+          : originalPrice;
 
       num popust = (originalPrice != 0)
           ? ((1 - (itemDiscountedPrice / originalPrice)) * 100)
           : 0;
 
-      String opis = item['opis']?.toString() ?? '';
-      String artikelSkupina = item['categoryID']?.toString() ?? '';
+      String opis = item.description;
+      String artikelSkupina = item.product.categoryID?.toString() ?? '';
 
       String narociloItem =
           '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
@@ -111,7 +106,10 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
     List<String> posljiNaStreznik =
         await sendRequest("1", narociloItems.join('\r\n'));
 
-    Navigator.of(context).pop();
+    ref.read(narociloNotifierProvider.notifier).state = [];
+
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
     print("Poslji na streznik $posljiNaStreznik");
   }
 
@@ -190,7 +188,7 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
                       ),
               ),
               Padding(
-                padding: const EdgeInsets.only(right: 16, bottom: 32),
+                padding: const EdgeInsets.only(right: 16, bottom: 24, top: 8),
                 child: Align(
                   alignment: Alignment.bottomRight,
                   child: SizedBox(
@@ -198,35 +196,11 @@ class _AddToTableScreenState extends State<AddToTableScreen> {
                     width: 120,
                     child: ElevatedButton(
                       onPressed: () async {
-                        List<Map<String, dynamic>> items =
-                            chosenItems.map((item) {
-                          return {
-                            'artikelSifra': item['itemId']?.toString() ?? '',
-                            'kolicina': (item['quantity'] ?? 1.0).toDouble(),
-                            'originalPrice': double.tryParse(item['price']
-                                        ?.toString()
-                                        ?.replaceAll(',', '.') ??
-                                    '0.0') ??
-                                0.0,
-                            'popust': item['discountedPrice'] != null
-                                ? ((1 -
-                                        (item['discountedPrice'] /
-                                            (double.tryParse(
-                                                    item['price'] ?? '0') ??
-                                                1))) *
-                                    100)
-                                : 0.0,
-                            'opis': item['opis']?.toString() ?? '',
-                            'artikelSkupina':
-                                item['categoryID']?.toString() ?? '',
-                          };
-                        }).toList();
-
                         String? newTableNumber = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                NewTableScreen(items: items), // Pass items here
+                                NewTableScreen(), // Pass items here
                           ),
                         );
 

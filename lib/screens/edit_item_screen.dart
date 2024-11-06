@@ -1,26 +1,23 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
-import 'package:flutter/material.dart';
+import 'package:biro_pos/models/item.dart';
+import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/screens/test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Dodatek {
-  final String ime;
-
-  Dodatek(this.ime);
-}
-
-class EditItemScreen extends StatefulWidget {
+// Define your screen as ConsumerStatefulWidget to access Riverpod providers
+class EditItemScreen extends ConsumerStatefulWidget {
   final String itemName;
-  final double itemDiscountedPrice;
-
-  const EditItemScreen(
-      {super.key, required this.itemName, required this.itemDiscountedPrice});
+  const EditItemScreen({super.key, required this.itemName});
 
   @override
-  State<EditItemScreen> createState() => _EditItemScreenState();
+  ConsumerState<EditItemScreen> createState() => _EditItemScreenState();
 }
 
-class _EditItemScreenState extends State<EditItemScreen> {
+class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   final TextEditingController _opisController = TextEditingController();
   List<String> itemOpis = [];
   List<Dodatek> dodatki = [];
@@ -40,7 +37,6 @@ class _EditItemScreenState extends State<EditItemScreen> {
 
   Future<void> _handleData() async {
     List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-
     _categorizeResponseItems(apiResponseList);
   }
 
@@ -50,10 +46,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
     for (String item in items) {
       if (item.startsWith('D')) {
         String imeDodatka = item.split('|')[1];
-
-        Dodatek newDodatek = Dodatek(imeDodatka);
-
-        dodatki2.add(newDodatek);
+        dodatki2.add(Dodatek(imeDodatka));
       }
     }
 
@@ -69,6 +62,27 @@ class _EditItemScreenState extends State<EditItemScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the list of NarociloItems from the NarociloNotifier provider
+    final narociloItems = ref.watch(narociloNotifierProvider);
+    final narociloNotifier =
+        ref.read(narociloNotifierProvider.notifier); // To modify state
+
+    if (narociloItems.isEmpty) {
+      return const Center(child: Text('No item found to edit.'));
+    }
+
+    final currentItem = narociloItems.firstWhere(
+      (item) => item.product.name == widget.itemName,
+      orElse: () => NarociloItem(
+        product:
+            Item(name: '', price: 0.0), // A default NarociloItem if not found
+      ),
+    );
+
+    if (currentItem == null) {
+      return const Center(child: Text('Item not found.'));
+    }
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -86,25 +100,28 @@ class _EditItemScreenState extends State<EditItemScreen> {
             padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
             child: Column(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                      color: AppStyles.silver.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Text(widget.itemName, style: AppStyles.heading3),
-                        const Spacer(),
-                        Text(
-                          '${widget.itemDiscountedPrice.toStringAsFixed(2)} €',
-                          style: AppStyles.heading3
-                              .copyWith(fontWeight: FontWeight.normal),
-                        ),
-                      ],
+                // Example: Displaying and updating the first NarociloItem
+                if (narociloItems.isNotEmpty)
+                  Container(
+                    decoration: BoxDecoration(
+                        color: AppStyles.silver.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Text(currentItem.product.name,
+                              style: AppStyles.heading3),
+                          const Spacer(),
+                          Text(
+                            '${currentItem.product.price.toStringAsFixed(2)} €',
+                            style: AppStyles.heading3
+                                .copyWith(fontWeight: FontWeight.normal),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: SizedBox(
@@ -177,8 +194,11 @@ class _EditItemScreenState extends State<EditItemScreen> {
             child: Align(
               alignment: Alignment.bottomRight,
               child: OKButton(onPressed: () {
-                final result = {'opis': itemOpis.join(' ')};
-                Navigator.of(context).pop(result);
+                final resultOpis = _opisController.text.trim();
+
+                // Update the opis for the selected NarociloItem
+                narociloNotifier.updateOpis(currentItem.product.id, resultOpis);
+                Navigator.of(context).pop();
               }),
             ),
           ),

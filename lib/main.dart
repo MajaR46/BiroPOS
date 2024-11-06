@@ -1,6 +1,7 @@
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
@@ -9,7 +10,7 @@ void main() async {
   await Hive.openBox('sessionBox');
   Hive.box('sessionBox').clear();
 
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

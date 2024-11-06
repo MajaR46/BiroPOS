@@ -1,10 +1,13 @@
 import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NacinPlacila {
   final String kodaNacinaPlacila;
@@ -18,28 +21,19 @@ class NacinPlacila {
   }
 }
 
-class RacunScreen extends StatefulWidget {
-  final dynamic selectedItem;
-  final double itemQuantity;
-  final double finalSum;
-  final List<dynamic> chosenItems;
-
+class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
     super.key,
-    required this.selectedItem,
-    required this.itemQuantity,
-    required this.finalSum,
-    required this.chosenItems,
   });
 
   @override
-  State<RacunScreen> createState() => _RacunScreenState();
+  ConsumerState<RacunScreen> createState() => _RacunScreenState();
 }
 
-class _RacunScreenState extends State<RacunScreen> {
-  late double finalSum;
+class _RacunScreenState extends ConsumerState<RacunScreen> {
+  late double finalSum = 0.0;
   double _totalDiscount = 0.0;
-  late List<dynamic> chosenItems;
+  late List<NarociloItem> chosenItems = [];
   final TextEditingController discountController = TextEditingController();
   List<NacinPlacila> naciniPlacila = [];
   String itemOpis = '';
@@ -47,9 +41,9 @@ class _RacunScreenState extends State<RacunScreen> {
   @override
   void initState() {
     super.initState();
-    finalSum = widget.finalSum;
-    chosenItems = widget.chosenItems;
-    _updateFinalSum();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateFinalSum();
+    });
     _handleData();
   }
 
@@ -88,30 +82,36 @@ class _RacunScreenState extends State<RacunScreen> {
       );
       return;
     }
+    final List<NarociloItem> chosenItems = ref.watch(narociloNotifierProvider);
 
     List<String> narociloItems = chosenItems.map((item) {
-      String artikelSifra = item['itemId']?.toString() ?? '';
-      double kolicina = (item['quantity'] ?? 1.0).toDouble();
-      String artikelSkupina = item['categoryID'].toString();
+      String artikelSifra = item.product.id?.toString() ?? '';
+      double kolicina = (item.quantity ?? 1.0).toDouble();
+      String artikelSkupina = item.product.categoryID.toString();
 
-      double originalPrice =
-          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0.0;
-      double cena = originalPrice ?? 0.0;
-      double itemDiscountedPrice = item['discountedPrice'] ?? cena;
+      double cena =
+          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
+              0.0;
+      double itemDiscountedPrice = item.product.discountedPrice ?? cena;
 
-      num popust = (cena != 0) ? ((1 - (itemDiscountedPrice / cena)) * 100) : 0;
+      double popust;
+      if (itemDiscountedPrice > 0 && cena > 0) {
+        popust = 100 - ((itemDiscountedPrice / cena) * 100);
+      } else {
+        popust = 0;
+      }
 
       if (izbranNacinPlacila == "GOT") {
         String sifraGotovina = naciniPlacila[0].kodaNacinaPlacila;
         String narociloItem =
-            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraGotovina;;${item['opis'] ?? ''};\t$artikelSkupina';
+            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraGotovina;;${item.description ?? ''};\t$artikelSkupina';
         print("Narocilo item: $narociloItem");
 
         return narociloItem;
       } else if (izbranNacinPlacila == "KAR") {
         String sifraKartica = naciniPlacila[1].kodaNacinaPlacila;
         String narociloItem =
-            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraKartica;;${item['opis'] ?? ''};\t$artikelSkupina';
+            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraKartica;;${item.description ?? ''};\t$artikelSkupina';
         return narociloItem;
       }
       return '';
@@ -150,155 +150,108 @@ class _RacunScreenState extends State<RacunScreen> {
     );
   }
 
-  void _handleQuantityChange(double newQuantity, int index) {
+  void _updateFinalSum() {
     setState(() {
-      chosenItems[index]['quantity'] = newQuantity;
-      _updateFinalSum();
+      finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
     });
+  }
+
+  void _handleQuantityChange(double newQuantity, int index) {
+    final chosenItems = ref.read(narociloNotifierProvider);
+    if (index < chosenItems.length) {
+      final item = chosenItems[index];
+
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateQuantity(item.product.id, newQuantity);
+
+      _updateFinalSum();
+    }
   }
 
   void _removeItem(int index) {
-    setState(() {
-      chosenItems.removeAt(index);
+    final currentItems = ref.read(narociloNotifierProvider);
+    if (index >= 0 && index < currentItems.length) {
+      NarociloItem itemToRemove = currentItems[index];
+      ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateFinalSum();
-    });
-  }
-
-  void _navigateToEdit(int index) async {
-    var item = chosenItems[index];
-    String itemName = item['name'] ?? 'Unknown';
-    double itemPrice =
-        double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
-    double itemDiscountedPrice = item['discountedPrice'] ?? itemPrice;
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EditItemScreen(
-          itemName: itemName,
-          itemDiscountedPrice: itemDiscountedPrice,
-        ),
-      ),
-    );
-
-    if (result != null && result['opis'] != null) {
-      setState(() {
-        chosenItems[index]['opis'] = result['opis'];
-        ;
-      });
+    } else {
+      print("Invalid index: $index. Cannot remove item.");
     }
   }
 
   double totalDiscount = 0;
-
-  void _updateFinalSum() {
-    double newFinalSum = 0;
-    double totalDiscount = 0;
-
-    for (var item in chosenItems) {
-      double itemQuantity = item['quantity'] ?? 1;
-
-      double itemPrice =
-          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0.0;
-
-      double itemDiscountedPrice = double.tryParse(
-              item['discountedPrice'].toString().replaceAll(',', '.')) ??
-          itemPrice;
-
-      newFinalSum += itemDiscountedPrice * itemQuantity;
-
-      double itemDiscountValue =
-          (itemPrice - itemDiscountedPrice) * itemQuantity;
-
-      totalDiscount += itemDiscountValue;
-    }
-
-    setState(() {
-      finalSum = newFinalSum;
-      _totalDiscount = totalDiscount;
-    });
-  }
 
   void _clearText() {
     discountController.clear();
   }
 
   void _submit(int? index, bool isFinalDiscount, [double? discount]) {
+    final chosenItems = ref.read(narociloNotifierProvider);
+
     if (isFinalDiscount) {
-      double finalDiscount = discount ?? 0;
-      double finalDiscountPercentage = finalDiscount / 100;
+      double finalDiscountPercentage = (discount ?? 0) / 100;
 
       setState(() {
         for (var item in chosenItems) {
-          double itemPrice =
-              double.tryParse(item['price'].toString().replaceAll(',', '.')) ??
-                  0;
-          item['discountedPrice'] = itemPrice * (1 - finalDiscountPercentage);
+          double itemPrice = double.tryParse(
+                  item.product.price.toString().replaceAll(',', '.')) ??
+              0;
+          double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
+          ref
+              .read(narociloNotifierProvider.notifier)
+              .updateDiscount(item.product.id, discountedPrice, discount ?? 0);
         }
         _updateFinalSum();
       });
-
       return;
     }
 
-    // Item-specific discount logic
-    double itemDiscount = 0;
-
-    if (discountController.text.isNotEmpty) {
-      try {
-        itemDiscount = double.parse(discountController.text);
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Vnesi popust")),
-        );
-        return;
-      }
-    }
-
+    // Handle item-specific discount
     if (index != null) {
+      double itemDiscount = (discount ?? 0) / 100;
+
       var item = chosenItems[index];
       double itemPrice =
-          double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
-      double itemQuantity = item['quantity'] ?? 1;
+          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
+              0;
 
-      double itemTotal = itemPrice * itemQuantity;
-      double discountedPrice =
-          itemTotal * (1 - (itemDiscount / 100)) / itemQuantity;
+      double discountedPirce = itemPrice * (1 - itemDiscount);
 
-      setState(() {
-        item['discountedPrice'] = discountedPrice;
-        _updateFinalSum();
-      });
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateDiscount(item.product.id, discountedPirce, discount ?? 0);
+      _updateFinalSum();
     }
-
-    // Close the dialog
   }
 
   Future openDialog(int? index, bool isFinalDiscount, [double? discount]) {
-    discountController.clear();
-    // če urejamo popust za posamezen izdelek
+    final chosenItems = ref.read(narociloNotifierProvider);
+    discountController.clear(); // Always start with a clear text field
+
+    // If editing a discount for a specific item
     if (index != null && !isFinalDiscount) {
       var item = chosenItems[index];
 
-      // Če ima izdelek poseben popust
-      if (item['discountedPrice'] != null) {
-        double originalPrice =
-            double.tryParse(item['price'].toString().replaceAll(',', '.')) ?? 0;
-        double discountedPrice = item['discountedPrice'] ?? originalPrice;
+      // Ensure a valid discounted price before calculating the discount percentage
+      double originalPrice =
+          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
+              0;
+      double discountedPrice = item.product.discountedPrice ?? originalPrice;
+
+      if (discountedPrice > 0 && originalPrice > 0) {
         double discountPercentage =
             100 - ((discountedPrice / originalPrice) * 100);
-
         discountController.text = discountPercentage.toStringAsFixed(0);
-      } else if (discount != null) {
-        // Če ne, prikaži popust za celoten nakup (finalSUm)
-        double globalDiscountPercentage =
-            100 - (finalSum / (finalSum / (1 - discount / 100)));
-        discountController.text = globalDiscountPercentage.toString();
+      } else {
+        // If discountedPrice is 0.0, treat it as no discount applied
+        discountController.text = ""; // No preset discount
       }
-    }
-
-    if (isFinalDiscount && discount != null) {
+    } else if (isFinalDiscount && discount != null) {
+      // Only apply preset for specific final discount button selections
       discountController.text = discount.toString();
+    } else {
+      discountController.text = ""; // Ensure empty by default
     }
 
     return showDialog(
@@ -347,19 +300,14 @@ class _RacunScreenState extends State<RacunScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chosenItems = ref.watch(narociloNotifierProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppStyles.black),
-          onPressed: () => Navigator.pop(context, {
-            'updatedQuantity':
-                chosenItems.map((item) => item['quantity'] as double).toList(),
-            'updatedFinalSum': finalSum,
-            // Collect each item's description in a list
-            'itemDescriptions':
-                chosenItems.map((item) => item['opis'] ?? '').toList(),
-          }),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text("Račun",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
@@ -388,11 +336,11 @@ class _RacunScreenState extends State<RacunScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(item['name'],
+                                Text(item.product.name,
                                     style: AppStyles.boldanparagraph1),
                                 Text(
-                                  item['opis'] != null
-                                      ? item['opis'].toString()
+                                  item.description != null
+                                      ? item.description
                                       : '',
                                   style: AppStyles.paragraph4
                                       .copyWith(fontStyle: FontStyle.italic),
@@ -402,7 +350,7 @@ class _RacunScreenState extends State<RacunScreen> {
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: Text('${item['price'].toString()}€',
+                            child: Text('${item.product.price.toString()}€',
                                 style: AppStyles.heading3),
                           ),
                         ],
@@ -413,7 +361,13 @@ class _RacunScreenState extends State<RacunScreen> {
                           IconButton.filled(
                             style: IconButton.styleFrom(
                                 backgroundColor: AppStyles.blue),
-                            onPressed: () => _navigateToEdit(index),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => EditItemScreen(
+                                          itemName: item.product.name)));
+                            },
                             icon: const Icon(Icons.edit),
                           ),
                           IconButton.filled(
@@ -431,7 +385,7 @@ class _RacunScreenState extends State<RacunScreen> {
                               icon: const Icon(Icons.delete)),
                           const Spacer(),
                           QuantityIncrease(
-                            quantity: item['quantity'],
+                            quantity: item.quantity,
                             onQuantityChanged: (newQuantity) {
                               _handleQuantityChange(newQuantity, index);
                             },
@@ -467,13 +421,12 @@ class _RacunScreenState extends State<RacunScreen> {
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 50),
+                          minimumSize: const Size(40, 40),
                         ),
                         child: Text("5%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
                       ),
-                      const SizedBox(width: 4),
                       ElevatedButton(
                         onPressed: () {
                           _submit(null, true, 10);
@@ -482,14 +435,14 @@ class _RacunScreenState extends State<RacunScreen> {
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 50),
+                          minimumSize: const Size(40, 40),
                         ),
                         child: Text("10%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
                       ),
                       const SizedBox(
-                        width: 4,
+                        width: 2,
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -499,14 +452,11 @@ class _RacunScreenState extends State<RacunScreen> {
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 50),
+                          minimumSize: const Size(40, 40),
                         ),
                         child: Text("15%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
-                      ),
-                      const SizedBox(
-                        width: 4,
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -516,17 +466,14 @@ class _RacunScreenState extends State<RacunScreen> {
                           backgroundColor: AppStyles.white,
                           elevation: 1,
                           padding: EdgeInsets.zero,
-                          minimumSize: const Size(50, 50),
+                          minimumSize: const Size(40, 40),
                         ),
                         child: Text("?%",
                             style: AppStyles.button1
                                 .copyWith(color: AppStyles.black)),
                       ),
-                      const SizedBox(
-                        width: 4,
-                      ),
                       IconButton.filled(
-                        iconSize: 32,
+                        iconSize: 24,
                         style: IconButton.styleFrom(
                             backgroundColor: AppStyles.red),
                         onPressed: () {
@@ -629,38 +576,4 @@ class _RacunScreenState extends State<RacunScreen> {
         MaterialPageRoute(
             builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
   }
-}
-
-class NarociloItem {
-  final String artikelSifra;
-  final double kolicina;
-  final double cena;
-  final double popust;
-  final String opis;
-  final String kategorijaSifra;
-
-  NarociloItem({
-    required this.artikelSifra,
-    required this.kolicina,
-    required this.cena,
-    required this.popust,
-    required this.opis,
-    required this.kategorijaSifra,
-  });
-}
-
-class Narocilo {
-  final String uporabnikSifra;
-  final String oznakaMize;
-  final double skupnaCena;
-  final double skupniPopust;
-  final List<NarociloItem> items;
-
-  Narocilo({
-    required this.uporabnikSifra,
-    required this.oznakaMize,
-    required this.skupnaCena,
-    required this.skupniPopust,
-    required this.items,
-  });
 }

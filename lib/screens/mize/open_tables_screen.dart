@@ -1,3 +1,7 @@
+import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/screens/mize/miza_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 
@@ -9,6 +13,70 @@ class OpenTablesScreen extends StatefulWidget {
 }
 
 class _OpenTablesScreenState extends State<OpenTablesScreen> {
+  bool _isLoading = true;
+  List<Map<String, String>> odprteMize = [];
+  int? _selectedCardIndex; // Track selected card index
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOpenTables();
+  }
+
+  Future<void> _fetchOpenTables() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String? userId = SessionManager().getLoggedInUserSifra();
+
+    try {
+      String txt_data = 'VrniOdprteMize\t$userId';
+      List<String> apiResponseList = await sendRequest("1", txt_data);
+
+      List<Map<String, String>> mize = [];
+
+      for (String line in apiResponseList) {
+        String imeMize = line.split('|')[1];
+        String znesek = line.split('|')[2].replaceAll(',', '.');
+        String user = line.split('|')[3];
+
+        mize.add({
+          'imeMize': imeMize,
+          'znesek': znesek.isNotEmpty ? znesek : '',
+          'user': user
+        });
+
+        setState(() {
+          odprteMize = mize;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _povecajKolicino() {
+    if (_selectedCardIndex != null) {
+      final selectedCard = odprteMize[_selectedCardIndex!];
+    }
+  }
+
+  void _ok() {
+    if (_selectedCardIndex != null) {
+      final selectedCard = odprteMize[_selectedCardIndex!];
+      final imeMize = selectedCard['imeMize'];
+
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => MizaDetailsScreen(imeMize: imeMize!)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,8 +90,96 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
               style: AppStyles.heading3.copyWith(color: AppStyles.black)),
           centerTitle: true,
         ),
-        body: const Center(
-          child: Text("To je screen za z odprtimi mizami"),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ListView.builder(
+                            itemCount: odprteMize.length,
+                            itemBuilder: (context, index) {
+                              final tableData = odprteMize[index];
+                              String oznakaMize = tableData['imeMize'] ?? '';
+                              double znesek = tableData['znesek'] != null
+                                  ? double.tryParse(
+                                          tableData['znesek'].toString()) ??
+                                      0.0
+                                  : 0.0;
+                              String user = tableData['user'] ?? '';
+
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      // Set the selected index to this card's index
+                                      _selectedCardIndex = index;
+                                    });
+                                  },
+                                  child: Card(
+                                    color: _selectedCardIndex == index
+                                        ? Colors.blue.withOpacity(
+                                            0.1) // Highlight selected card
+                                        : AppStyles.silver.withOpacity(0.1),
+                                    elevation: 0,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 24),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'Miza $oznakaMize',
+                                            style: AppStyles.heading3,
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            '${znesek.toStringAsFixed(2)}€',
+                                            style: AppStyles.heading3.copyWith(
+                                                fontWeight: FontWeight.normal),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            user,
+                                            style: AppStyles.paragraph3,
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            })),
+                Padding(
+                    padding: const EdgeInsets.only(
+                        left: 16, bottom: 24, top: 8, right: 16),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                            height: 50,
+                            width: 140,
+                            child: ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        AppStyles.silver.withOpacity(0.1),
+                                    padding: EdgeInsets.zero,
+                                    elevation: 0),
+                                child: Text('POVEČAJ KOL.',
+                                    style: AppStyles.button1
+                                        .copyWith(color: AppStyles.black)))),
+                        const Spacer(),
+                        SizedBox(
+                            child: OKButton(
+                          onPressed: _ok,
+                        )),
+                      ],
+                    ))
+              ],
+            )
+          ],
         ));
   }
 }

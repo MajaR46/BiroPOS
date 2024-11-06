@@ -1,22 +1,23 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NewTableScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> items;
+class NewTableScreen extends ConsumerStatefulWidget {
   const NewTableScreen({
     Key? key,
-    required this.items,
   }) : super(key: key);
 
   @override
-  State<NewTableScreen> createState() => _NewTableScreenState();
+  ConsumerState<NewTableScreen> createState() => _NewTableScreenState();
 }
 
-class _NewTableScreenState extends State<NewTableScreen> {
+class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   final TextEditingController _newTableController = TextEditingController();
 
   void _clearText() {
@@ -24,17 +25,18 @@ class _NewTableScreenState extends State<NewTableScreen> {
   }
 
   void _addToNewTable(String tableNumber) async {
+    List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
     String? userId = SessionManager().getLoggedInUserSifra();
 
     List<String> narociloItems = [];
 
-    for (var item in widget.items) {
-      String artikelSifra = item['artikelSifra'] ?? '';
-      double kolicina = item['kolicina'] ?? 1.0;
-      double originalPrice = item['originalPrice'] ?? 0.0;
-      num popust = item['popust'] ?? 0;
-      String opis = item['opis'] ?? '';
-      String artikelSkupina = item['artikelSkupina'] ?? '';
+    for (var item in chosenItems) {
+      String artikelSifra = item.product.id ?? '';
+      double kolicina = item.quantity ?? 1.0;
+      double originalPrice = item.product.price ?? 0.0;
+      num popust = item.discount ?? 0;
+      String opis = item.description ?? '';
+      String artikelSkupina = item.product.categoryID ?? '';
 
       String narociloItem =
           '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
@@ -104,6 +106,8 @@ class _NewTableScreenState extends State<NewTableScreen> {
               alignment: Alignment.bottomRight,
               child: OKButton(onPressed: () {
                 _addToNewTable(_newTableController.text);
+                ref.read(narociloNotifierProvider.notifier).state = [];
+
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => BlagajnaScreen()));
               }),
