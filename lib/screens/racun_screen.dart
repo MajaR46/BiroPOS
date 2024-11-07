@@ -1,25 +1,15 @@
 import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/payment_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-class NacinPlacila {
-  final String kodaNacinaPlacila;
-  final String nacinPlacila;
-
-  NacinPlacila(this.kodaNacinaPlacila, this.nacinPlacila);
-
-  @override
-  String toString() {
-    return 'NacinPlacila(kodaNacinaPlacila: $kodaNacinaPlacila, nacinPlacila: $nacinPlacila)';
-  }
-}
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -37,6 +27,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   final TextEditingController discountController = TextEditingController();
   List<NacinPlacila> naciniPlacila = [];
   String itemOpis = '';
+  late OrderService orderService;
 
   @override
   void initState() {
@@ -44,83 +35,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateFinalSum();
     });
-    _handleData();
-  }
-
-  Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "Biropos.txt");
-
-    _kategorizirajNacinePlacila(apiResponseList);
-  }
-
-  _kategorizirajNacinePlacila(List<String> items) {
-    List<NacinPlacila> naciniPlacila2 = [];
-
-    for (String item in items) {
-      if (item.startsWith('7')) {
-        String kodaNacinaPlacila = item.split('|')[1];
-        String nacinPlacila = item.split('|')[2];
-
-        NacinPlacila newNacinPlacila =
-            NacinPlacila(kodaNacinaPlacila, nacinPlacila);
-        naciniPlacila2.add(newNacinPlacila);
-      }
-    }
-
-    setState(() {
-      naciniPlacila = naciniPlacila2;
-    });
-    print(naciniPlacila.toString());
-  }
-
-  Future<void> _createOrder(String izbranNacinPlacila) async {
-    String? userId = SessionManager().getLoggedInUserSifra();
-
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No user logged in!")),
-      );
-      return;
-    }
-    final List<NarociloItem> chosenItems = ref.watch(narociloNotifierProvider);
-
-    List<String> narociloItems = chosenItems.map((item) {
-      String artikelSifra = item.product.id?.toString() ?? '';
-      double kolicina = (item.quantity ?? 1.0).toDouble();
-      String artikelSkupina = item.product.categoryID.toString();
-
-      double cena =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0.0;
-      double itemDiscountedPrice = item.product.discountedPrice ?? cena;
-
-      double popust;
-      if (itemDiscountedPrice > 0 && cena > 0) {
-        popust = 100 - ((itemDiscountedPrice / cena) * 100);
-      } else {
-        popust = 0;
-      }
-
-      if (izbranNacinPlacila == "GOT") {
-        String sifraGotovina = naciniPlacila[0].kodaNacinaPlacila;
-        String narociloItem =
-            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraGotovina;;${item.description ?? ''};\t$artikelSkupina';
-        print("Narocilo item: $narociloItem");
-
-        return narociloItem;
-      } else if (izbranNacinPlacila == "KAR") {
-        String sifraKartica = naciniPlacila[1].kodaNacinaPlacila;
-        String narociloItem =
-            '$userId\t#MIZA#\t$artikelSifra\t$kolicina\t$cena\t$popust\tDIREKTENRACUN;$sifraKartica;;${item.description ?? ''};\t$artikelSkupina';
-        return narociloItem;
-      }
-      return '';
-    }).toList();
-
-    List<String> posljiNaStreznik =
-        await sendRequest("1", narociloItems.join('\r\n'));
-
-    _showResponseDialog(posljiNaStreznik);
+    orderService = ref.read(orderProvider);
+    orderService.initializePaymentMethods();
   }
 
 // Function to show the response in a dialog
@@ -133,7 +49,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           content: SingleChildScrollView(
             child: ListBody(
               children: [
-                Text(response.join('\n')), // Display the response line by line
+                Text(response.join('\n')),
               ],
             ),
           ),
@@ -151,8 +67,26 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _updateFinalSum() {
+    final chosenItems = ref.read(narociloNotifierProvider);
+
+    double totalDiscount = 0;
+
+    for (var item in chosenItems) {
+      double itemQuantity = item.quantity;
+      double itemPrice = item.product.price;
+      double itemDiscountedPrice = item.product.discountedPrice;
+
+      double itemDiscountValue =
+          (itemPrice - itemDiscountedPrice) * itemQuantity;
+      if (itemDiscountedPrice > 0 && itemPrice > 0) {
+        totalDiscount += itemDiscountValue;
+      } else {
+        totalDiscount = 0;
+      }
+    }
     setState(() {
       finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+      _totalDiscount = totalDiscount;
     });
   }
 
@@ -179,8 +113,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       print("Invalid index: $index. Cannot remove item.");
     }
   }
-
-  double totalDiscount = 0;
 
   void _clearText() {
     discountController.clear();
@@ -301,6 +233,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
+    final paymentMethods = ref.watch(paymentMethodProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -522,7 +455,22 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: () => _createOrder("GOT"),
+                        onPressed: () async {
+                          if (paymentMethods.isNotEmpty) {
+                            await orderService.createOrder(
+                              context,
+                              "GOT",
+                              "#MIZA#", // example table number
+                              "DIREKTENRACUN", // example order type
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("No payment methods available!")),
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.darkOrange,
                           padding: EdgeInsets.zero,
@@ -535,7 +483,23 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () => _createOrder("KAR"),
+                        onPressed: () async {
+                          if (paymentMethods.isNotEmpty) {
+                            final response = await orderService.createOrder(
+                              context,
+                              "KAR",
+                              "#MIZA#",
+                              "DIREKTENRACUN",
+                            );
+                            _showResponseDialog(response);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("No payment methods available!")),
+                            );
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.red,
                           padding: EdgeInsets.zero,
@@ -572,8 +536,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   void _navigateToNacinPlacilaScreen() async {
     Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
+        context, MaterialPageRoute(builder: (context) => NacinPlacilaScreen()));
   }
 }

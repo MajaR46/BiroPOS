@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -18,7 +17,7 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
 
   final String body = '{"uid":"$uniqueUid","txt_data":"$txtData"}';
 
-  print("Request Body: $body"); // Confirm the literal tab is included
+  print("Request Body: $body");
 
   try {
     final response = await http.post(

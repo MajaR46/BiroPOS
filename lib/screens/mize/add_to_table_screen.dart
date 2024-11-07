@@ -1,5 +1,3 @@
-import 'package:biro_pos/components/blagajna_banner.dart';
-import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/narociloitem.dart';
@@ -80,12 +78,12 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
 
     List<String> narociloItems = chosenItems.map((item) {
-      String artikelSifra = item.product.id?.toString() ?? '';
-      double kolicina = (item.quantity ?? 1.0).toDouble();
+      String artikelSifra = item.product.id.toString();
+      double kolicina = (item.quantity).toDouble();
 
-      double originalPrice = double.tryParse(
-              item.product.price?.toString().replaceAll(',', '.') ?? '0.0') ??
-          0.0;
+      double originalPrice =
+          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
+              0.0;
       double itemDiscountedPrice = item.product.discountedPrice > 0
           ? item.product.discountedPrice
           : originalPrice;
@@ -95,7 +93,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
           : 0;
 
       String opis = item.description;
-      String artikelSkupina = item.product.categoryID?.toString() ?? '';
+      String artikelSkupina = item.product.categoryID.toString();
 
       String narociloItem =
           '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';

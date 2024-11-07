@@ -2,8 +2,6 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NarociloNotifier extends Notifier<List<NarociloItem>> {
-  double _discountPercentage = 0.0;
-
   @override
   List<NarociloItem> build() {
     return [];
@@ -15,15 +13,13 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
     if (existingItemIndex != -1) {
       state[existingItemIndex] = state[existingItemIndex].copyWith(
-        quantity: state[existingItemIndex].quantity + narociloItem.quantity,
-        discount: state[existingItemIndex].discount ??
-            0.0, // Ensure discount is set to zero if not present
-      );
+          quantity: state[existingItemIndex].quantity + narociloItem.quantity,
+          discount: state[existingItemIndex].discount);
     } else {
       // Add item with discount defaulting to zero if not set
       state = [
         ...state,
-        narociloItem.copyWith(discount: narociloItem.discount ?? 0.0),
+        narociloItem.copyWith(discount: narociloItem.discount),
       ];
     }
   }
@@ -36,7 +32,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   double totalSum() {
     return state.fold(0.0, (sum, item) {
-      double discountMultiplier = (100 - (item.discount ?? 0.0)) / 100;
+      double discountMultiplier = (100 - (item.discount)) / 100;
       double discountedPrice = item.product.price * discountMultiplier;
       double totalForItem = item.quantity * discountedPrice;
       return sum + totalForItem;

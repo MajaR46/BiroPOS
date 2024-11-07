@@ -31,12 +31,12 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     List<String> narociloItems = [];
 
     for (var item in chosenItems) {
-      String artikelSifra = item.product.id ?? '';
-      double kolicina = item.quantity ?? 1.0;
-      double originalPrice = item.product.price ?? 0.0;
-      num popust = item.discount ?? 0;
-      String opis = item.description ?? '';
-      String artikelSkupina = item.product.categoryID ?? '';
+      String artikelSifra = item.product.id;
+      double kolicina = item.quantity;
+      double originalPrice = item.product.price;
+      num popust = item.discount;
+      String opis = item.description;
+      String artikelSkupina = item.product.categoryID;
 
       String narociloItem =
           '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';

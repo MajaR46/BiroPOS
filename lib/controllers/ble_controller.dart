@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BleProvider with ChangeNotifier {
-  final FlutterBluePlus _flutterBlue = FlutterBluePlus();
   bool _isBluetoothSupported = true;
   bool _isLoading = true;
   bool _isScanning = false;

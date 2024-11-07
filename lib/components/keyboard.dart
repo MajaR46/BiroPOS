@@ -12,6 +12,8 @@ class Keyboard extends StatelessWidget {
   final VoidCallback navigateToMizaScreen;
   final VoidCallback navigateToNacinPlacilaScreen;
   final VoidCallback navigateToOpisScreen;
+  final VoidCallback paymentGotovina;
+  final VoidCallback paymentKartica;
 
   final dynamic selectedItem;
   final double finalSum;
@@ -28,7 +30,9 @@ class Keyboard extends StatelessWidget {
       required this.navigateToRacun,
       required this.navigateToMizaScreen,
       required this.navigateToNacinPlacilaScreen,
-      required this.navigateToOpisScreen});
+      required this.navigateToOpisScreen,
+      required this.paymentGotovina,
+      required this.paymentKartica});
 
   @override
   Widget build(BuildContext context) {
@@ -126,14 +130,14 @@ class Keyboard extends StatelessWidget {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.darkOrange,
                     text: "GOT",
-                    onPressed: () {}),
+                    onPressed: paymentGotovina),
               ),
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.red,
                     text: "KAR",
-                    onPressed: () {}),
+                    onPressed: paymentKartica),
               ),
               Padding(
                 padding: const EdgeInsets.all(2.0),

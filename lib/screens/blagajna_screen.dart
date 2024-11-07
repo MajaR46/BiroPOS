@@ -2,10 +2,10 @@ import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/payment_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
@@ -16,7 +16,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:provider/provider.dart';
 
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
@@ -40,20 +39,54 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   double discount = 0;
   late List<NarociloItem> chosenItems = [];
   List<Item> izdelki = [];
+  late OrderService orderService;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize orderService here
+    orderService = ref.read(orderProvider);
+
     _handleData();
     searchController.addListener(() {
       setState(() {});
     });
+
+    // Now call initializePaymentMethods after initialization
+    orderService.initializePaymentMethods();
   }
 
   @override
   void dispose() {
     searchController.dispose();
     super.dispose();
+  }
+
+  void _showResponseDialog(List<String> response) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Server Response"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(response.join('\n')), // Display the response line by line
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _handleData() async {
@@ -423,6 +456,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+    final paymentMethods = ref.watch(paymentMethodProvider);
+    orderService = ref.read(orderProvider);
+
     return Scaffold(
       backgroundColor: AppStyles.grey,
       appBar: AppBar(
@@ -473,7 +509,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RacunScreen()),
+                                builder: (context) => const RacunScreen()),
                           ).then((_) {
                             _updateFinalSum(); // Update final sum on return
                           });
@@ -488,6 +524,40 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         multiply: _handleMultiply,
                         quantity: itemQuantity,
                         navigateToOpisScreen: _navigateToOpisScreen,
+                        paymentGotovina: () async {
+                          if (paymentMethods.isNotEmpty) {
+                            final response = await orderService.createOrder(
+                              context,
+                              "GOT",
+                              "#MIZA#", // example table number
+                              "DIREKTENRACUN", // example order type
+                            );
+                            _showResponseDialog(response);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("No payment methods available!")),
+                            );
+                          }
+                        },
+                        paymentKartica: () async {
+                          if (paymentMethods.isNotEmpty) {
+                            final response = await orderService.createOrder(
+                              context,
+                              "KAR",
+                              "#MIZA#", // example table number
+                              "DIREKTENRACUN", // example order type
+                            );
+                            _showResponseDialog(response);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text("No payment methods available!")),
+                            );
+                          }
+                        },
                       ),
                     ),
                   ],
@@ -504,7 +574,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AddToTableScreen(),
+          builder: (context) => const AddToTableScreen(),
         ),
       );
     } else {
@@ -518,10 +588,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    final result = Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => NacinPlacilaScreen(finalSum: finalSum)));
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => NacinPlacilaScreen()));
   }
 
   void _navigateToOpisScreen() async {

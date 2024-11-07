@@ -79,10 +79,6 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
       ),
     );
 
-    if (currentItem == null) {
-      return const Center(child: Text('Item not found.'));
-    }
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(

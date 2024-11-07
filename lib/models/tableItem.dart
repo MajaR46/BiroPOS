@@ -7,7 +7,7 @@ class TableItem {
 
   TableItem({
     required this.productCode,
-    required this.productName,
+    this.productName = '',
     required this.quantity,
     required this.price,
     required this.categoryCode,
