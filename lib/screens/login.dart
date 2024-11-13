@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum ResponseCategory { osebje }
 
@@ -39,7 +40,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   DateTime currentDate = DateTime.now();
-
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
   List<Osebje> osebje = [];
@@ -47,13 +47,19 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    // Fetch the BiroPOS.txt data when the login screen is initialized
     _handleData();
   }
 
   Future<bool> _handleData() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId') ?? "";
+
     try {
-      List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+      List<String> apiResponseList = await sendRequest(userId, "BiroPOS.txt");
+      await _saveBiroPosData(apiResponseList);
       _categorizeResponse(apiResponseList);
+
       return true;
     } catch (e) {
       print("Error fetching data: $e");
@@ -61,13 +67,39 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _refresh() async {
-    bool isDataHandled = await _handleData();
-    if (isDataHandled) {
-      setState(() {
-        currentDate = DateTime.now();
-      });
+  Future<void> _saveBiroPosData(List<String> apiResponseList) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> biroPosData = apiResponseList; // Convert list to a string
+    await prefs.setStringList('biropos_data', biroPosData); // Save the data
+  }
+
+  Future<void> getTables() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId') ?? "";
+
+    List<String> apiResponseList = await sendRequest(userId, "VrniSeznamMiz");
+    await prefs.setStringList('table_data', apiResponseList);
+  }
+
+  Future<void> getOpenTables() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId');
+
+    if (userId != null) {
+      List<String> apiResponseList =
+          await sendRequest(userId, "VrniOdprteMize\t$userId");
+      await prefs.setStringList('open_table_data', apiResponseList);
+    } else {
+      print("Error: User ID not found in SharedPreferences.");
     }
+  }
+
+  Future<void> getPorocila() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString('userId') ?? "";
+
+    List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
+    await prefs.setStringList('porocilo_data', apiResponseList);
   }
 
   void _categorizeResponse(List<String> items) {
@@ -88,14 +120,23 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _clearText() {
-    _logininputcontroller.clear();
-  }
-
-  void _handleOKPressed() {
+  void _handleOKPressed() async {
     final inputPassword = _logininputcontroller.text;
-    Osebje? matchedUser;
+    String formattedDate = DateFormat("dd").format(currentDate);
+    String formattedTime = DateFormat("mm").format(currentDate);
 
+    // Check if the input password matches the default password format first
+    if (inputPassword == "12${formattedTime}5${formattedDate}98") {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const ApiKeyScreen(isDefaultPassword: true)),
+      );
+      return; // Exit early to avoid further checks
+    }
+
+    // If the password is not the default, proceed with the usual user authentication
+    Osebje? matchedUser;
     for (var user in osebje) {
       if (user.password == inputPassword) {
         matchedUser = user;
@@ -104,10 +145,19 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (matchedUser != null) {
+      // Store the matched user session
       SessionManager().saveSession(matchedUser.ime, matchedUser.sfira);
-      Navigator.push(
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', matchedUser.sfira);
+      Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const MeniScreen()));
+
+      await getTables();
+      await getOpenTables();
+      await getPorocila();
     } else {
+      // Show error message only if the password is neither default nor matched
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
     }
@@ -156,9 +206,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleTestConnection() async {
-    List<String> responseList = await sendRequest("1", "echo");
+    final prefs = await SharedPreferences.getInstance();
+
+    String? userId = prefs.getString('userId') ?? "";
+
+    List<String> responseList = await sendRequest(userId, "echo");
 
     _showEchoDialog(responseList);
+  }
+
+  void _clearText() {
+    _logininputcontroller.clear();
+  }
+
+  void _refresh() async {
+    bool isDataHandled = await _handleData();
+    if (isDataHandled) {
+      setState(() {
+        currentDate = DateTime.now();
+      });
+    }
   }
 
   @override
@@ -223,7 +290,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const ApiKeyScreen()));
+                          builder: (context) => const ApiKeyScreen(
+                                isDefaultPassword: false,
+                              )));
                 },
                 style:
                     ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),

@@ -7,6 +7,7 @@ import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NewTableScreen extends ConsumerStatefulWidget {
   const NewTableScreen({
@@ -26,7 +27,9 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
 
   void _addToNewTable(String tableNumber) async {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
-    String? userId = SessionManager().getLoggedInUserSifra();
+    final prefs = await SharedPreferences.getInstance();
+
+    String? userId = prefs.getString('userId') ?? "";
 
     List<String> narociloItems = [];
 
@@ -47,7 +50,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     }
 
     List<String> posljiNaStreznik =
-        await sendRequest("1", narociloItems.join('\r\n'));
+        await sendRequest(userId, narociloItems.join('\r\n'));
     print("Poslji na streznik $posljiNaStreznik");
   }
 

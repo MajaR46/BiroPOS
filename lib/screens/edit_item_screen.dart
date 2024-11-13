@@ -7,6 +7,7 @@ import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Define your screen as ConsumerStatefulWidget to access Riverpod providers
 class EditItemScreen extends ConsumerStatefulWidget {
@@ -36,8 +37,19 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   }
 
   Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
-    _categorizeResponseItems(apiResponseList);
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> apiResponseList =
+          (prefs.getString('biropos_data') ?? '').split('\n');
+      _categorizeResponseItems(apiResponseList);
+
+      if (apiResponseList == null) {
+        print("No data");
+        return;
+      }
+    } catch (e) {
+      print("error loading data $e");
+    }
   }
 
   void _categorizeResponseItems(List<String> items) {

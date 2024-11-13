@@ -1,9 +1,12 @@
-import 'package:biro_pos/components/numpad.dart';
-import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 
-class DavcnaStrankaScreen extends StatelessWidget {
+class DavcnaStrankaScreen extends ConsumerWidget {
   final TextEditingController _strankaController = TextEditingController();
+
   DavcnaStrankaScreen({super.key});
 
   void _clearText() {
@@ -11,7 +14,7 @@ class DavcnaStrankaScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -37,6 +40,8 @@ class DavcnaStrankaScreen extends StatelessWidget {
             SizedBox(
               width: 300,
               child: TextField(
+                showCursor: true,
+                readOnly: true,
                 controller: _strankaController,
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(
@@ -56,7 +61,17 @@ class DavcnaStrankaScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            Numpad(controller: _strankaController, onOKPressed: () {})
+            Numpad(
+              controller: _strankaController,
+              onOKPressed: () {
+                // Set the tax number in the provider
+                final String davcnaSt = _strankaController.text;
+                ref.read(taxNumberProvider.notifier).state = davcnaSt;
+
+                // Optionally, navigate back or show a message
+                Navigator.of(context).pop();
+              },
+            ),
           ],
         ),
       ),

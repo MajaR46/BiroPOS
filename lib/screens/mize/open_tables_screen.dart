@@ -4,6 +4,7 @@ import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/mize/miza_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenTablesScreen extends StatefulWidget {
   const OpenTablesScreen({super.key});
@@ -32,7 +33,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
     try {
       String txt_data = 'VrniOdprteMize\t$userId';
-      List<String> apiResponseList = await sendRequest("1", txt_data);
+      List<String> apiResponseList = await sendRequest(userId!, txt_data);
 
       List<Map<String, String>> mize = [];
 
@@ -153,30 +154,12 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                               );
                             })),
                 Padding(
-                    padding: const EdgeInsets.only(
-                        left: 16, bottom: 24, top: 8, right: 16),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                            height: 50,
-                            width: 140,
-                            child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        AppStyles.silver.withOpacity(0.1),
-                                    padding: EdgeInsets.zero,
-                                    elevation: 0),
-                                child: Text('POVEČAJ KOL.',
-                                    style: AppStyles.button1
-                                        .copyWith(color: AppStyles.black)))),
-                        const Spacer(),
-                        SizedBox(
-                            child: OKButton(
-                          onPressed: _ok,
-                        )),
-                      ],
-                    ))
+                  padding: const EdgeInsets.only(
+                      left: 16, bottom: 24, top: 8, right: 16),
+                  child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: OKButton(onPressed: _ok)),
+                )
               ],
             )
           ],

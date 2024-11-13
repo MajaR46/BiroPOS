@@ -1,6 +1,7 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PorocilaScreen extends StatefulWidget {
   const PorocilaScreen({super.key});
@@ -21,8 +22,8 @@ class _PorocilaScreenState extends State<PorocilaScreen> {
 
   _handleData() async {
     try {
-      List<String> apiResponseList = await sendRequest("1", "VrniPorocila");
-
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> apiResponseList = prefs.getStringList('porocilo_data') ?? [];
       List<String> extractedTexts = apiResponseList.map((element) {
         String cleanedElement = element.replaceAll('\r', '').trim();
         return cleanedElement.split("|")[0];
@@ -39,11 +40,14 @@ class _PorocilaScreenState extends State<PorocilaScreen> {
 
   //sprintaj na tiskalnik//////
   _prikaziPorocila(String naslovPorocila) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    String? userId = prefs.getString('userId') ?? "";
     String txtData = 'VrniPorocilo\t$naslovPorocila';
 
     print("Prepared txtData: '$txtData'");
 
-    List<String> responsePorocilaList = await sendRequest('1', txtData);
+    List<String> responsePorocilaList = await sendRequest(userId, txtData);
     print("Response: $responsePorocilaList");
 
     return responsePorocilaList;

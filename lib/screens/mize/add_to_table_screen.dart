@@ -2,11 +2,13 @@ import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/new_table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddToTableScreen extends ConsumerStatefulWidget {
   const AddToTableScreen({
@@ -40,7 +42,9 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     });
 
     try {
-      List<String> apiResponseList = await sendRequest("1", "VrniSeznamMiz");
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      List<String> apiResponseList = prefs.getStringList('table_data') ?? [];
 
       List<Map<String, String>> parsedTables = [];
 
@@ -74,41 +78,18 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   }
 
   void _addToExistingTable(String tableNumber) async {
-    String? userId = SessionManager().getLoggedInUserSifra();
-    List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
+    final tableNotifier = ref.read(tableNotifierProvider.notifier);
 
-    List<String> narociloItems = chosenItems.map((item) {
-      String artikelSifra = item.product.id.toString();
-      double kolicina = (item.quantity).toDouble();
+    List<String> serverResponse =
+        await tableNotifier.addToExistingTable(context, tableNumber);
 
-      double originalPrice =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0.0;
-      double itemDiscountedPrice = item.product.discountedPrice > 0
-          ? item.product.discountedPrice
-          : originalPrice;
-
-      num popust = (originalPrice != 0)
-          ? ((1 - (itemDiscountedPrice / originalPrice)) * 100)
-          : 0;
-
-      String opis = item.description;
-      String artikelSkupina = item.product.categoryID.toString();
-
-      String narociloItem =
-          '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
-      print("Narocilo item $narociloItem");
-      return narociloItem;
-    }).toList();
-
-    List<String> posljiNaStreznik =
-        await sendRequest("1", narociloItems.join('\r\n'));
+    if (serverResponse.isNotEmpty) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+    }
 
     ref.read(narociloNotifierProvider.notifier).state = [];
-
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
-    print("Poslji na streznik $posljiNaStreznik");
+    ref.read(tableNotifierProvider.notifier).state = [];
   }
 
   @override

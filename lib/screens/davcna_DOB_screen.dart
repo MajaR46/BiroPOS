@@ -1,20 +1,78 @@
 import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DavcnaDOBScreen extends StatelessWidget {
-  final TextEditingController _dobController = TextEditingController();
-
+class DavcnaDOBScreen extends ConsumerStatefulWidget {
   DavcnaDOBScreen({
     super.key,
   });
+
+  @override
+  ConsumerState<DavcnaDOBScreen> createState() => _DavcnaDOBScreenState();
+}
+
+class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
+  final TextEditingController _dobController = TextEditingController();
+  late OrderService orderService;
+
+  @override
+  void initState() {
+    super.initState();
+    orderService = ref.read(orderProvider);
+  }
 
   void _clearText() {
     _dobController.clear();
   }
 
+  void _showResponseDialog(
+    List<String> response,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Server Response"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(response.join('\n')), // Display the response line by line
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+                clearDavcna(
+                    ref); // Execute the callback to clear items after dialog is closed
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    void createOrder(davcnaSt) async {
+      if (davcnaSt != null) {
+        final response = await orderService.createOrder(
+            context, "TipDokumenta.DOB", davcnaSt);
+        _showResponseDialog(response);
+      } else {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Ni vnesene davčne")));
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -40,6 +98,8 @@ class DavcnaDOBScreen extends StatelessWidget {
             SizedBox(
               width: 300,
               child: TextField(
+                showCursor: true,
+                readOnly: true,
                 controller: _dobController,
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(
@@ -59,7 +119,9 @@ class DavcnaDOBScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            Numpad(controller: _dobController, onOKPressed: () {})
+            Numpad(
+                controller: _dobController,
+                onOKPressed: () => {createOrder(_dobController.text)})
           ],
         ),
       ),

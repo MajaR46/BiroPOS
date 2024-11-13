@@ -1,11 +1,15 @@
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<String>> sendRequest(String userSifra, String txtData) async {
   const String url = 'http://84.255.204.40:8443/api/biropos';
 
+  final prefs = await SharedPreferences.getInstance();
+  String apiKey = prefs.getString('apiKey') ?? '';
+
   final Map<String, String> headers = {
-    'api-key': '176FCBFB',
+    'api-key': apiKey,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'User-Agent': 'BiroPOS URI Client/2.0'
@@ -32,7 +36,7 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
     if (response.statusCode == 200) {
       String responseBody = response.body;
 
-      // Continue with the response processing as before
+      // Process the response as before
       final RegExp resultRegex =
           RegExp(r'"result"\s*:\s*"(.*?)"', dotAll: true);
       final match = resultRegex.firstMatch(responseBody);
@@ -41,6 +45,9 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
         String result = match.group(1) ?? "";
         result = result.replaceAll('\t', '|').replaceAll('\n', '_');
         var splittedResult = result.split('_');
+
+        // Save the result in SharedPreferences based on txtData
+        prefs.setStringList(txtData, splittedResult);
 
         return splittedResult;
       } else {

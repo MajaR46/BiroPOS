@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum ResponseCategory { izdelki, dodatki, osebje }
 
@@ -47,9 +48,19 @@ class _TestScreenState extends State<TestScreen> {
   String response = "";
 
   Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> apiResponseList =
+          (prefs.getString('biropos_data') ?? '').split('\n');
+      _categoriseItems(apiResponseList);
 
-    _categoriseItems(apiResponseList);
+      if (apiResponseList == null) {
+        print("No data");
+        return;
+      }
+    } catch (e) {
+      print("error loading data $e");
+    }
   }
 
   void _categoriseItems(List<String> items) {

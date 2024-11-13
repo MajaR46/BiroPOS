@@ -5,6 +5,7 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final paymentMethodProvider = StateProvider<List<NacinPlacila>>((ref) => []);
 
@@ -14,16 +15,28 @@ final orderProvider = Provider<OrderService>((ref) {
 
 class OrderService {
   final Ref ref;
+  bool isLoading = true;
+  bool hasError = false;
 
   OrderService(this.ref);
 
-  // Method to handle data, calling API and categorizing payment methods
   Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "Biropos.txt");
-    _kategorizirajNacinePlacila(apiResponseList);
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<String> apiResponseList =
+          (prefs.getStringList('biropos_data') ?? []);
+      print("Loaded data: ${apiResponseList.join(', ')}"); // Debug output
+      _kategorizirajNacinePlacila(apiResponseList);
+
+      if (apiResponseList.isEmpty) {
+        print("No data");
+        return;
+      }
+    } catch (e) {
+      print("error loading data $e");
+    }
   }
 
-  // Method to categorize payment methods
   void _kategorizirajNacinePlacila(List<String> items) {
     List<NacinPlacila> naciniPlacila2 = [];
     for (String item in items) {
@@ -33,17 +46,17 @@ class OrderService {
         naciniPlacila2.add(NacinPlacila(kodaNacinaPlacila, nacinPlacila));
       }
     }
-    // Update the provider with the new payment methods
+    print(
+        "Payment methods categorized: ${naciniPlacila2.map((e) => e.nacinPlacila).join(', ')}"); // Debug output
+
     ref.read(paymentMethodProvider.notifier).state = naciniPlacila2;
   }
 
   Future<List<String>> createOrder(
     BuildContext context,
-    String paymentMethodCode,
-    String tableNumber,
-    String orderType,
-  ) async {
-    // Get the logged-in user
+    String paymentMethodCode, [
+    String? davcnaSt,
+  ]) async {
     String? userId = SessionManager().getLoggedInUserSifra();
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,22 +77,29 @@ class OrderService {
     }
 
     final chosenItems = ref.watch(narociloNotifierProvider);
-    List<String> orderItems = chosenItems.map((item) {
+
+    // Initialize lists to separate table and direct billing items
+    List<String> tableOrderItems = [];
+    List<String> directOrderItems = [];
+    bool hasDirectItems = false; // Flag for new direct items
+
+    for (var item in chosenItems) {
       String productCode = item.product.id?.toString() ?? '';
       double quantity = item.quantity.toDouble();
       String categoryCode = item.product.categoryID.toString();
-
       double price =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0.0;
-      double discountedPrice = item.product.discountedPrice ?? price;
+      double discountedPrice = item.product.discountedPrice;
 
       double discount = (discountedPrice > 0 && price > 0)
           ? 100 - ((discountedPrice / price) * 100)
           : 0;
 
       String paymentCode = '';
+      String taxNumber = davcnaSt ?? '';
 
+      // Determine payment code based on the payment method code
       if (paymentMethodCode == "GOT") {
         paymentCode = paymentMethods[0].kodaNacinaPlacila;
       } else if (paymentMethodCode == "KAR") {
@@ -88,11 +108,35 @@ class OrderService {
         paymentCode = paymentMethodCode;
       }
 
-      return '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\t$orderType;$paymentCode;;${item.description ?? ''};\t$categoryCode';
-    }).toList();
+      // Set table number
+      String tableNumber =
+          item.tableNumber.isEmpty ? '#MIZA#' : item.tableNumber;
 
+      // Determine if the item is a direct addition to the bill
+      if (!item.isFromTable) {
+        hasDirectItems = true; // Mark that we have new items
+        directOrderItems.add(
+            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tDIREKTENRACUN;$paymentCode;$taxNumber;${item.description ?? ''};\t$categoryCode');
+      } else {
+        // Initially mark table items as RACUN, will switch to ZAPRIMIZO if there are new items
+        tableOrderItems.add(
+            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tRACUN;$paymentCode;$taxNumber;${item.description ?? ''};\t$categoryCode');
+      }
+    }
+
+    // If there are direct items, change all table items from RACUN to ZAPRIMIZO
+    if (hasDirectItems) {
+      tableOrderItems = tableOrderItems
+          .map((item) => item.replaceFirst('RACUN', 'ZAPRIMIZO'))
+          .toList();
+    }
+
+    // Combine table and direct items
+    List<String> allOrderItems = [...tableOrderItems, ...directOrderItems];
+
+    // Send the request to the server
     List<String> serverResponse =
-        await sendRequest("1", orderItems.join('\r\n'));
+        await sendRequest(userId, allOrderItems.join('\r\n'));
 
     return serverResponse;
   }

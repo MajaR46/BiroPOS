@@ -6,10 +6,13 @@ import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/models/tableItem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
+import 'package:biro_pos/screens/mize/prenos_mize_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MizaDetailsScreen extends ConsumerStatefulWidget {
   final String imeMize;
@@ -33,8 +36,11 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
 
   Future<void> _fetchSingleTable() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+
+      String? userId = prefs.getString('userId') ?? "";
       String txtdata = 'VrniMizo\t$imeMize';
-      List<String> apiResponseList = await sendRequest("1", txtdata);
+      List<String> apiResponseList = await sendRequest(userId, txtdata);
 
       List<TableItem> fetchedItems = [];
 
@@ -56,12 +62,39 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         izdelki = fetchedItems;
         _isLoading = false;
       });
+
+      for (var item in fetchedItems) {
+        ref.read(tableNotifierProvider.notifier).addToTable(item);
+      }
     } catch (e) {
       print("Error: $e");
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _deleteFromRacun(int index) {
+    final itemToRemove = NarociloItem(
+      product: Item(
+        id: izdelki[index].productCode,
+        name: izdelki[index].productName,
+        price: izdelki[index].price,
+        categoryID: izdelki[index].categoryCode,
+      ),
+      tableNumber: imeMize,
+      quantity: izdelki[index].quantity,
+      description: '',
+      isFromTable: true,
+    );
+
+    // Call the removeFromRacun function from NarociloNotifier
+    ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
+
+    // Optionally, update the UI to reflect the removal from the table's item list
+    setState(() {
+      izdelki.removeAt(index);
+    });
   }
 
   void _ok() {
@@ -74,15 +107,18 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       );
 
       return NarociloItem(
-        product: item,
-        quantity: tableItem.quantity,
-        description: '',
-      );
+          product: item,
+          tableNumber: imeMize,
+          quantity: tableItem.quantity,
+          description: '',
+          isFromTable: true);
     }).toList();
 
     // Add each NarociloItem to the bill individually
     for (var narociloItem in narociloItems) {
-      ref.read(narociloNotifierProvider.notifier).addToRacun(narociloItem);
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(narociloItem, fromTable: true);
     }
 
     // Navigate to BlagajnaScreen after adding items to the bill
@@ -90,6 +126,40 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => BlagajnaScreen(),
+      ),
+    );
+  }
+
+  void _prenosMize() {
+    final narociloItems = izdelki.map((tableItem) {
+      final item = Item(
+        id: tableItem.productCode,
+        name: tableItem.productName,
+        price: tableItem.price,
+        categoryID: tableItem.categoryCode,
+      );
+
+      return NarociloItem(
+          product: item,
+          tableNumber: imeMize,
+          quantity: tableItem.quantity,
+          description: '',
+          isFromTable: true);
+    }).toList();
+
+    // Add each NarociloItem to the bill individually
+    for (var narociloItem in narociloItems) {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(narociloItem, fromTable: true);
+    }
+
+    // Navigate to PrenosMizeScreen, passing the current table number
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            PrenosMizeScreen(tableNumber: imeMize), // Pass imeMize here
       ),
     );
   }
@@ -117,35 +187,6 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         children: [
           Column(
             children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue.withOpacity(0.1),
-                            elevation: 0),
-                        child: Text(
-                          "Odznači",
-                          style: AppStyles.button1
-                              .copyWith(color: AppStyles.black),
-                        )),
-                    ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue.withOpacity(0.1),
-                            elevation: 0),
-                        child: Text(
-                          "Prenos",
-                          style: AppStyles.button1
-                              .copyWith(color: AppStyles.black),
-                        )),
-                  ],
-                ),
-              ),
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
@@ -176,15 +217,21 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                               elevation: 0,
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
+                                    horizontal: 16, vertical: 8),
                                 child: Row(
                                   children: [
                                     Text(
                                       item.productName,
-                                      style: AppStyles.heading4.copyWith(
+                                      style: AppStyles.paragraph2.copyWith(
                                           fontWeight: FontWeight.bold),
                                     ),
                                     const Spacer(),
+                                    IconButton.filled(
+                                        style: IconButton.styleFrom(
+                                            backgroundColor: AppStyles.red),
+                                        onPressed: () => _deleteFromRacun(
+                                            index), // Pass the index here
+                                        icon: const Icon(Icons.delete)),
                                     QuantityIncrease(
                                       quantity: item.quantity,
                                       onQuantityChanged: (newQuantity) =>
@@ -201,9 +248,29 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
               Padding(
                 padding: const EdgeInsets.only(
                     left: 16, bottom: 24, top: 8, right: 16),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: OKButton(onPressed: _ok),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 50,
+                      width: 120,
+                      child: ElevatedButton(
+                          onPressed: _prenosMize,
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  AppStyles.silver.withOpacity(0.1),
+                              elevation: 0),
+                          child: Text(
+                            "PRENOS",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.black),
+                          )),
+                    ),
+                    const Spacer(),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: OKButton(onPressed: _ok),
+                    ),
+                  ],
                 ),
               )
             ],

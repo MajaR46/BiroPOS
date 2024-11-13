@@ -4,7 +4,7 @@ import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/payment_provider.dart';
+import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
@@ -32,14 +32,18 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateFinalSum();
+    Future.microtask(() {
+      final orderService = ref.read(orderProvider);
+      orderService.initializePaymentMethods();
     });
-    orderService = ref.read(orderProvider);
-    orderService.initializePaymentMethods();
   }
 
-// Function to show the response in a dialog
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateFinalSum();
+  }
+
   void _showResponseDialog(List<String> response) {
     showDialog(
       context: context,
@@ -58,6 +62,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
+                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
               },
             ),
           ],
@@ -460,8 +465,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                             await orderService.createOrder(
                               context,
                               "GOT",
-                              "#MIZA#", // example table number
-                              "DIREKTENRACUN", // example order type
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -485,13 +488,21 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       ElevatedButton(
                         onPressed: () async {
                           if (paymentMethods.isNotEmpty) {
-                            final response = await orderService.createOrder(
-                              context,
-                              "KAR",
-                              "#MIZA#",
-                              "DIREKTENRACUN",
-                            );
-                            _showResponseDialog(response);
+                            // Trigger rebuild-safe operation using ref.watch() and async handling
+                            final orderService = ref.watch(orderProvider);
+                            try {
+                              final response = await orderService.createOrder(
+                                context,
+                                "KAR",
+                              );
+                              _showResponseDialog(response);
+                            } catch (e) {
+                              print("Error in createOrder: $e");
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("Failed to create order!")),
+                              );
+                            }
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(

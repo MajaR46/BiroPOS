@@ -4,8 +4,8 @@ import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/payment_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
@@ -45,16 +46,22 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void initState() {
     super.initState();
 
-    // Initialize orderService here
-    orderService = ref.read(orderProvider);
-
     _handleData();
     searchController.addListener(() {
       setState(() {});
     });
 
-    // Now call initializePaymentMethods after initialization
-    orderService.initializePaymentMethods();
+    Future.microtask(() {
+      final orderService = ref.read(orderProvider);
+      orderService.initializePaymentMethods();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update the final sum and total discount when the dependencies change
+    _updateFinalSum();
   }
 
   @override
@@ -81,6 +88,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
+                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
               },
             ),
           ],
@@ -90,22 +98,45 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   Future<void> _handleData() async {
-    List<String> apiResponseList = await sendRequest("1", "BiroPOS.txt");
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    Map<String, String> itemToCategoryMap = {};
+      // Check if 'biropos_data' is present
+      List<String> apiResponseList = prefs.getStringList('biropos_data') ?? [];
 
-    for (String line in apiResponseList) {
-      if (line.startsWith('T')) {
-        List<String> parts = line.split('|');
-        if (parts.length >= 3) {
-          String categoryName = parts[1];
-          String itemId = parts[2];
-          itemToCategoryMap[itemId] = categoryName;
+      if (apiResponseList == null) {
+        setState(() {
+          hasError = true;
+          isLoading = false;
+        });
+        print("No data found in SharedPreferences for 'biropos_data'");
+        return;
+      }
+
+      print(
+          "Data retrieved from SharedPreferences: ${apiResponseList.length} items");
+
+      Map<String, String> itemToCategoryMap = {};
+
+      for (String line in apiResponseList) {
+        if (line.startsWith('T')) {
+          List<String> parts = line.split('|');
+          if (parts.length >= 3) {
+            String categoryName = parts[1];
+            String itemId = parts[2];
+            itemToCategoryMap[itemId] = categoryName;
+          }
         }
       }
-    }
 
-    _categorizeResponseItems(apiResponseList, itemToCategoryMap);
+      _categorizeResponseItems(apiResponseList, itemToCategoryMap);
+    } catch (e) {
+      setState(() {
+        hasError = true;
+        isLoading = false;
+      });
+      print("Error loading data: $e");
+    }
   }
 
   void _categorizeResponseItems(
@@ -186,7 +217,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       NarociloItem newNarociloItem = NarociloItem(product: newItem);
 
       if (!itemExists) {
-        ref.read(narociloNotifierProvider.notifier).addToRacun(newNarociloItem);
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false);
         print("Added item to the bill: ${newNarociloItem.product.name}");
         print("Added item to the bill: ${newNarociloItem.product.price}");
       }
@@ -207,6 +240,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _handleMultiply(double factor) {
+    print("Multiplication factor received: $factor");
+
     if (selectedItem != null) {
       final newQuantity = itemQuantity * factor;
       setState(() {
@@ -529,8 +564,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                             final response = await orderService.createOrder(
                               context,
                               "GOT",
-                              "#MIZA#", // example table number
-                              "DIREKTENRACUN", // example order type
                             );
                             _showResponseDialog(response);
                           } else {
@@ -546,8 +579,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                             final response = await orderService.createOrder(
                               context,
                               "KAR",
-                              "#MIZA#", // example table number
-                              "DIREKTENRACUN", // example order type
                             );
                             _showResponseDialog(response);
                           } else {

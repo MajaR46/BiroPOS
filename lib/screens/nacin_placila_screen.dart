@@ -1,5 +1,5 @@
+import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/payment_provider.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,15 +17,18 @@ class NacinPlacilaScreen extends ConsumerStatefulWidget {
 
 class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
-
   @override
   void initState() {
     super.initState();
-    orderService = ref.read(orderProvider);
-    orderService.initializePaymentMethods();
+    Future.microtask(() {
+      final orderService = ref.read(orderProvider);
+      orderService.initializePaymentMethods();
+    });
   }
 
-  void _showResponseDialog(List<String> response) {
+  void _showResponseDialog(
+    List<String> response,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -43,6 +46,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
+                clearDavcna(
+                    ref); // Execute the callback to clear items after dialog is closed
               },
             ),
           ],
@@ -55,8 +60,20 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   Widget build(BuildContext context) {
     double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
     final paymentMethods = ref.watch(paymentMethodProvider);
-    print("načini plačil $paymentMethods");
+    final String? davcnaSt = ref.watch(taxNumberProvider);
     orderService = ref.read(orderProvider);
+
+    void createOrder(String paymentMethod) async {
+      if (paymentMethods.isNotEmpty) {
+        final response =
+            await orderService.createOrder(context, paymentMethod, davcnaSt);
+        _showResponseDialog(response);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No payment methods available!")),
+        );
+      }
+    }
 
     return Scaffold(
         appBar: AppBar(
@@ -95,6 +112,14 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                                 fontWeight: FontWeight.normal,
                                 color: AppStyles.blue)),
                       ),
+                      if (davcnaSt != null) // Only show if davcnaSt is not null
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            "Davčna: $davcnaSt",
+                            style: AppStyles.paragraph1,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -102,10 +127,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 24, left: 8, right: 8),
                 child: GridView.builder(
-                  shrinkWrap:
-                      true, // Add this to make the GridView take only the space it needs
-                  physics:
-                      NeverScrollableScrollPhysics(), // Disable scrolling within the GridView itself
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 2.5,
@@ -117,22 +140,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                     final paymentMethod = paymentMethods[index];
 
                     return ElevatedButton(
-                      onPressed: () async {
-                        if (paymentMethods.isNotEmpty) {
-                          final response = await orderService.createOrder(
-                            context,
-                            paymentMethod.kodaNacinaPlacila,
-                            "#MIZA#", // example table number
-                            "DIREKTENRACUN", // example order type
-                          );
-                          _showResponseDialog(response);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text("No payment methods available!")),
-                          );
-                        }
-                      },
+                      onPressed: () =>
+                          createOrder(paymentMethod.kodaNacinaPlacila),
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           shape: RoundedRectangleBorder(
@@ -146,12 +155,10 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
               ),
               Expanded(
                 child: Row(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.end, // Aligns children to the bottom
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Align(
-                      alignment: Alignment
-                          .bottomLeft, // Aligns button to the bottom left
+                      alignment: Alignment.bottomLeft,
                       child: SizedBox(
                         width: 150,
                         height: 60,
@@ -178,10 +185,9 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         ),
                       ),
                     ),
-                    Spacer(), // Adds flexible space between the two buttons
+                    Spacer(),
                     Align(
-                      alignment: Alignment
-                          .bottomRight, // Aligns button to the bottom right
+                      alignment: Alignment.bottomRight,
                       child: SizedBox(
                         width: 150,
                         height: 60,

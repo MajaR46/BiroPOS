@@ -175,6 +175,7 @@ class KeyboardNumber extends StatefulWidget {
 class _KeyboardNumberState extends State<KeyboardNumber> {
   int tapCount = 0;
   Timer? tapTimer;
+  bool preventSearch = false; // Flag to prevent search during comma entry
 
   void _handleTap() {
     setState(() {
@@ -186,15 +187,23 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
       if (tapCount <= availableCharacters) {
         String selectedChar = numberWithoutSpace[tapCount - 1];
 
-        if (widget.controller.text.isEmpty || tapCount == 1) {
-          widget.controller.text = selectedChar;
-        } else {
-          widget.controller.text = widget.controller.text
-                  .substring(0, widget.controller.text.length - 1) +
-              selectedChar;
+        // Special handling for the comma to act as a decimal point
+        if (selectedChar == ',' && !widget.controller.text.contains(',')) {
+          selectedChar = '.'; // Replace the comma with a dot (decimal point)
+
+          // Temporarily disable search logic
+          preventSearch = true;
         }
+
+        // Append the selected character to the controller text
+        widget.controller.text = widget.controller.text + selectedChar;
+
+        // Optionally, move cursor to the end (if needed)
+        widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: widget.controller.text.length));
       }
 
+      // Reset the tap counter after a small delay to allow multiple taps
       tapTimer?.cancel();
       tapTimer = Timer(const Duration(seconds: 1), () {
         tapCount = 0;
@@ -214,22 +223,22 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
       width: 80,
       height: 60,
       child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              backgroundColor: AppStyles.silver.withOpacity(0.1),
-              padding: EdgeInsets.zero,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20))),
-          onPressed: () {
-            _handleTap();
-          },
-          child: Center(
-            child: Text(
-              widget.number,
-              style:
-                  AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
-            ),
-          )),
+        style: ElevatedButton.styleFrom(
+            backgroundColor: AppStyles.silver.withOpacity(0.1),
+            padding: EdgeInsets.zero,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20))),
+        onPressed: () {
+          _handleTap();
+        },
+        child: Center(
+          child: Text(
+            widget.number,
+            style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
+          ),
+        ),
+      ),
     );
   }
 }

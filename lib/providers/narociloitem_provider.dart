@@ -7,19 +7,27 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     return [];
   }
 
-  void addToRacun(NarociloItem narociloItem) {
+  void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
+    final String? davcnaSt = ref.read(taxNumberProvider);
+
     final existingItemIndex =
         state.indexWhere((item) => item.product.id == narociloItem.product.id);
 
     if (existingItemIndex != -1) {
+      // Update existing item with new quantity and potentially new davcnaSt
       state[existingItemIndex] = state[existingItemIndex].copyWith(
           quantity: state[existingItemIndex].quantity + narociloItem.quantity,
-          discount: state[existingItemIndex].discount);
+          discount: state[existingItemIndex].discount,
+          davcnaSt: davcnaSt ?? state[existingItemIndex].davcnaSt,
+          isFromTable: fromTable);
     } else {
-      // Add item with discount defaulting to zero if not set
+      // Add new item with specified davcnaSt
       state = [
         ...state,
-        narociloItem.copyWith(discount: narociloItem.discount),
+        narociloItem.copyWith(
+            discount: narociloItem.discount,
+            davcnaSt: davcnaSt,
+            isFromTable: fromTable),
       ];
     }
   }
@@ -75,10 +83,27 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
     state = updatedItems;
   }
+
+  // Clears all items in the list
+  void clearChosenItems() {
+    state = [];
+  }
 }
 
-// Provider definition
+// Provider for managing davcna (tax number)
+final taxNumberProvider = StateProvider<String?>((ref) => null);
+
+// Function to set the tax number
+void setTaxNumber(WidgetRef ref, String taxNumber) {
+  ref.read(taxNumberProvider.notifier).state = taxNumber;
+}
+
+// Clear davcna using the taxNumberProvider
+void clearDavcna(WidgetRef ref) {
+  ref.read(taxNumberProvider.notifier).state = '';
+}
+
+// Provider for narociloNotifier
 final narociloNotifierProvider =
-    NotifierProvider<NarociloNotifier, List<NarociloItem>>(() {
-  return NarociloNotifier();
-});
+    NotifierProvider<NarociloNotifier, List<NarociloItem>>(
+        NarociloNotifier.new);
