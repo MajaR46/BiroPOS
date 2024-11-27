@@ -6,6 +6,8 @@ import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
@@ -101,7 +103,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      // Check if 'biropos_data' is present
       List<String> apiResponseList = prefs.getStringList('biropos_data') ?? [];
 
       if (apiResponseList == null) {
@@ -184,6 +185,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             'category': categoryName,
             'itemId': izdelekId,
             'categoryID': kategorijaID,
+            'eanCode': eancode
           });
         } else {
           categorized[categoryName] = [
@@ -193,6 +195,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               'category': categoryName,
               'itemId': izdelekId,
               'categoryID': kategorijaID,
+              'eanCode': eancode
             }
           ];
         }
@@ -213,7 +216,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
       bool itemExists = false;
 
-      Item newItem = Item.fromMap(outputtedItem);
+      // Assuming outputtedItem is a map and you're creating an Item from it
+      Item newItem = Item.fromMap(outputtedItem); // Convert map to Item
       NarociloItem newNarociloItem = NarociloItem(product: newItem);
 
       if (!itemExists) {
@@ -224,9 +228,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         print("Added item to the bill: ${newNarociloItem.product.price}");
       }
 
-      selectedItem = outputtedItem;
+      // Convert map to NarociloItem before assigning
+      selectedItem = newNarociloItem;
+      ref.read(selectedItemProvider.notifier).state = newNarociloItem;
       print("Selected item: $selectedItem");
-      print("Selected item name: ${selectedItem['name']}");
+      print("Selected item name: ${selectedItem.product.name}");
 
       _updateFinalSum();
     });
@@ -237,25 +243,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     setState(() {
       finalSum = newSum;
     });
-  }
-
-  void _handleMultiply(double factor) {
-    print("Multiplication factor received: $factor");
-
-    if (selectedItem != null) {
-      final newQuantity = itemQuantity * factor;
-      setState(() {
-        itemQuantity = newQuantity;
-      });
-
-      // Update the quantity in the provider
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateQuantity(selectedItem['itemId'], newQuantity);
-
-      // Update the final sum based on the new quantity
-      _updateFinalSum();
-    }
   }
 
   List<Color> backgroundColors = [
@@ -304,8 +291,76 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     return categories;
   }
 
+  String searchQuery = "";
+  String joinedNumbers = "";
+  String numbers = "";
+
+  List<int> extractNumbers(String input) {
+    // Use RegExp to find all numbers in the input string.
+    final matches = RegExp(r'\d').allMatches(input);
+    return matches.map((match) => int.parse(match.group(0)!)).toList();
+  }
+
+  Map<int, List<String>> numberToLetters = {
+    2: ['a', 'b', 'c'],
+    3: ['d', 'e', 'f'],
+    4: ['g', 'h', 'i'],
+    5: ['j', 'k', 'l'],
+    6: ['m', 'n', 'o'],
+    7: ['p', 'q', 'r', 's'],
+    8: ['t', 'u', 'v'],
+    9: ['w', 'x', 'y', 'z'],
+  };
+
+  void generatePairs() {
+    String input = searchController.text;
+    print("input $input");
+
+    // Extract numbers from the input string
+    List<int> numbers = extractNumbers(input)
+        .where((num) => numberToLetters.containsKey(num))
+        .toList();
+
+    print("numbers $numbers");
+
+    joinedNumbers = numbers.join();
+
+    List<List<String>> letterGroups =
+        numbers.map((num) => numberToLetters[num]!).toList();
+
+    List<String> combinations = _combineLetters(letterGroups);
+    print(combinations);
+
+    if (combinations.isNotEmpty) {
+      searchQuery = combinations.join('|');
+    } else {
+      searchQuery = '';
+    }
+  }
+
+  List<String> _combineLetters(List<List<String>> letterGroups) {
+    if (letterGroups.isEmpty) return [];
+
+    List<String> result = letterGroups[0];
+
+    for (int i = 1; i < letterGroups.length; i++) {
+      List<String> newResult = [];
+      for (String prefix in result) {
+        for (String letter in letterGroups[i]) {
+          newResult.add(prefix + letter);
+        }
+      }
+      result = newResult;
+    }
+
+    return result;
+  }
+
 //filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
+    generatePairs(); // Generate letter combinations based on input
+    print("joinedNumbers $joinedNumbers");
+
     List<dynamic> filteredItems = [];
 
     // Filter by category
@@ -319,16 +374,35 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       filteredItems = categorizedItems[selectedCategory] ?? [];
     }
 
-    // Filter by search query
-    String searchQuery = searchController.text.toUpperCase();
+    String searchText = searchController.text;
+    print("searchtext $searchText");
 
-    searchQuery = searchQuery.replaceAll(RegExp(r'\d'), '');
+    RegExp regExp = RegExp(r'\d+');
+    Iterable<Match> matches = regExp.allMatches(searchText);
+    List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
+    String numbers2String = numbers2.join();
+    print("numbers2String $numbers2String");
 
-    if (searchQuery.isNotEmpty) {
+    // Implement the condition: search only if the input contains exactly 3 numbers
+    if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
+      final searchPattern = RegExp(searchQuery, caseSensitive: false);
+
       filteredItems = filteredItems.where((item) {
         String itemName =
             item['name'].toUpperCase().replaceAll(RegExp(r'\d'), '');
-        return itemName.startsWith(searchQuery);
+        return searchPattern.hasMatch(itemName);
+      }).toList();
+    } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) {
+        String itemId = item['itemId'];
+        return itemId.contains(numbers2String);
+      }).toList();
+    } else if (numbers2String.length >= 6 && searchQuery.isNotEmpty) {
+      filteredItems = filteredItems.where((item) {
+        print("Filtering item: $item");
+        String? eanCode = item['eanCode'];
+        print("eanCode: $eanCode");
+        return eanCode != null && eanCode.contains(numbers2String);
       }).toList();
     }
 
@@ -420,7 +494,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     child: ListView.builder(
                       itemCount: items.length,
                       itemBuilder: (context, itemIndex) {
-                        final item = items[itemIndex];
+                        final sortedMainItems = items
+                          ..sort((item1, item2) =>
+                              item1['name'].compareTo(item2['name']));
+                        final item = sortedMainItems[itemIndex];
 
                         int categoryIndex = categorizedItems.keys
                             .toList()
@@ -464,7 +541,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       return ListView.builder(
         itemCount: filteredItems.length,
         itemBuilder: (context, index) {
-          final item = filteredItems[index];
+          final sortedItems = filteredItems
+            ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
+          final item = sortedItems[index];
           int categoryIndex =
               categorizedItems.keys.toList().indexOf(item['category']);
           Color assignedBackgroundColor =
@@ -487,11 +566,44 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
   }
 
+  void _increaseQuantity() {
+    setState(() {
+      itemQuantity++;
+    });
+    final selectedItem = ref.read(selectedItemProvider.notifier).state;
+    // Update the quantity in the provider
+    if (selectedItem != null) {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateQuantity(selectedItem.product.id, itemQuantity);
+      _updateFinalSum(); // Update the final sum after changing quantity
+    }
+  }
+
+  void _decreaseQuantity() {
+    final selectedItem = ref.read(selectedItemProvider.notifier).state;
+
+    if (itemQuantity > 1) {
+      setState(() {
+        itemQuantity--;
+      });
+
+      // Update the quantity in the provider
+      if (selectedItem != null) {
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .updateQuantity(selectedItem.product.id, itemQuantity);
+        _updateFinalSum(); // Update the final sum after changing quantity
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
     final paymentMethods = ref.watch(paymentMethodProvider);
+
     orderService = ref.read(orderProvider);
 
     return Scaffold(
@@ -530,16 +642,24 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
-                      child: BlagajnaBanner(
-                          chosenItem: selectedItem != null
-                              ? selectedItem['name'] ?? ''
-                              : ' ',
-                          quantity: itemQuantity,
-                          sum: finalSum),
+                      child: GestureDetector(
+                        onHorizontalDragEnd: selectedItem != null
+                            ? (details) {
+                                if (details.velocity.pixelsPerSecond.dx > 0) {
+                                  _decreaseQuantity();
+                                } else if (details.velocity.pixelsPerSecond.dx <
+                                    0) {
+                                  _increaseQuantity();
+                                }
+                              }
+                            : null,
+                        child: BlagajnaBanner(),
+                      ),
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,
                       child: Keyboard(
+                        opisDiscountButton: "OPIS",
                         navigateToRacun: () {
                           Navigator.push(
                             context,
@@ -552,43 +672,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         navigateToMizaScreen: _navigateToMizaScreen,
                         navigateToNacinPlacilaScreen:
                             _navigateToNacinPlacilaScreen,
-                        selectedItem: selectedItem,
-                        chosenItems: chosenItems,
-                        finalSum: finalSum,
                         controller: searchController,
-                        multiply: _handleMultiply,
-                        quantity: itemQuantity,
-                        navigateToOpisScreen: _navigateToOpisScreen,
-                        paymentGotovina: () async {
-                          if (paymentMethods.isNotEmpty) {
-                            final response = await orderService.createOrder(
-                              context,
-                              "GOT",
-                            );
-                            _showResponseDialog(response);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text("No payment methods available!")),
-                            );
-                          }
-                        },
-                        paymentKartica: () async {
-                          if (paymentMethods.isNotEmpty) {
-                            final response = await orderService.createOrder(
-                              context,
-                              "KAR",
-                            );
-                            _showResponseDialog(response);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text("No payment methods available!")),
-                            );
-                          }
-                        },
+                        navigateToOpisDiscountScreen: _navigateToOpisScreen,
                       ),
                     ),
                   ],

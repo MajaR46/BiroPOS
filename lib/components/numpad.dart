@@ -40,6 +40,7 @@ class Numpad extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             NumpadDelete(
+              height: 60,
               controller: controller,
               fontSize: 24,
               borderRadius: 40,
@@ -91,18 +92,20 @@ class NumpadDelete extends StatelessWidget {
   final TextEditingController controller;
   final int fontSize;
   final int borderRadius;
+  final int height;
 
   const NumpadDelete(
       {super.key,
       required this.controller,
       required this.fontSize,
-      required this.borderRadius});
+      required this.borderRadius,
+      required this.height});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 60,
+      height: height.toDouble(),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: AppStyles.silver.withOpacity(0.1),

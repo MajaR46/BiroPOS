@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<List<String>> sendRequest(String userSifra, String txtData) async {
-  const String url = 'http://84.255.204.40:8443/api/biropos';
-
   final prefs = await SharedPreferences.getInstance();
   String apiKey = prefs.getString('apiKey') ?? '';
+  String ip = prefs.getString('IP') ?? '';
+  String port = prefs.getString('Port') ?? '';
+
+  String url = 'http://$ip:$port/api/biropos';
 
   final Map<String, String> headers = {
     'api-key': apiKey,

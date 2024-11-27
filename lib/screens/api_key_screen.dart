@@ -1,18 +1,20 @@
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ApiKeyScreen extends StatefulWidget {
+class ApiKeyScreen extends ConsumerStatefulWidget {
   final bool isDefaultPassword;
   const ApiKeyScreen({super.key, required this.isDefaultPassword});
 
   @override
-  State<ApiKeyScreen> createState() => _ApiKeyScreenState();
+  ConsumerState<ApiKeyScreen> createState() => _ApiKeyScreenState();
 }
 
-class _ApiKeyScreenState extends State<ApiKeyScreen> {
+class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controllerApiKey = TextEditingController();
   final TextEditingController _controllerTouchKey = TextEditingController();
   final TextEditingController _controllerTextSize = TextEditingController();
@@ -99,6 +101,8 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
         'isCheckedPrikazujNarocila', _isCheckedPrikazujNarocila);
+    print('isCheckedPrikazujNarocila saved: $_isCheckedPrikazujNarocila');
+
     await prefs.setBool('isCheckedPrikazujRacune', _isCheckedPrikazujRacune);
     await prefs.setBool('isCheckedTiskajNarocilo', _isCheckedTiskajNarocilo);
     await prefs.setBool(
@@ -119,6 +123,8 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isButtonsDisabled = ref.watch(settingsProvider);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -225,10 +231,32 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             setState(() {
                               _isCheckedPrikazujNarocila = value ?? false;
                             });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .togglePrikazujNarocila(value ?? false);
                           },
                         ),
                       ],
                     ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text("Pregled naročil tiskalnik:",
+                                style: TextStyle(fontSize: 16)),
+                          ),
+                          ApiKeyCheckbox(
+                            value: _isCheckedPregledNarocilTiskalnik,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isCheckedPregledNarocilTiskalnik =
+                                    value ?? false;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -370,25 +398,6 @@ class _ApiKeyScreenState extends State<ApiKeyScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    if (widget.isDefaultPassword)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text("Pregled naročil tiskalnik:",
-                                style: TextStyle(fontSize: 16)),
-                          ),
-                          ApiKeyCheckbox(
-                            value: _isCheckedPregledNarocilTiskalnik,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _isCheckedPregledNarocilTiskalnik =
-                                    value ?? false;
-                              });
-                            },
-                          ),
-                        ],
                       ),
                     if (widget.isDefaultPassword)
                       Row(

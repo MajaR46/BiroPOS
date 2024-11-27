@@ -40,7 +40,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String> apiResponseList =
-          (prefs.getString('biropos_data') ?? '').split('\n');
+          (prefs.getStringList('biropos_data') ?? []);
       _categorizeResponseItems(apiResponseList);
 
       if (apiResponseList == null) {

@@ -1,11 +1,16 @@
+import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/addToTableItem.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
+import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
+import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -28,6 +33,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   List<NacinPlacila> naciniPlacila = [];
   String itemOpis = '';
   late OrderService orderService;
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -62,7 +68,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
-                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+                ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+                finalSum = 0;
               },
             ),
           ],
@@ -90,7 +97,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       }
     }
     setState(() {
-      finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+      finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
       _totalDiscount = totalDiscount;
     });
   }
@@ -341,7 +348,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             color: AppStyles.silver.withOpacity(0.1),
             child: Column(
               children: [
-                Padding(
+                /*  Padding(
                   padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
                   child: Row(
                     children: [
@@ -421,10 +428,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       ),
                     ],
                   ),
-                ),
+                ), */
                 const SizedBox(height: 8),
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                  ),
                   child: Row(
                     children: [
                       const Text(
@@ -437,24 +447,33 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                   child: Row(
                     children: [
-                      const Text("SKUPAJ:", style: AppStyles.heading3),
+                      const Text("SKUPAJ:", style: AppStyles.heading4),
                       const Spacer(),
                       Text(
                         '${finalSum.toStringAsFixed(2)} €',
                         style: AppStyles.cardItemName.copyWith(
                             color: AppStyles.black,
-                            fontWeight: FontWeight.normal),
+                            fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Padding(
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Keyboard(
+                      opisDiscountButton: "%",
+                      controller: searchController,
+                      navigateToMizaScreen: _navigateToMizaScreen,
+                      navigateToNacinPlacilaScreen:
+                          _navigateToNacinPlacilaScreen,
+                      navigateToOpisDiscountScreen: () =>
+                          openDialog(null, true),
+                      navigateToRacun: _navigateToBlagajnaScreen),
+                )
+                /* Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -533,10 +552,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                )
+                ), */
               ],
             ),
           ),
@@ -545,8 +561,33 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     );
   }
 
+  void _navigateToMizaScreen() async {
+    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
+
+    if (currentChosenItems.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const AddToTableScreen(),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const OpenTablesScreen(),
+        ),
+      );
+    }
+  }
+
   void _navigateToNacinPlacilaScreen() async {
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => NacinPlacilaScreen()));
+  }
+
+  void _navigateToBlagajnaScreen() async {
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
   }
 }

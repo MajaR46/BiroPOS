@@ -1,41 +1,145 @@
 import 'dart:async';
-
-import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/app_styles.dart';
 
-class Keyboard extends StatelessWidget {
+class Keyboard extends ConsumerStatefulWidget {
   final TextEditingController controller;
-  final double quantity;
-  final Function(double result) multiply;
-  final VoidCallback navigateToRacun;
   final VoidCallback navigateToMizaScreen;
   final VoidCallback navigateToNacinPlacilaScreen;
-  final VoidCallback navigateToOpisScreen;
-  final VoidCallback paymentGotovina;
-  final VoidCallback paymentKartica;
+  final VoidCallback navigateToOpisDiscountScreen;
+  final VoidCallback navigateToRacun;
+  final String opisDiscountButton;
 
-  final dynamic selectedItem;
-  final double finalSum;
-  final List<dynamic> chosenItems;
+  const Keyboard({
+    super.key,
+    required this.controller,
+    required this.navigateToMizaScreen,
+    required this.navigateToNacinPlacilaScreen,
+    required this.navigateToOpisDiscountScreen,
+    required this.navigateToRacun,
+    required this.opisDiscountButton,
+  });
 
-  const Keyboard(
-      {super.key,
-      required this.controller,
-      required this.multiply,
-      required this.quantity,
-      required this.selectedItem,
-      required this.finalSum,
-      required this.chosenItems,
-      required this.navigateToRacun,
-      required this.navigateToMizaScreen,
-      required this.navigateToNacinPlacilaScreen,
-      required this.navigateToOpisScreen,
-      required this.paymentGotovina,
-      required this.paymentKartica});
+  @override
+  ConsumerState<Keyboard> createState() => _KeyboardState();
+}
+
+class _KeyboardState extends ConsumerState<Keyboard> {
+  double itemQuantity = 1;
+  double finalSum = 0;
+  List<NarociloItem> chosenItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _updateFinalSum();
+  }
+
+  void _updateFinalSum() {
+    final newSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+    setState(() {
+      finalSum = newSum;
+    });
+  }
+
+  void _handleMultiply(double factor) {
+    print("Multiplication factor received: $factor");
+    final cartItems = ref.watch(narociloNotifierProvider);
+
+    final selectedItem = cartItems.isNotEmpty ? cartItems.last : null;
+    if (selectedItem != null) {
+      double baseQuantity = 1;
+      final newQuantity = baseQuantity * factor;
+
+      setState(() {
+        itemQuantity = newQuantity;
+      });
+
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateQuantity(selectedItem.product.id, newQuantity);
+
+      _updateFinalSum();
+    }
+  }
+
+  void _decreaseQuantity() {
+    final selectedItem = ref.watch(selectedItemProvider);
+
+    if (itemQuantity > 1) {
+      setState(() {
+        itemQuantity--;
+      });
+      if (selectedItem != null) {
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .updateQuantity(selectedItem.product.id, itemQuantity);
+        _updateFinalSum();
+      }
+    }
+  }
+
+  void _showResponseDialog(BuildContext context, List<String> response) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Server Response"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: response.map((line) => Text(line)).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _processPayment(BuildContext context, String paymentType) async {
+    final paymentMethods = ref.watch(paymentMethodProvider);
+    if (paymentMethods.isNotEmpty) {
+      final response = await ref.read(orderProvider).createOrder(
+            context,
+            paymentType,
+          );
+      _showResponseDialog(context, response);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No payment methods available!")),
+      );
+    }
+  }
+
+  void _paymentGotovina() {
+    _processPayment(context, "GOT");
+  }
+
+  void _paymentKartica() {
+    _processPayment(context, "KAR");
+  }
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(settingsProvider);
+    final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+    final String opis2 = "opis";
+
     return Container(
       padding: const EdgeInsets.only(top: 8),
       color: AppStyles.white,
@@ -49,12 +153,13 @@ class Keyboard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      KeyboardC(controller: controller),
+                      KeyboardC(controller: widget.controller),
                       KeyboardMultiply(
-                          multiply: multiply,
-                          quantity: quantity,
-                          controller: controller),
-                      KeyboardNumber(number: ',', controller: controller)
+                        multiply: _handleMultiply,
+                        quantity: itemQuantity,
+                        controller: widget.controller,
+                      ),
+                      KeyboardNumber(number: ',', controller: widget.controller)
                     ],
                   ),
                 ),
@@ -63,9 +168,12 @@ class Keyboard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      KeyboardNumber(number: "1 .", controller: controller),
-                      KeyboardNumber(number: "2 ABC", controller: controller),
-                      KeyboardNumber(number: "3 DEF", controller: controller),
+                      KeyboardNumber(
+                          number: "1", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "2 ABC", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "3 DEF", controller: widget.controller),
                     ],
                   ),
                 ),
@@ -74,9 +182,12 @@ class Keyboard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      KeyboardNumber(number: "4 GHI", controller: controller),
-                      KeyboardNumber(number: "5 JKL", controller: controller),
-                      KeyboardNumber(number: "6 MNO", controller: controller),
+                      KeyboardNumber(
+                          number: "4 GHI", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "5 JKL", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "6 MNO", controller: widget.controller),
                     ],
                   ),
                 ),
@@ -85,9 +196,12 @@ class Keyboard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      KeyboardNumber(number: "7 PQRS", controller: controller),
-                      KeyboardNumber(number: "8 TUV", controller: controller),
-                      KeyboardNumber(number: "9 WXYZ", controller: controller),
+                      KeyboardNumber(
+                          number: "7 PQRS", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "8 TUV", controller: widget.controller),
+                      KeyboardNumber(
+                          number: "9 WXYZ", controller: widget.controller),
                     ],
                   ),
                 ),
@@ -97,18 +211,19 @@ class Keyboard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       NumpadDelete(
-                        controller: controller,
+                        height: 50,
+                        controller: widget.controller,
                         fontSize: 16,
                         borderRadius: 20,
                       ),
                       KeyboardNumber(
                         number: "0",
-                        controller: controller,
+                        controller: widget.controller,
                       ),
                       KeyboardRedirect(
                         backgroundColor: AppStyles.blue,
-                        text: "OPIS ",
-                        onPressed: navigateToOpisScreen,
+                        text: widget.opisDiscountButton,
+                        onPressed: widget.navigateToOpisDiscountScreen,
                       )
                     ],
                   ),
@@ -123,36 +238,39 @@ class Keyboard extends StatelessWidget {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.blue,
                     text: "RAČUN",
-                    onPressed: navigateToRacun),
+                    onPressed: widget.navigateToRacun),
               ),
-              Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: KeyboardRedirect(
-                    backgroundColor: AppStyles.darkOrange,
-                    text: "GOT",
-                    onPressed: paymentGotovina),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: KeyboardRedirect(
-                    backgroundColor: AppStyles.red,
-                    text: "KAR",
-                    onPressed: paymentKartica),
-              ),
+              if (!prikazujSamoNarocila)
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: KeyboardRedirect(
+                      backgroundColor: AppStyles.darkOrange,
+                      text: "GOT",
+                      onPressed: _paymentGotovina),
+                ),
+              if (!prikazujSamoNarocila)
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: KeyboardRedirect(
+                      backgroundColor: AppStyles.red,
+                      text: "KAR",
+                      onPressed: _paymentKartica),
+                ),
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.darkPurple,
                     text: "MIZA",
-                    onPressed: navigateToMizaScreen),
+                    onPressed: widget.navigateToMizaScreen),
               ),
-              Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: KeyboardRedirect(
-                    backgroundColor: AppStyles.darkGreen,
-                    text: "OK",
-                    onPressed: navigateToNacinPlacilaScreen),
-              )
+              if (!prikazujSamoNarocila)
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: KeyboardRedirect(
+                      backgroundColor: AppStyles.darkGreen,
+                      text: "OK",
+                      onPressed: widget.navigateToNacinPlacilaScreen),
+                ),
             ],
           )
         ],
@@ -161,7 +279,7 @@ class Keyboard extends StatelessWidget {
   }
 }
 
-class KeyboardNumber extends StatefulWidget {
+class KeyboardNumber extends StatelessWidget {
   final String number;
   final TextEditingController controller;
 
@@ -169,59 +287,10 @@ class KeyboardNumber extends StatefulWidget {
       {super.key, required this.number, required this.controller});
 
   @override
-  State<KeyboardNumber> createState() => _KeyboardNumberState();
-}
-
-class _KeyboardNumberState extends State<KeyboardNumber> {
-  int tapCount = 0;
-  Timer? tapTimer;
-  bool preventSearch = false; // Flag to prevent search during comma entry
-
-  void _handleTap() {
-    setState(() {
-      tapCount++;
-
-      String numberWithoutSpace = widget.number.replaceAll(' ', '');
-      int availableCharacters = numberWithoutSpace.length;
-
-      if (tapCount <= availableCharacters) {
-        String selectedChar = numberWithoutSpace[tapCount - 1];
-
-        // Special handling for the comma to act as a decimal point
-        if (selectedChar == ',' && !widget.controller.text.contains(',')) {
-          selectedChar = '.'; // Replace the comma with a dot (decimal point)
-
-          // Temporarily disable search logic
-          preventSearch = true;
-        }
-
-        // Append the selected character to the controller text
-        widget.controller.text = widget.controller.text + selectedChar;
-
-        // Optionally, move cursor to the end (if needed)
-        widget.controller.selection = TextSelection.fromPosition(
-            TextPosition(offset: widget.controller.text.length));
-      }
-
-      // Reset the tap counter after a small delay to allow multiple taps
-      tapTimer?.cancel();
-      tapTimer = Timer(const Duration(seconds: 1), () {
-        tapCount = 0;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    tapTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 60,
+      height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
             backgroundColor: AppStyles.silver.withOpacity(0.1),
@@ -230,11 +299,11 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20))),
         onPressed: () {
-          _handleTap();
+          controller.text += number;
         },
         child: Center(
           child: Text(
-            widget.number,
+            number,
             style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
           ),
         ),
@@ -256,7 +325,7 @@ class KeyboardC extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 60,
+      height: 50,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: AppStyles.silver.withOpacity(0.1),
@@ -292,7 +361,7 @@ class KeyboardMultiply extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 60,
+      height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppStyles.silver.withOpacity(0.1),
@@ -334,7 +403,7 @@ class KeyboardRedirect extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: 80,
-      height: 60,
+      height: 50,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: backgroundColor,

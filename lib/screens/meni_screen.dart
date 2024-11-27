@@ -1,4 +1,5 @@
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
 import 'package:biro_pos/screens/login.dart';
@@ -6,12 +7,17 @@ import 'package:biro_pos/screens/porocila_screen.dart';
 import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MeniScreen extends StatelessWidget {
+class MeniScreen extends ConsumerWidget {
   const MeniScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(settingsProvider);
+
+    final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+
     final bool isLoggedIn = SessionManager().isLoggedIn();
     print(isLoggedIn);
 
@@ -55,69 +61,72 @@ class MeniScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 128),
-          Center(
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const StornoScreen()));
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
-                  child: Text(
-                    "Storno",
-                    style: AppStyles.button1.copyWith(color: AppStyles.black),
-                  )),
+          if (!prikazujSamoNarocila)
+            Center(
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const StornoScreen()));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.grey),
+                    child: Text(
+                      "Storno",
+                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                    )),
+              ),
             ),
-          ),
           const SizedBox(
             height: 32,
           ),
-          Center(
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const KopijaScreen()));
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
-                  child: Text(
-                    "Kopija",
-                    style: AppStyles.button1.copyWith(color: AppStyles.black),
-                  )),
+          if (!prikazujSamoNarocila)
+            Center(
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const KopijaScreen()));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.grey),
+                    child: Text(
+                      "Kopija",
+                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                    )),
+              ),
             ),
-          ),
           const SizedBox(
             height: 32,
           ),
-          Center(
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const PorocilaScreen()));
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
-                  child: Text(
-                    "Poročila",
-                    style: AppStyles.button1.copyWith(color: AppStyles.black),
-                  )),
+          if (!prikazujSamoNarocila)
+            Center(
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const PorocilaScreen()));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.grey),
+                    child: Text(
+                      "Poročila",
+                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                    )),
+              ),
             ),
-          ),
           const SizedBox(
             height: 128,
           ),

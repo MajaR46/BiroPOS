@@ -1,6 +1,7 @@
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -9,6 +10,8 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('sessionBox');
   Hive.box('sessionBox').clear();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top]);
 
   runApp(const ProviderScope(child: MyApp()));
 }
