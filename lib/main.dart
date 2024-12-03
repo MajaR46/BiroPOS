@@ -7,19 +7,32 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Hive.initFlutter();
   await Hive.openBox('sessionBox');
   Hive.box('sessionBox').clear();
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top]);
+
+  WidgetsBinding.instance.addObserver(_SystemUiObserver());
+
+  // Set to immersive sticky mode
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.immersiveSticky,
+  );
 
   runApp(const ProviderScope(child: MyApp()));
+}
+
+class _SystemUiObserver with WidgetsBindingObserver {
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  }
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final bool loggedIn = SessionManager().isLoggedIn();

@@ -26,6 +26,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   bool _isLoading = true;
   late String imeMize;
   List<TableItem> izdelki = [];
+  List<TableItem> izbraniIzdelki = [];
 
   @override
   void initState() {
@@ -88,17 +89,15 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       isFromTable: true,
     );
 
-    // Call the removeFromRacun function from NarociloNotifier
     ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
 
-    // Optionally, update the UI to reflect the removal from the table's item list
     setState(() {
       izdelki.removeAt(index);
     });
   }
 
-  void _ok() {
-    final narociloItems = izdelki.map((tableItem) {
+  void _dodajNaRacun(List<TableItem> items) {
+    final narociloItems = items.map((tableItem) {
       final item = Item(
         id: tableItem.productCode,
         name: tableItem.productName,
@@ -107,19 +106,24 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       );
 
       return NarociloItem(
-          product: item,
-          tableNumber: imeMize,
-          quantity: tableItem.quantity,
-          description: '',
-          isFromTable: true);
+        product: item,
+        tableNumber: imeMize,
+        quantity: tableItem.quantity,
+        description: '',
+        isFromTable: true,
+      );
     }).toList();
 
-    // Add each NarociloItem to the bill individually
     for (var narociloItem in narociloItems) {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(narociloItem, fromTable: true);
     }
+  }
+
+  void _ok() {
+    final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
+    _dodajNaRacun(itemsToProcess);
 
     // Navigate to BlagajnaScreen after adding items to the bill
     Navigator.push(
@@ -131,35 +135,14 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _prenosMize() {
-    final narociloItems = izdelki.map((tableItem) {
-      final item = Item(
-        id: tableItem.productCode,
-        name: tableItem.productName,
-        price: tableItem.price,
-        categoryID: tableItem.categoryCode,
-      );
-
-      return NarociloItem(
-          product: item,
-          tableNumber: imeMize,
-          quantity: tableItem.quantity,
-          description: '',
-          isFromTable: true);
-    }).toList();
-
-    // Add each NarociloItem to the bill individually
-    for (var narociloItem in narociloItems) {
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .addToRacun(narociloItem, fromTable: true);
-    }
+    final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
+    _dodajNaRacun(itemsToProcess);
 
     // Navigate to PrenosMizeScreen, passing the current table number
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            PrenosMizeScreen(tableNumber: imeMize), // Pass imeMize here
+        builder: (context) => PrenosMizeScreen(tableNumber: imeMize),
       ),
     );
   }
@@ -209,35 +192,49 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                         itemCount: izdelki.length,
                         itemBuilder: (context, index) {
                           final item = izdelki[index];
+                          bool isSelected = izbraniIzdelki.contains(item);
                           return Padding(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
-                            child: Card(
-                              color: AppStyles.silver.withOpacity(0.1),
-                              elevation: 0,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      item.productName,
-                                      style: AppStyles.paragraph2.copyWith(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const Spacer(),
-                                    IconButton.filled(
-                                        style: IconButton.styleFrom(
-                                            backgroundColor: AppStyles.red),
-                                        onPressed: () => _deleteFromRacun(
-                                            index), // Pass the index here
-                                        icon: const Icon(Icons.delete)),
-                                    QuantityIncrease(
-                                      quantity: item.quantity,
-                                      onQuantityChanged: (newQuantity) =>
-                                          onQuantityChanged(newQuantity, index),
-                                    ),
-                                  ],
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  izbraniIzdelki.add(item);
+                                });
+                              },
+                              child: Card(
+                                color: isSelected
+                                    ? Colors.blue.withOpacity(0.1)
+                                    : AppStyles.silver.withOpacity(0.1),
+                                elevation: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 120,
+                                        child: Text(
+                                          item.productName,
+                                          style: AppStyles.paragraph2.copyWith(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      IconButton.filled(
+                                          style: IconButton.styleFrom(
+                                              backgroundColor: AppStyles.red),
+                                          onPressed: () => _deleteFromRacun(
+                                              index), // Pass the index here
+                                          icon: const Icon(Icons.delete)),
+                                      QuantityIncrease(
+                                        quantity: item.quantity,
+                                        onQuantityChanged: (newQuantity) =>
+                                            onQuantityChanged(
+                                                newQuantity, index),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

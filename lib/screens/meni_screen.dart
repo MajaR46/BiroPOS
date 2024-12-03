@@ -8,6 +8,10 @@ import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sunmi_printer_plus/enums.dart';
+// import packages
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
+import 'package:sunmi_printer_plus/sunmi_style.dart';
 
 class MeniScreen extends ConsumerWidget {
   const MeniScreen({super.key});
@@ -27,6 +31,33 @@ class MeniScreen extends ConsumerWidget {
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
+    }
+
+    List<String> exampleLines = [
+      "#VELIKOST-START#", // Začetek velike pisave
+      "Naslov Računa",
+      "#VELIKOST-END#", // Konec velike pisave
+      "Datum: 02.12.2024",
+      "Postavka 1: 10.00€",
+      "--------------------------------",
+      "Postavka 2: 15.00€",
+      "Skupaj: 25.00€",
+      "#QRKODA#https://example.com#QRKODA#", // QR koda z URL
+      "Hvala za obisk!",
+    ];
+
+    void printText(text) async {
+      await SunmiPrinter.initPrinter();
+      await SunmiPrinter.bindingPrinter();
+      await SunmiPrinter.startTransactionPrint(true);
+
+      for (final line in exampleLines) {
+        await SunmiPrinter.printText(line,
+            style: SunmiStyle(
+              align: SunmiPrintAlign.LEFT,
+              bold: true,
+            ));
+      }
     }
 
     return Scaffold(
@@ -60,6 +91,13 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           ),
+          Center(
+              child: ElevatedButton(
+            onPressed: () {
+              printText("To je testtttttttttttt");
+            },
+            child: Text("Print"),
+          )),
           const SizedBox(height: 128),
           if (!prikazujSamoNarocila)
             Center(

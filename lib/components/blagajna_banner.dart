@@ -1,8 +1,7 @@
-import 'package:biro_pos/models/narociloitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart'; // Assuming this file contains NarociloNotifier and narociloNotifierProvider
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 
 class BlagajnaBanner extends ConsumerWidget {
   const BlagajnaBanner({

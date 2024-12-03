@@ -4,6 +4,7 @@ import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
@@ -14,6 +15,7 @@ import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
@@ -47,6 +49,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   @override
   void initState() {
     super.initState();
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [SystemUiOverlay.top],
+    );
 
     _handleData();
     searchController.addListener(() {
@@ -54,7 +60,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     });
 
     Future.microtask(() {
-      final orderService = ref.read(orderProvider);
+      final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
   }
@@ -90,7 +96,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
-                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+                ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
               },
             ),
           ],
@@ -149,20 +155,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       if (item.startsWith('1')) {
         List<String> parts = item.split('|');
 
-        // Ensure the item has all expected fields to avoid out-of-range issues
-        if (parts.length < 7) continue;
+        if (parts.length < 7) continue; // Skip malformed items
 
-        // Parse the item details safely
         String izdelekId = parts[1];
         String imeIzdelka = parts[2];
-        String? cenaString = parts[3];
-        String? hhCenaString = parts[4];
+        String cenaString = parts[3];
+        String hhCenaString = parts[4];
         String kategorijaID = parts[5];
         String eancode = parts[6];
 
-        // Safely parse prices, defaulting to 0.0 if parsing fails
-        double? cena = double.tryParse(cenaString) ?? 0.0;
-        double? hhCena = double.tryParse(hhCenaString) ?? 0.0;
+        double? cena = parsePrice(cenaString);
+        double? hhCena = parsePrice(hhCenaString);
+
+        cena ??= 0.0;
+        hhCena ??= 0.0;
 
         Item newIzdelek = Item(
           id: izdelekId,
@@ -174,10 +180,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           eanCode: eancode,
         );
 
-        String? categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
         izdelki2.add(newIzdelek);
 
-        // Check if category already exists in the map
+        String categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
         if (categorized.containsKey(categoryName)) {
           categorized[categoryName]!.add({
             'name': imeIzdelka,
@@ -202,12 +207,21 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }
     }
 
-    // Update state
+    ref.read(itemsProvider.notifier).setItems(izdelki2);
+
     setState(() {
       izdelki = izdelki2;
       categorizedItems = categorized;
       isLoading = false;
     });
+  }
+
+  double? parsePrice(String priceString) {
+    try {
+      return double.tryParse(priceString.replaceAll(',', '.'));
+    } catch (e) {
+      return 0.0;
+    }
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
@@ -383,7 +397,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String numbers2String = numbers2.join();
     print("numbers2String $numbers2String");
 
-    // Implement the condition: search only if the input contains exactly 3 numbers
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
       final searchPattern = RegExp(searchQuery, caseSensitive: false);
 
@@ -396,13 +409,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       filteredItems = filteredItems.where((item) {
         String itemId = item['itemId'];
         return itemId.contains(numbers2String);
-      }).toList();
-    } else if (numbers2String.length >= 6 && searchQuery.isNotEmpty) {
-      filteredItems = filteredItems.where((item) {
-        print("Filtering item: $item");
-        String? eanCode = item['eanCode'];
-        print("eanCode: $eanCode");
-        return eanCode != null && eanCode.contains(numbers2String);
       }).toList();
     }
 
@@ -469,7 +475,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     List<dynamic> filteredItems = _getFilteredItems();
 
     if (filteredItems.isEmpty) {
-      return const Center(child: Text("No items available"));
+      return const Center(child: Text("Ni izdelkov"));
     }
 
     // GLavni layout
@@ -709,10 +715,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _navigateToOpisScreen() async {
-    Navigator.push(
+    final selectedItem = ref.read(selectedItemProvider.notifier).state;
+
+    if (selectedItem != null) {
+      Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) =>
-                EditItemScreen(itemName: selectedItem['name'])));
+          builder: (context) =>
+              EditItemScreen(itemName: selectedItem.product.name),
+        ),
+      );
+    } else {
+      // Handle the case where selectedItem is null
+      print("Selected item is null");
+      // Optionally, show a message or take a different action
+    }
   }
 }

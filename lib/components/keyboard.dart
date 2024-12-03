@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,10 @@ import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:sunmi_printer_plus/enums.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
+import 'package:sunmi_printer_plus/sunmi_style.dart';
+import 'dart:typed_data'; // Uvozite Uint8List izdart:typed_data
 
 class Keyboard extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -35,22 +40,21 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   double itemQuantity = 1;
   double finalSum = 0;
   List<NarociloItem> chosenItems = [];
+  final TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _updateFinalSum();
   }
 
   void _updateFinalSum() {
-    final newSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+    final newSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
     setState(() {
       finalSum = newSum;
     });
   }
 
   void _handleMultiply(double factor) {
-    print("Multiplication factor received: $factor");
     final cartItems = ref.watch(narociloNotifierProvider);
 
     final selectedItem = cartItems.isNotEmpty ? cartItems.last : null;
@@ -86,7 +90,24 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
 
-  void _showResponseDialog(BuildContext context, List<String> response) {
+  Future<void> _processPayment(BuildContext context, String paymentType) async {
+    final paymentMethods = ref.watch(paymentMethodProvider);
+    if (paymentMethods.isNotEmpty) {
+      final response =
+          await ref.read(orderProvider).createOrder(context, paymentType);
+      final filteredResponse = filterEmptyLines(response);
+      final printableResponse = filteredResponse.join("\r\n");
+      printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+      _updateFinalSum();
+      // _showResponseDialog(context, response);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No payment methods available!")));
+    }
+  }
+
+/*   void _showResponseDialog(BuildContext context, List<String> response) {
+    final filteredResponse = filterEmptyLines(response);
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -94,7 +115,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
           title: const Text("Server Response"),
           content: SingleChildScrollView(
             child: ListBody(
-              children: response.map((line) => Text(line)).toList(),
+              children: filteredResponse.map((line) => Text(line)).toList(),
             ),
           ),
           actions: [
@@ -109,22 +130,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         );
       },
     );
-  }
-
-  Future<void> _processPayment(BuildContext context, String paymentType) async {
-    final paymentMethods = ref.watch(paymentMethodProvider);
-    if (paymentMethods.isNotEmpty) {
-      final response = await ref.read(orderProvider).createOrder(
-            context,
-            paymentType,
-          );
-      _showResponseDialog(context, response);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No payment methods available!")),
-      );
-    }
-  }
+  } */
 
   void _paymentGotovina() {
     _processPayment(context, "GOT");
@@ -138,7 +144,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
-    final String opis2 = "opis";
 
     return Container(
       padding: const EdgeInsets.only(top: 8),
@@ -267,9 +272,13 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 Padding(
                   padding: const EdgeInsets.all(2.0),
                   child: KeyboardRedirect(
-                      backgroundColor: AppStyles.darkGreen,
-                      text: "OK",
-                      onPressed: widget.navigateToNacinPlacilaScreen),
+                    backgroundColor: AppStyles.darkGreen,
+                    text: "OK",
+                    onPressed: () {
+                      widget
+                          .navigateToNacinPlacilaScreen(); // Navigate to the payment method screen
+                    },
+                  ),
                 ),
             ],
           )

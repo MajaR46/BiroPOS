@@ -3,8 +3,10 @@ import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/addToTableItem.dart';
+import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
@@ -15,6 +17,7 @@ import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -34,6 +37,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   String itemOpis = '';
   late OrderService orderService;
   final TextEditingController searchController = TextEditingController();
+  bool _isSearchMode = false;
 
   @override
   void initState() {
@@ -69,7 +73,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
                 ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-                finalSum = 0;
               },
             ),
           ],
@@ -79,7 +82,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _updateFinalSum() {
-    final chosenItems = ref.read(narociloNotifierProvider);
+    final chosenItems = ref.watch(narociloNotifierProvider);
 
     double totalDiscount = 0;
 
@@ -92,8 +95,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           (itemPrice - itemDiscountedPrice) * itemQuantity;
       if (itemDiscountedPrice > 0 && itemPrice > 0) {
         totalDiscount += itemDiscountValue;
-      } else {
-        totalDiscount = 0;
       }
     }
     setState(() {
@@ -240,6 +241,49 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         actionsAlignment: MainAxisAlignment.center,
       ),
     );
+  }
+
+  void _searchByEan() {
+    String searchText = searchController.text.trim();
+
+    RegExp regExp = RegExp(r'\d+');
+    Iterable<Match> matches = regExp.allMatches(searchText);
+    List<String> numbers = matches.map((match) => match.group(0)!).toList();
+    String numbersToString = numbers.join();
+    print("numbers to string $numbersToString");
+    if (numbersToString.length >= 6 && searchText.isNotEmpty) {
+      final items = ref.watch(itemsProvider);
+
+      final matchingItems = items.where((item) {
+        return item.eanCode == numbersToString;
+      }).toList();
+
+      if (matchingItems.isNotEmpty) {
+        Item matchingItem = matchingItems.first;
+        NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
+
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false);
+
+        _updateFinalSum();
+        _isSearchMode = false;
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ne najdem izdelka s to EAN kodo")),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("EAN koda je neveljavna")),
+      );
+    }
+  }
+
+  void _checkAndSetSearchMode() {
+    String searchText = searchController.text.trim();
+    _isSearchMode =
+        searchText.isNotEmpty; // Set to true if there is text in search
   }
 
   @override
@@ -467,8 +511,18 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       opisDiscountButton: "%",
                       controller: searchController,
                       navigateToMizaScreen: _navigateToMizaScreen,
-                      navigateToNacinPlacilaScreen:
-                          _navigateToNacinPlacilaScreen,
+                      navigateToNacinPlacilaScreen: () {
+                        _checkAndSetSearchMode(); // Update mode based on search text
+
+                        if (_isSearchMode) {
+                          // If in search mode, perform the EAN search
+                          _searchByEan();
+                          searchController.clear();
+                        } else {
+                          // If in navigation mode, perform the navigation
+                          _navigateToNacinPlacilaScreen();
+                        }
+                      },
                       navigateToOpisDiscountScreen: () =>
                           openDialog(null, true),
                       navigateToRacun: _navigateToBlagajnaScreen),

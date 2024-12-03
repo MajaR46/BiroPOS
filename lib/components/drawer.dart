@@ -1,17 +1,19 @@
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CustomDrawer extends StatefulWidget {
+class CustomDrawer extends ConsumerStatefulWidget {
   const CustomDrawer({super.key});
 
   @override
-  State<CustomDrawer> createState() => _CustomDrawerState();
+  ConsumerState<CustomDrawer> createState() => _CustomDrawerState();
 }
 
-class _CustomDrawerState extends State<CustomDrawer> {
+class _CustomDrawerState extends ConsumerState<CustomDrawer> {
   void _logout() {
     SessionManager().clearSession();
     Navigator.pushReplacement(
@@ -23,6 +25,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
   @override
   Widget build(BuildContext context) {
     final String? user = SessionManager().getLoggedInUserName();
+    final chosenItems = ref.read(narociloNotifierProvider);
 
     return Drawer(
       child: Column(
@@ -42,14 +45,19 @@ class _CustomDrawerState extends State<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MeniScreen()),
-                  );
-                },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                onPressed: chosenItems == true
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const MeniScreen()),
+                        );
+                      }
+                    : null, // Disable the button if condition is false
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppStyles.blue,
+                  disabledBackgroundColor: AppStyles.grey, // Optional
+                ),
                 child: Text(
                   "Meni",
                   style: AppStyles.button1.copyWith(color: AppStyles.white),
@@ -64,7 +72,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => _logout(),
+                onPressed: chosenItems == true ? () => _logout() : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.red,
                 ),

@@ -1,3 +1,4 @@
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
@@ -21,7 +22,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      final orderService = ref.read(orderProvider);
+      final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
   }
@@ -58,16 +59,20 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+    double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
     final paymentMethods = ref.watch(paymentMethodProvider);
     final String? davcnaSt = ref.watch(taxNumberProvider);
-    orderService = ref.read(orderProvider);
+    orderService = ref.watch(orderProvider);
 
     void createOrder(String paymentMethod) async {
       if (paymentMethods.isNotEmpty) {
         final response =
             await orderService.createOrder(context, paymentMethod, davcnaSt);
-        _showResponseDialog(response);
+        final filteredResponse = filterEmptyLines(response);
+        final printableResponse = filteredResponse.join("\r\n");
+        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+
+        //_showResponseDialog(response);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No payment methods available!")),

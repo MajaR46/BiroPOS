@@ -6,6 +6,7 @@ import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -156,8 +157,9 @@ class _LoginScreenState extends State<LoginScreen> {
       await getTables();
       await getOpenTables();
       await getPorocila();
+    } else if (inputPassword == "999") {
+      SystemNavigator.pop();
     } else {
-      // Show error message only if the password is neither default nor matched
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
     }
