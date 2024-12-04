@@ -1,5 +1,6 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
@@ -7,6 +8,7 @@ import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,14 +34,14 @@ class Osebje extends ResponseItem {
       : super(ime, ResponseCategory.osebje);
 }
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   DateTime currentDate = DateTime.now();
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
@@ -48,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch the BiroPOS.txt data when the login screen is initialized
     _handleData();
   }
 
@@ -347,10 +348,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 60,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const TestScreen()));
+                      printTextWithFormatting("Programska oprema BiroPOS",
+                          "BlueTooth Printer", ref);
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,

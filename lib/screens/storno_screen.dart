@@ -1,17 +1,19 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StornoScreen extends StatefulWidget {
+class StornoScreen extends ConsumerStatefulWidget {
   const StornoScreen({super.key});
 
   @override
-  State<StornoScreen> createState() => _StornoScreenState();
+  ConsumerState<StornoScreen> createState() => _StornoScreenState();
 }
 
-class _StornoScreenState extends State<StornoScreen> {
+class _StornoScreenState extends ConsumerState<StornoScreen> {
   final TextEditingController _stornoRacunController = TextEditingController();
   final String? userSifra = SessionManager().getLoggedInUserSifra();
   String? _apiResponse;
@@ -19,22 +21,21 @@ class _StornoScreenState extends State<StornoScreen> {
   void _clearText() {
     _stornoRacunController.clear();
     setState(() {
-      _apiResponse = null; //
+      _apiResponse = null;
     });
   }
 
-  //to printaj
   _handleData() async {
     try {
       String stRacuna = _stornoRacunController.text;
 
       String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
       List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
-      setState(() {
-        _apiResponse = apiResponse.join("\n");
-      });
+
+      final filteredResponse = filterEmptyLines(apiResponse);
+      final printableResponse = filteredResponse.join("\r\n");
+      printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
     } catch (e) {
-      print("Error fetching data: $e");
       setState(() {
         _apiResponse = 'Error fetching data';
       });
@@ -91,8 +92,6 @@ class _StornoScreenState extends State<StornoScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                if (_apiResponse != null) Text(_apiResponse!),
               ],
             ),
             Padding(

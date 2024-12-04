@@ -42,10 +42,9 @@ class TableNotifier extends Notifier<List<TableItem>> {
     }
 
     final chosenItems = ref.watch(narociloNotifierProvider);
-    print("Chosen items: $chosenItems"); // Add this line to debug
 
     List<String> tableItems = chosenItems.map((item) {
-      String productCode = item.product.id?.toString() ?? '';
+      String productCode = item.product.id.toString();
       double quantitiy = item.quantity.toDouble();
       double price =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
@@ -82,10 +81,9 @@ class TableNotifier extends Notifier<List<TableItem>> {
     }
 
     final chosenItems = ref.watch(narociloNotifierProvider);
-    print("Chosen items: $chosenItems"); // Add this line to debug
 
     List<String> tableItems = chosenItems.map((item) {
-      String productCode = item.product.id?.toString() ?? '';
+      String productCode = item.product.id.toString();
       double quantitiy = item.quantity.toDouble();
       double price =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??

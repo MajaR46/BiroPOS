@@ -32,8 +32,8 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
     String? userId = SessionManager().getLoggedInUserSifra();
 
     try {
-      String txt_data = 'VrniOdprteMize\t$userId';
-      List<String> apiResponseList = await sendRequest(userId!, txt_data);
+      String txtData = 'VrniOdprteMize\t$userId';
+      List<String> apiResponseList = await sendRequest(userId!, txtData);
 
       List<Map<String, String>> mize = [];
 

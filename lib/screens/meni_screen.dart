@@ -4,14 +4,11 @@ import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/porocila_screen.dart';
+import 'package:biro_pos/screens/pregled_narocil_screen.dart';
 import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sunmi_printer_plus/enums.dart';
-// import packages
-import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
-import 'package:sunmi_printer_plus/sunmi_style.dart';
 
 class MeniScreen extends ConsumerWidget {
   const MeniScreen({super.key});
@@ -23,7 +20,6 @@ class MeniScreen extends ConsumerWidget {
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
 
     final bool isLoggedIn = SessionManager().isLoggedIn();
-    print(isLoggedIn);
 
     void logout() {
       SessionManager().clearSession();
@@ -31,33 +27,6 @@ class MeniScreen extends ConsumerWidget {
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
-    }
-
-    List<String> exampleLines = [
-      "#VELIKOST-START#", // Začetek velike pisave
-      "Naslov Računa",
-      "#VELIKOST-END#", // Konec velike pisave
-      "Datum: 02.12.2024",
-      "Postavka 1: 10.00€",
-      "--------------------------------",
-      "Postavka 2: 15.00€",
-      "Skupaj: 25.00€",
-      "#QRKODA#https://example.com#QRKODA#", // QR koda z URL
-      "Hvala za obisk!",
-    ];
-
-    void printText(text) async {
-      await SunmiPrinter.initPrinter();
-      await SunmiPrinter.bindingPrinter();
-      await SunmiPrinter.startTransactionPrint(true);
-
-      for (final line in exampleLines) {
-        await SunmiPrinter.printText(line,
-            style: SunmiStyle(
-              align: SunmiPrintAlign.LEFT,
-              bold: true,
-            ));
-      }
     }
 
     return Scaffold(
@@ -91,14 +60,7 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           ),
-          Center(
-              child: ElevatedButton(
-            onPressed: () {
-              printText("To je testtttttttttttt");
-            },
-            child: Text("Print"),
-          )),
-          const SizedBox(height: 128),
+          const SizedBox(height: 64),
           if (!prikazujSamoNarocila)
             Center(
               child: SizedBox(
@@ -166,8 +128,29 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(
-            height: 128,
+            height: 32,
           ),
+          Center(
+            child: SizedBox(
+              width: 160,
+              height: 50,
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const PregledNarocilScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
+                  child: Text(
+                    "Pregled naročil",
+                    style: AppStyles.button1.copyWith(color: AppStyles.black),
+                  )),
+            ),
+          ),
+          const SizedBox(height: 64),
           Center(
             child: SizedBox(
               width: 160,

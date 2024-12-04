@@ -1,26 +1,25 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class KopijaScreen extends StatefulWidget {
+class KopijaScreen extends ConsumerStatefulWidget {
   const KopijaScreen({super.key});
 
   @override
-  State<KopijaScreen> createState() => _KopijaScreenState();
+  ConsumerState<KopijaScreen> createState() => _KopijaScreenState();
 }
 
-class _KopijaScreenState extends State<KopijaScreen> {
+class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   final TextEditingController _kopijaRacunController = TextEditingController();
   final String? userSifra = SessionManager().getLoggedInUserSifra();
   String? _apiResponse;
 
   void _clearText() {
     _kopijaRacunController.clear();
-    setState(() {
-      _apiResponse = null; //
-    });
   }
 
   //to printaj
@@ -30,19 +29,22 @@ class _KopijaScreenState extends State<KopijaScreen> {
       List<String> apiResponse;
 
       if (stRacuna.isEmpty) {
-        String txt_datazadnjiracun = 'VrniZadnjiRacun\t$userSifra';
-        apiResponse = await sendRequest(userSifra ?? '', txt_datazadnjiracun);
+        String txtDataZadnjiracun = 'VrniZadnjiRacun\t$userSifra';
+        apiResponse = await sendRequest(userSifra ?? '', txtDataZadnjiracun);
+        final filteredResponse = filterEmptyLines(apiResponse);
+        final printableResponse = filteredResponse.join("\r\n");
+        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
       } else {
         String txtData = 'VrniKopijoRacuna\t$userSifra\t$stRacuna';
         apiResponse = await sendRequest(userSifra ?? '', txtData);
+        final filteredResponse = filterEmptyLines(apiResponse);
+        final printableResponse = filteredResponse.join("\r\n");
+        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
       }
-
-      //to je samo za izpis na ekranu. potem to briši
-      setState(() {
-        _apiResponse = apiResponse.join("\n");
-      });
     } catch (e) {
-      print("Error fetching data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ni izdelkov")),
+      );
       setState(() {
         _apiResponse = 'Error fetching data';
       });

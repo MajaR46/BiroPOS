@@ -7,7 +7,7 @@ import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DavcnaDOBScreen extends ConsumerStatefulWidget {
-  DavcnaDOBScreen({
+  const DavcnaDOBScreen({
     super.key,
   });
 
@@ -48,8 +48,10 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
             TextButton(
               child: const Text("Close"),
               onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen()));
                 clearDavcna(
                     ref); // Execute the callback to clear items after dialog is closed
               },

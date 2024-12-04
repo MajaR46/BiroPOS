@@ -1,7 +1,6 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
-import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,11 +24,9 @@ class OrderService {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       List<String> apiResponseList =
           (prefs.getStringList('biropos_data') ?? []);
-      print("Loaded data: ${apiResponseList.join(', ')}"); // Debug output
       _kategorizirajNacinePlacila(apiResponseList);
 
       if (apiResponseList.isEmpty) {
-        print("No data");
         return;
       }
     } catch (e) {
@@ -46,8 +43,6 @@ class OrderService {
         naciniPlacila2.add(NacinPlacila(kodaNacinaPlacila, nacinPlacila));
       }
     }
-    print(
-        "Payment methods categorized: ${naciniPlacila2.map((e) => e.nacinPlacila).join(', ')}"); // Debug output
 
     ref.read(paymentMethodProvider.notifier).state = naciniPlacila2;
   }
@@ -84,7 +79,7 @@ class OrderService {
     bool hasDirectItems = false; // Flag for new direct items
 
     for (var item in chosenItems) {
-      String productCode = item.product.id?.toString() ?? '';
+      String productCode = item.product.id.toString();
       double quantity = item.quantity.toDouble();
       String categoryCode = item.product.categoryID.toString();
       double price =
@@ -116,11 +111,11 @@ class OrderService {
       if (!item.isFromTable) {
         hasDirectItems = true; // Mark that we have new items
         directOrderItems.add(
-            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tDIREKTENRACUN;$paymentCode;$taxNumber;${item.description ?? ''};\t$categoryCode');
+            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tDIREKTENRACUN;$paymentCode;$taxNumber;${item.description};\t$categoryCode');
       } else {
         // Initially mark table items as RACUN, will switch to ZAPRIMIZO if there are new items
         tableOrderItems.add(
-            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tRACUN;$paymentCode;$taxNumber;${item.description ?? ''};\t$categoryCode');
+            '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\tRACUN;$paymentCode;$taxNumber;${item.description};\t$categoryCode');
       }
     }
 

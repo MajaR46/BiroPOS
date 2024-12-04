@@ -1,14 +1,12 @@
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/keyboard.dart';
-import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
@@ -35,7 +33,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool isLoading = true;
   bool hasError = false;
   Map<String, List<dynamic>> categorizedItems = {};
-  String selectedCategory = "Vse";
+  String selectedCategory = "";
   final TextEditingController searchController = TextEditingController();
   dynamic selectedItem;
   double itemQuantity = 1;
@@ -78,33 +76,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     super.dispose();
   }
 
-  void _showResponseDialog(List<String> response) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Server Response"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(response.join('\n')), // Display the response line by line
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> _handleData() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -116,12 +87,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           hasError = true;
           isLoading = false;
         });
-        print("No data found in SharedPreferences for 'biropos_data'");
         return;
       }
-
-      print(
-          "Data retrieved from SharedPreferences: ${apiResponseList.length} items");
 
       Map<String, String> itemToCategoryMap = {};
 
@@ -175,7 +142,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           name: imeIzdelka,
           price: cena,
           discountedPrice: 0.0,
-          HHprice: hhCena,
+          hhPrice: hhCena,
           categoryID: kategorijaID,
           eanCode: eancode,
         );
@@ -238,15 +205,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
-        print("Added item to the bill: ${newNarociloItem.product.name}");
-        print("Added item to the bill: ${newNarociloItem.product.price}");
       }
 
       // Convert map to NarociloItem before assigning
       selectedItem = newNarociloItem;
       ref.read(selectedItemProvider.notifier).state = newNarociloItem;
-      print("Selected item: $selectedItem");
-      print("Selected item name: ${selectedItem.product.name}");
 
       _updateFinalSum();
     });
@@ -274,23 +237,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     AppStyles.darkBlue,
     AppStyles.darkPurple
   ];
-
-  /*  Future<void> loadCafeItems() async {
-    try {
-      String jsonString = await rootBundle.loadString('assets/cafe_items.json');
-      List<dynamic> items = jsonDecode(jsonString);
-      setState(() {
-        cafeItems = items;
-        categorizedItems = _categorizeItems(items);
-        isLoading = false;
-      });
-    } catch (error) {
-      setState(() {
-        hasError = true;
-        isLoading = false;
-      });
-    }
-  } */
 
   Map<String, List<dynamic>> _categorizeItems(List<dynamic> items) {
     Map<String, List<dynamic>> categories = {};
@@ -328,22 +274,18 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void generatePairs() {
     String input = searchController.text;
-    print("input $input");
 
     // Extract numbers from the input string
     List<int> numbers = extractNumbers(input)
-        .where((num) => numberToLetters.containsKey(num))
+        .where((numb) => numberToLetters.containsKey(numb))
         .toList();
-
-    print("numbers $numbers");
 
     joinedNumbers = numbers.join();
 
     List<List<String>> letterGroups =
-        numbers.map((num) => numberToLetters[num]!).toList();
+        numbers.map((numb) => numberToLetters[numb]!).toList();
 
     List<String> combinations = _combineLetters(letterGroups);
-    print(combinations);
 
     if (combinations.isNotEmpty) {
       searchQuery = combinations.join('|');
@@ -373,7 +315,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 //filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
     generatePairs(); // Generate letter combinations based on input
-    print("joinedNumbers $joinedNumbers");
 
     List<dynamic> filteredItems = [];
 
@@ -389,13 +330,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
 
     String searchText = searchController.text;
-    print("searchtext $searchText");
 
     RegExp regExp = RegExp(r'\d+');
     Iterable<Match> matches = regExp.allMatches(searchText);
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
-    print("numbers2String $numbers2String");
 
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
       final searchPattern = RegExp(searchQuery, caseSensitive: false);
@@ -473,7 +412,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 //glavni seznam izdelkov
   Widget _buildItemList() {
     List<dynamic> filteredItems = _getFilteredItems();
-
+    if (selectedCategory == "") {
+      return const Center(child: Text("Ni izbrane kategorije"));
+    }
     if (filteredItems.isEmpty) {
       return const Center(child: Text("Ni izdelkov"));
     }
@@ -608,7 +549,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    final paymentMethods = ref.watch(paymentMethodProvider);
 
     orderService = ref.read(orderProvider);
 
@@ -659,7 +599,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                 }
                               }
                             : null,
-                        child: BlagajnaBanner(),
+                        child: const BlagajnaBanner(),
                       ),
                     ),
                     Align(
@@ -710,8 +650,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => NacinPlacilaScreen()));
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const NacinPlacilaScreen()));
   }
 
   void _navigateToOpisScreen() async {
@@ -726,9 +666,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         ),
       );
     } else {
-      // Handle the case where selectedItem is null
-      print("Selected item is null");
-      // Optionally, show a message or take a different action
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ni izbranega izdelka za urejanje')));
     }
   }
 }

@@ -1,6 +1,3 @@
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
@@ -84,8 +81,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
         await tableNotifier.addToExistingTable(context, tableNumber);
 
     if (serverResponse.isNotEmpty) {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     }
 
     ref.read(narociloNotifierProvider.notifier).state = [];
@@ -123,8 +120,6 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                               ? double.tryParse(tableData['cena'].toString()) ??
                                   0.0
                               : 0.0;
-                          List<String> itemsForTable =
-                              tableItems[tableNumber] ?? [];
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(
@@ -179,7 +174,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                NewTableScreen(), // Pass items here
+                                const NewTableScreen(), // Pass items here
                           ),
                         );
 

@@ -60,11 +60,11 @@ Future<void> printTextWithFormatting(
     for (final line in filteredLines) {
       if (line.contains('#QRKODA#')) {
         String qrCodeData = line.replaceAll('#QRKODA#', '').trim();
-        if (qrCodeData.endsWith('#'))
+        if (qrCodeData.endsWith('#')) {
           qrCodeData = qrCodeData.substring(0, qrCodeData.length - 1);
+        }
         if (qrCodeData.isNotEmpty) {
           if (qrCodeData.length > 400) {
-            print('QR code data too long, truncating to 400 characters.');
             await SunmiPrinter.printText('QR Code data too long. Please check.',
                 style: SunmiStyle(align: SunmiPrintAlign.LEFT));
           } else {
@@ -78,7 +78,6 @@ Future<void> printTextWithFormatting(
       } else if (line.contains('#VELIKOST-END#')) {
         await setFontSize(printerName, false);
       } else {
-        print(line);
         await SunmiPrinter.printText(line, style: SunmiStyle());
       }
     }
@@ -91,7 +90,6 @@ Future<void> printTextWithFormatting(
     ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
 
     await SunmiPrinter.exitTransactionPrint(true);
-    print('Text printed successfully with extra blank lines.');
   } catch (e) {
     print('Error during printing: $e');
   }

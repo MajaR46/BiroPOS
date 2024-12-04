@@ -1,8 +1,5 @@
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/models/addToTableItem.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
@@ -17,7 +14,6 @@ import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -52,33 +48,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateFinalSum();
-  }
-
-  void _showResponseDialog(List<String> response) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Server Response"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(response.join('\n')),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _updateFinalSum() {
@@ -123,7 +92,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateFinalSum();
     } else {
-      print("Invalid index: $index. Cannot remove item.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ne morem izbrisati izdelka")),
+      );
     }
   }
 
@@ -182,7 +153,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       double originalPrice =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0;
-      double discountedPrice = item.product.discountedPrice ?? originalPrice;
+      double discountedPrice = item.product.discountedPrice;
 
       if (discountedPrice > 0 && originalPrice > 0) {
         double discountPercentage =
@@ -250,7 +221,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     Iterable<Match> matches = regExp.allMatches(searchText);
     List<String> numbers = matches.map((match) => match.group(0)!).toList();
     String numbersToString = numbers.join();
-    print("numbers to string $numbersToString");
     if (numbersToString.length >= 6 && searchText.isNotEmpty) {
       final items = ref.watch(itemsProvider);
 
@@ -289,7 +259,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
-    final paymentMethods = ref.watch(paymentMethodProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -636,12 +605,12 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => NacinPlacilaScreen()));
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const NacinPlacilaScreen()));
   }
 
   void _navigateToBlagajnaScreen() async {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+    Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
   }
 }

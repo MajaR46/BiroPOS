@@ -3,7 +3,7 @@ class Item {
   final String name;
   final double price;
   double discountedPrice;
-  final double HHprice;
+  final double hhPrice;
   final String categoryID;
   final String eanCode;
 
@@ -13,7 +13,7 @@ class Item {
     this.name = 'Unknown Item',
     this.price = 0.0,
     this.discountedPrice = 0.0,
-    this.HHprice = 0.0,
+    this.hhPrice = 0.0,
     this.categoryID = '',
     this.eanCode = '',
   });
@@ -27,7 +27,7 @@ class Item {
       discountedPrice: double.tryParse(
               map['discountedPrice'].toString().replaceAll(',', '.')) ??
           0,
-      HHprice:
+      hhPrice:
           double.tryParse(map['HHprice'].toString().replaceAll(',', '.')) ?? 0,
       categoryID: map['categoryID'] as String? ?? '',
       eanCode: map['eanCode'] as String? ?? '',
@@ -40,7 +40,7 @@ class Item {
     String? name,
     double? price,
     double? discountedPrice,
-    double? HHprice,
+    double? hhprice,
     String? categoryID,
     String? eanCode,
   }) {
@@ -49,7 +49,7 @@ class Item {
       name: name ?? this.name,
       price: price ?? this.price,
       discountedPrice: discountedPrice ?? this.discountedPrice,
-      HHprice: HHprice ?? this.HHprice,
+      hhPrice: hhPrice ?? this.hhPrice,
       categoryID: categoryID ?? this.categoryID,
       eanCode: eanCode ?? this.eanCode,
     );

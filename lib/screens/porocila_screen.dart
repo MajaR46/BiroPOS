@@ -1,16 +1,18 @@
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class PorocilaScreen extends StatefulWidget {
+class PorocilaScreen extends ConsumerStatefulWidget {
   const PorocilaScreen({super.key});
 
   @override
-  State<PorocilaScreen> createState() => _PorocilaScreenState();
+  ConsumerState<PorocilaScreen> createState() => _PorocilaScreenState();
 }
 
-class _PorocilaScreenState extends State<PorocilaScreen> {
+class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   List<String> porocila = [];
   List<String> naslovPorocila = [];
 
@@ -34,7 +36,9 @@ class _PorocilaScreenState extends State<PorocilaScreen> {
         naslovPorocila = extractedTexts;
       });
     } catch (e) {
-      print("Error fetching data: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ni izdelkov")),
+      );
     }
   }
 
@@ -45,10 +49,10 @@ class _PorocilaScreenState extends State<PorocilaScreen> {
     String? userId = prefs.getString('userId') ?? "";
     String txtData = 'VrniPorocilo\t$naslovPorocila';
 
-    print("Prepared txtData: '$txtData'");
-
     List<String> responsePorocilaList = await sendRequest(userId, txtData);
-    print("Response: $responsePorocilaList");
+    final filteredResponse = filterEmptyLines(responsePorocilaList);
+    final printableResponse = filteredResponse.join("\r\n");
+    printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
 
     return responsePorocilaList;
   }
@@ -78,10 +82,8 @@ class _PorocilaScreenState extends State<PorocilaScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: GestureDetector(
                     onTap: () => _prikaziPorocila(naslovPorocila[index]),
-                    child: Container(
-                      child: ListTile(
-                        title: Text(naslovPorocila[index]),
-                      ),
+                    child: ListTile(
+                      title: Text(naslovPorocila[index]),
                     ),
                   ),
                 );

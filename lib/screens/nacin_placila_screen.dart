@@ -3,10 +3,8 @@ import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NacinPlacilaScreen extends ConsumerStatefulWidget {
@@ -25,36 +23,6 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
-  }
-
-  void _showResponseDialog(
-    List<String> response,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Server Response"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(response.join('\n')), // Display the response line by line
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                clearDavcna(
-                    ref); // Execute the callback to clear items after dialog is closed
-              },
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -133,7 +101,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                 padding: const EdgeInsets.only(top: 24, left: 8, right: 8),
                 child: GridView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     childAspectRatio: 2.5,
@@ -190,7 +158,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         ),
                       ),
                     ),
-                    Spacer(),
+                    const Spacer(),
                     Align(
                       alignment: Alignment.bottomRight,
                       child: SizedBox(

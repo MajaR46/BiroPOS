@@ -25,12 +25,11 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
   @override
   Widget build(BuildContext context) {
     final String? user = SessionManager().getLoggedInUserName();
-    final chosenItems = ref.read(narociloNotifierProvider);
+    final chosenItems = ref.watch(narociloNotifierProvider);
 
     return Drawer(
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start, // Aligns all child widgets to the left
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(top: 64.0, left: 16.0),
@@ -45,7 +44,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: chosenItems == true
+                onPressed: chosenItems.isEmpty
                     ? () {
                         Navigator.push(
                           context,
@@ -53,10 +52,10 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                               builder: (context) => const MeniScreen()),
                         );
                       }
-                    : null, // Disable the button if condition is false
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.blue,
-                  disabledBackgroundColor: AppStyles.grey, // Optional
+                  disabledBackgroundColor: AppStyles.grey,
                 ),
                 child: Text(
                   "Meni",
@@ -72,7 +71,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: chosenItems == true ? () => _logout() : null,
+                onPressed: chosenItems.isEmpty ? () => _logout() : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.red,
                 ),

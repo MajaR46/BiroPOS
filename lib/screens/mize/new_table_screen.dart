@@ -44,14 +44,11 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
       String narociloItem =
           '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
 
-      print("Narocilo item: $narociloItem");
-
       narociloItems.add(narociloItem);
     }
 
     List<String> posljiNaStreznik =
         await sendRequest(userId, narociloItems.join('\r\n'));
-    print("Poslji na streznik $posljiNaStreznik");
   }
 
   @override
@@ -111,8 +108,10 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
                 _addToNewTable(_newTableController.text);
                 ref.read(narociloNotifierProvider.notifier).state = [];
 
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => BlagajnaScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen()));
               }),
             ),
           ),

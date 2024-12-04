@@ -7,22 +7,20 @@ import 'package:biro_pos/models/tableItem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
-import 'package:biro_pos/screens/mize/prenos_mize_screen.dart';
-import 'package:biro_pos/screens/mize/split_racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MizaDetailsScreen extends ConsumerStatefulWidget {
+class SplitRacunScreen extends ConsumerStatefulWidget {
   final String imeMize;
-  const MizaDetailsScreen({super.key, required this.imeMize});
+  const SplitRacunScreen({super.key, required this.imeMize});
 
   @override
-  ConsumerState<MizaDetailsScreen> createState() => _MizaDetailsScreenState();
+  ConsumerState<SplitRacunScreen> createState() => _SplitRacunScreenState();
 }
 
-class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
+class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
   bool _isLoading = true;
   late String imeMize;
   List<TableItem> izdelki = [];
@@ -96,7 +94,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _dodajNaRacun(List<TableItem> items) {
-    final narociloItems = items.map((tableItem) {
+    final narociloItems =
+        items.where((tableItem) => tableItem.quantity > 0).map((tableItem) {
       final item = Item(
         id: tableItem.productCode,
         name: tableItem.productName,
@@ -124,24 +123,10 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
     _dodajNaRacun(itemsToProcess);
 
-    // Navigate to BlagajnaScreen after adding items to the bill
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const BlagajnaScreen(),
-      ),
-    );
-  }
-
-  void _prenosMize() {
-    final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
-    _dodajNaRacun(itemsToProcess);
-
-    // Navigate to PrenosMizeScreen, passing the current table number
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PrenosMizeScreen(tableNumber: imeMize),
       ),
     );
   }
@@ -161,7 +146,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
               color: AppStyles.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text("Miza: $imeMize",
+        title: Text("Razdeli račun za: $imeMize",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
       ),
@@ -223,8 +208,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
                                               backgroundColor: AppStyles.red),
-                                          onPressed: () => _deleteFromRacun(
-                                              index), // Pass the index here
+                                          onPressed: () =>
+                                              _deleteFromRacun(index),
                                           icon: const Icon(Icons.delete)),
                                       QuantityIncrease(
                                         quantity: item.quantity,
@@ -244,55 +229,11 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
               Padding(
                 padding: const EdgeInsets.only(
                     left: 16, bottom: 24, top: 8, right: 16),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      height: 50,
-                      width: 120,
-                      child: ElevatedButton(
-                          onPressed: _prenosMize,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AppStyles.silver.withOpacity(0.1),
-                              elevation: 0),
-                          child: Text(
-                            "PRENOS",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black),
-                          )),
-                    ),
-                    const Spacer(),
-                    SizedBox(
-                      height: 50,
-                      width: 120,
-                      child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    SplitRacunScreen(imeMize: imeMize),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AppStyles.silver.withOpacity(0.1),
-                              elevation: 0),
-                          child: Text(
-                            "RAZDELI",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black),
-                          )),
-                    ),
-                    const Spacer(),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: OKButton(onPressed: _ok),
-                    ),
-                  ],
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: OKButton(onPressed: _ok),
                 ),
-              )
+              ),
             ],
           ),
         ],

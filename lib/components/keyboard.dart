@@ -9,10 +9,6 @@ import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/app_styles.dart';
-import 'package:sunmi_printer_plus/enums.dart';
-import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
-import 'package:sunmi_printer_plus/sunmi_style.dart';
-import 'dart:typed_data'; // Uvozite Uint8List izdart:typed_data
 
 class Keyboard extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -54,26 +50,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     });
   }
 
-  void _handleMultiply(double factor) {
-    final cartItems = ref.watch(narociloNotifierProvider);
-
-    final selectedItem = cartItems.isNotEmpty ? cartItems.last : null;
-    if (selectedItem != null) {
-      double baseQuantity = 1;
-      final newQuantity = baseQuantity * factor;
-
-      setState(() {
-        itemQuantity = newQuantity;
-      });
-
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateQuantity(selectedItem.product.id, newQuantity);
-
-      _updateFinalSum();
-    }
-  }
-
   void _decreaseQuantity() {
     final selectedItem = ref.watch(selectedItemProvider);
 
@@ -106,38 +82,48 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
 
-/*   void _showResponseDialog(BuildContext context, List<String> response) {
-    final filteredResponse = filterEmptyLines(response);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Server Response"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: filteredResponse.map((line) => Text(line)).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                ref.read(narociloNotifierProvider.notifier).clearChosenItems();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  } */
-
   void _paymentGotovina() {
     _processPayment(context, "GOT");
   }
 
   void _paymentKartica() {
     _processPayment(context, "KAR");
+  }
+
+  void _handleMultiply(double factor) {
+    print('Multiply function triggered!');
+
+    final cartItems = ref.watch(narociloNotifierProvider);
+    print('Controller text: ${searchController.text}');
+
+    // Fetch the selected item from the provider
+    final selectedItem = ref.read(selectedItemProvider.notifier).state;
+    if (selectedItem != null) {
+      // Get the current quantity of the selected item
+      double currentQuantity = selectedItem.quantity;
+
+      // Multiply the current quantity by the factor
+      double newQuantity = currentQuantity * factor;
+
+      // Update the quantity in the provider
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .updateQuantity(selectedItem.product.id, newQuantity);
+
+      // Update the local state
+      setState(() {
+        itemQuantity = newQuantity;
+      });
+
+      // Update the final sum
+
+      _updateFinalSum();
+    } else {
+      // Handle the case where no item is selected
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an item to multiply')),
+      );
+    }
   }
 
   @override
@@ -288,13 +274,18 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   }
 }
 
-class KeyboardNumber extends StatelessWidget {
+class KeyboardNumber extends StatefulWidget {
   final String number;
   final TextEditingController controller;
 
   const KeyboardNumber(
       {super.key, required this.number, required this.controller});
 
+  @override
+  State<KeyboardNumber> createState() => _KeyboardNumberState();
+}
+
+class _KeyboardNumberState extends State<KeyboardNumber> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -308,11 +299,21 @@ class KeyboardNumber extends StatelessWidget {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20))),
         onPressed: () {
-          controller.text += number;
+          // If the number is `,`, replace it with `.` (decimal point).
+          String newText = widget.number == ',' ? '.' : widget.number;
+
+          // Prevent adding more than one decimal point (.)
+          if (newText == '.' && widget.controller.text.contains('.')) {
+            return; // Do nothing if the decimal point already exists.
+          }
+
+          setState(() {
+            widget.controller.text += newText;
+          });
         },
         child: Center(
           child: Text(
-            number,
+            widget.number,
             style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
           ),
         ),
@@ -381,9 +382,12 @@ class KeyboardMultiply extends StatelessWidget {
           ),
         ),
         onPressed: () {
-          double? number = double.tryParse(controller.text);
+          String sanitizedText =
+              controller.text.replaceAll(RegExp(r'[^\d.]'), '');
+          double? number = double.tryParse(sanitizedText);
           if (number != null) {
             multiply(number);
+            controller.clear();
           }
         },
         child: Center(

@@ -1,5 +1,4 @@
 import 'package:biro_pos/components/ok_button.dart';
-import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/app_styles.dart';

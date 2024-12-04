@@ -49,7 +49,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
     if (serverResponse.isNotEmpty) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => BlagajnaScreen()),
+        MaterialPageRoute(builder: (context) => const BlagajnaScreen()),
       );
     }
 

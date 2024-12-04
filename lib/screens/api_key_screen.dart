@@ -101,7 +101,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
         'isCheckedPrikazujNarocila', _isCheckedPrikazujNarocila);
-    print('isCheckedPrikazujNarocila saved: $_isCheckedPrikazujNarocila');
 
     await prefs.setBool('isCheckedPrikazujRacune', _isCheckedPrikazujRacune);
     await prefs.setBool('isCheckedTiskajNarocilo', _isCheckedTiskajNarocilo);
@@ -118,7 +117,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedPrintService', _isCheckedPrintService);
 
     Navigator.push(
-        context, MaterialPageRoute(builder: (context) => LoginScreen()));
+        context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
 
   @override

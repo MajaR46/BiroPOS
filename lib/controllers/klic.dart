@@ -23,8 +23,6 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
 
   final String body = '{"uid":"$uniqueUid","txt_data":"$txtData"}';
 
-  print("Request Body: $body");
-
   try {
     final response = await http.post(
       Uri.parse(url),
