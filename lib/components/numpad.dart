@@ -15,9 +15,9 @@ class Numpad extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            NumpadNumber(number: "1", controller: controller),
-            NumpadNumber(number: "2", controller: controller),
-            NumpadNumber(number: "3", controller: controller)
+            NumpadNumber(number: "7", controller: controller),
+            NumpadNumber(number: "8", controller: controller),
+            NumpadNumber(number: "9", controller: controller)
           ],
         ),
         Row(
@@ -31,9 +31,9 @@ class Numpad extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            NumpadNumber(number: "7", controller: controller),
-            NumpadNumber(number: "8", controller: controller),
-            NumpadNumber(number: "9", controller: controller)
+            NumpadNumber(number: "1", controller: controller),
+            NumpadNumber(number: "2", controller: controller),
+            NumpadNumber(number: "3", controller: controller)
           ],
         ),
         Row(

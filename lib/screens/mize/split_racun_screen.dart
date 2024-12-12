@@ -50,7 +50,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
             TableItem(
               productCode: segments[0],
               productName: segments[1],
-              quantity: double.tryParse(segments[2].replaceAll(',', '.')) ?? 0,
+              quantity: 0,
               price: double.tryParse(segments[3].replaceAll(',', '.')) ?? 0,
               categoryCode: segments[4],
             ),

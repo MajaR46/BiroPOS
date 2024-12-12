@@ -44,15 +44,12 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: chosenItems.isEmpty
-                    ? () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MeniScreen()),
-                        );
-                      }
-                    : null,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MeniScreen()),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.blue,
                   disabledBackgroundColor: AppStyles.grey,

@@ -116,15 +116,12 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                                 child: GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      // Set the selected index to this card's index
                                       _selectedCardIndex = index;
+                                      _ok();
                                     });
                                   },
                                   child: Card(
-                                    color: _selectedCardIndex == index
-                                        ? Colors.blue.withOpacity(
-                                            0.1) // Highlight selected card
-                                        : AppStyles.silver.withOpacity(0.1),
+                                    color: AppStyles.silver.withOpacity(0.1),
                                     elevation: 0,
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -153,13 +150,6 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                                 ),
                               );
                             })),
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 16, bottom: 24, top: 8, right: 16),
-                  child: Align(
-                      alignment: Alignment.bottomRight,
-                      child: OKButton(onPressed: _ok)),
-                )
               ],
             )
           ],

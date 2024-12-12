@@ -2,6 +2,7 @@ import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/models/podjetje.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:biro_pos/screens/test.dart';
@@ -46,6 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
   List<Osebje> osebje = [];
+  List<Podjetje> podjetje = [];
 
   @override
   void initState() {
@@ -106,6 +108,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _categorizeResponse(List<String> items) {
     List<Osebje> osebje2 = [];
+    List<Podjetje> podatkiPodjetje2 = [];
 
     for (String item in items) {
       if (item.startsWith('4')) {
@@ -114,11 +117,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         String password = item.split('|')[3];
 
         osebje2.add(Osebje(username, password, sifra));
+      } else if (item.startsWith('0')) {
+        String podjetjeDavcna = item.split('|')[1];
+        String imePodjetja = item.split('|')[2];
+
+        podatkiPodjetje2.add(Podjetje(podjetjeDavcna, imePodjetja));
       }
     }
 
     setState(() {
       osebje = osebje2;
+      podjetje = podatkiPodjetje2;
     });
   }
 
@@ -127,17 +136,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     String formattedDate = DateFormat("dd").format(currentDate);
     String formattedTime = DateFormat("mm").format(currentDate);
 
-    // Check if the input password matches the default password format first
     if (inputPassword == "12${formattedTime}5${formattedDate}98") {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) => const ApiKeyScreen(isDefaultPassword: true)),
       );
-      return; // Exit early to avoid further checks
+      return;
     }
 
-    // If the password is not the default, proceed with the usual user authentication
     Osebje? matchedUser;
     for (var user in osebje) {
       if (user.password == inputPassword) {
@@ -152,12 +159,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userId', matchedUser.sfira);
+      await prefs.setString('userName', matchedUser.ime);
+      await prefs.setString('userPassword', matchedUser.password);
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const MeniScreen()));
 
       await getTables();
       await getOpenTables();
       await getPorocila();
+      await prefs.setString('podjetjeDavcna', podjetje[0].toString());
     } else if (inputPassword == "999") {
       SystemNavigator.pop();
     } else {
@@ -244,7 +254,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           children: [
             const SizedBox(
-              height: 80,
+              height: 32,
             ),
             Text('Prijava',
                 style: AppStyles.heading1.copyWith(color: AppStyles.black)),
@@ -364,7 +374,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
             ),
             const SizedBox(
-              height: 30,
+              height: 20,
             ),
             Row(children: [
               GestureDetector(

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:biro_pos/controllers/payment_controller.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:flutter/material.dart';
@@ -67,13 +68,21 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   }
 
   Future<void> _processPayment(BuildContext context, String paymentType) async {
+    double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
     final paymentMethods = ref.watch(paymentMethodProvider);
     if (paymentMethods.isNotEmpty) {
       final response =
           await ref.read(orderProvider).createOrder(context, paymentType);
       final filteredResponse = filterEmptyLines(response);
       final printableResponse = filteredResponse.join("\r\n");
-      printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+      if (paymentType == "KAR") {
+        final gotovinaRacun = await callBesteron(finalSum);
+        await printTextWithFormatting(gotovinaRacun, "BlueTooth Printer", ref);
+      }
+      await printTextWithFormatting(
+          printableResponse, "BlueTooth Printer", ref);
+
       _updateFinalSum();
       // _showResponseDialog(context, response);
     } else {

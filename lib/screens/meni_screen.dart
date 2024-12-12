@@ -1,4 +1,8 @@
+import 'package:biro_pos/controllers/bluetooth_page.dart';
+import 'package:biro_pos/controllers/payment_controller.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
@@ -18,6 +22,7 @@ class MeniScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+    double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     final bool isLoggedIn = SessionManager().isLoggedIn();
 
@@ -27,6 +32,18 @@ class MeniScreen extends ConsumerWidget {
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
+    }
+
+    Future<void> fetchReceipt() async {
+      double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
+      String receiptText = await callBesteron(finalSum);
+
+      if (receiptText.isNotEmpty) {
+        printTextWithFormatting(receiptText, "Bluetooth", ref);
+      } else {
+        print("No receipt text found or there was an error.");
+      }
     }
 
     return Scaffold(
@@ -146,6 +163,25 @@ class MeniScreen extends ConsumerWidget {
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
                   child: Text(
                     "Pregled naročil",
+                    style: AppStyles.button1.copyWith(color: AppStyles.black),
+                  )),
+            ),
+          ),
+          Center(
+            child: SizedBox(
+              width: 160,
+              height: 50,
+              child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => BluetoothScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
+                  child: Text(
+                    "Klic",
                     style: AppStyles.button1.copyWith(color: AppStyles.black),
                   )),
             ),

@@ -1,5 +1,3 @@
-import 'package:biro_pos/controllers/ble_controller.dart';
-
 import 'package:provider/provider.dart';
 
 import 'package:biro_pos/controllers/klic.dart';

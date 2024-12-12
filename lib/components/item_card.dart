@@ -7,6 +7,7 @@ class ItemCard extends StatelessWidget {
   final String itemCategory;
   final Color backgroundColor;
   final Color textColor;
+  final int stStolpcev;
 
   const ItemCard(
       {super.key,
@@ -14,7 +15,8 @@ class ItemCard extends StatelessWidget {
       required this.itemPrice,
       required this.itemCategory,
       required this.backgroundColor,
-      required this.textColor});
+      required this.textColor,
+      required this.stStolpcev});
 
   @override
   Widget build(BuildContext context) {
@@ -29,24 +31,37 @@ class ItemCard extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(itemName,
-                  style: AppStyles.paragraph3
-                      .copyWith(fontWeight: FontWeight.bold)),
+              child: Text(
+                itemName,
+                overflow:
+                    TextOverflow.ellipsis, // Ensures text doesn't overflow
+                maxLines: 2, // You can adjust the maxLines as needed
+                softWrap: true,
+                style:
+                    AppStyles.paragraph3.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
-            Text('${itemPrice.toString()} €', style: AppStyles.paragraph4),
-            const SizedBox(
-              height: 2,
+            Text(
+              '${itemPrice.toString()} €',
+              style: AppStyles.paragraph4,
             ),
-            Container(
+            const SizedBox(height: 2),
+            if (stStolpcev < 3)
+              Container(
                 decoration: BoxDecoration(
                   color: backgroundColor,
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(itemCategory,
-                      style: AppStyles.paragraph4.copyWith(color: textColor)),
-                )),
+                  child: Text(
+                    itemCategory,
+                    style: AppStyles.paragraph4.copyWith(
+                      color: textColor,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

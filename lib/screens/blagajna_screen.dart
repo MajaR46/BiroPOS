@@ -1,5 +1,6 @@
 import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
+import 'package:biro_pos/components/item_list_builder.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
@@ -19,6 +20,7 @@ import 'package:intl/intl.dart';
 import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
@@ -43,6 +45,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   late List<NarociloItem> chosenItems = [];
   List<Item> izdelki = [];
   late OrderService orderService;
+  late int stStolpcev = 1;
 
   @override
   void initState() {
@@ -79,8 +82,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   Future<void> _handleData() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
+      String columNums = prefs.getString('stStolpcev') ?? '';
 
       List<String> apiResponseList = prefs.getStringList('biropos_data') ?? [];
+
+      print('apiResponseList: $apiResponseList');
+      print('stStolpcev: $columNums');
 
       if (apiResponseList == null) {
         setState(() {
@@ -88,6 +95,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           isLoading = false;
         });
         return;
+      } else {
+        setState(() {
+          stStolpcev = columNums.isNotEmpty ? int.tryParse(columNums) ?? 1 : 1;
+        });
       }
 
       Map<String, String> itemToCategoryMap = {};
@@ -409,110 +420,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     );
   }
 
-//glavni seznam izdelkov
-  Widget _buildItemList() {
-    List<dynamic> filteredItems = _getFilteredItems();
-    if (selectedCategory == "") {
-      return const Center(child: Text("Ni izbrane kategorije"));
-    }
-    if (filteredItems.isEmpty) {
-      return const Center(child: Text("Ni izdelkov"));
-    }
-
-    // GLavni layout
-    if (selectedCategory == "Vse") {
-      Map<String, List<dynamic>> itemsByCategory =
-          _categorizeItems(filteredItems);
-      List<String> categories = itemsByCategory.keys.toList();
-
-      return SizedBox(
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
-          itemBuilder: ((context, index) {
-            String category = categories[index];
-            List<dynamic> items = itemsByCategory[category] ?? [];
-
-            return SizedBox(
-              width: 180,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: items.length,
-                      itemBuilder: (context, itemIndex) {
-                        final sortedMainItems = items
-                          ..sort((item1, item2) =>
-                              item1['name'].compareTo(item2['name']));
-                        final item = sortedMainItems[itemIndex];
-
-                        int categoryIndex = categorizedItems.keys
-                            .toList()
-                            .indexOf(item['category']);
-
-                        if (categoryIndex == -1) {
-                          categoryIndex = 0; // Fallback to the default color
-                        }
-                        Color assignedBackgroundColor = backgroundColors[
-                            categoryIndex % backgroundColors.length];
-                        Color assignedTextColor =
-                            textColors[categoryIndex % textColors.length];
-
-                        return GestureDetector(
-                          onTap: () => _ouputselectedItem({
-                            'name': item['name'],
-                            'price': item['price'],
-                            'category': item['category'],
-                            'itemId': item['itemId'],
-                            'categoryID': item['categoryID']
-                          }),
-                          child: ItemCard(
-                            itemName: item['name'],
-                            itemPrice: item['price'],
-                            itemCategory: item['category'],
-                            backgroundColor: assignedBackgroundColor,
-                            textColor: assignedTextColor,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      );
-    } else {
-      // Layout za posamezno kategorijo
-      return ListView.builder(
-        itemCount: filteredItems.length,
-        itemBuilder: (context, index) {
-          final sortedItems = filteredItems
-            ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
-          final item = sortedItems[index];
-          int categoryIndex =
-              categorizedItems.keys.toList().indexOf(item['category']);
-          Color assignedBackgroundColor =
-              backgroundColors[categoryIndex % backgroundColors.length];
-          Color assignedTextColor =
-              textColors[categoryIndex % textColors.length];
-
-          return GestureDetector(
-            onTap: () => _ouputselectedItem(item),
-            child: ItemCard(
-              itemName: item['name'],
-              itemPrice: item['price'],
-              itemCategory: item['category'],
-              backgroundColor: assignedBackgroundColor,
-              textColor: assignedTextColor,
-            ),
-          );
-        },
-      );
-    }
-  }
-
   void _increaseQuantity() {
     setState(() {
       itemQuantity++;
@@ -550,6 +457,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
 
+    final String? user = SessionManager().getLoggedInUserName();
+
     orderService = ref.read(orderProvider);
 
     return Scaffold(
@@ -560,7 +469,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         backgroundColor: AppStyles.white,
         iconTheme: const IconThemeData(color: AppStyles.blue),
         title: Text(
-          formattedDate,
+          user!,
           style: AppStyles.paragraph3
               .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
         ),
@@ -584,7 +493,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                   children: [
                     _categoryList(),
                     Expanded(
-                      child: _buildItemList(),
+                      child: buildItemList(
+                        columnNum: stStolpcev,
+                        categorizedItems: categorizedItems,
+                        getFilteredItems: _getFilteredItems,
+                        selectedCategory: selectedCategory,
+                        onSelectItem: _ouputselectedItem,
+                        backgroundColors: backgroundColors,
+                        textColors: textColors,
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),

@@ -22,6 +22,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controllerIP = TextEditingController();
   final TextEditingController _controllerPort = TextEditingController();
   final TextEditingController _controllerPOS = TextEditingController();
+  final TextEditingController _controllerTID = TextEditingController();
+  final TextEditingController _controllerStStolpcev = TextEditingController();
+
   final TextEditingController _controllerImeTiskalnika =
       TextEditingController();
 
@@ -43,7 +46,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     _loadPreferences();
   }
 
-  // Nalaganje shranjenih vrednosti iz SharedPreferences
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -52,10 +54,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _controllerIP.text = prefs.getString('IP') ?? '';
         _controllerPort.text = prefs.getString('Port') ?? '';
         _controllerPOS.text = prefs.getString('POS') ?? '';
+        _controllerTID.text = prefs.getString('TID') ?? '';
         _controllerTouchKey.text = prefs.getString('touchKey') ?? '';
         _controllerTextSize.text = prefs.getString('textSize') ?? '';
         _controllerRefresh.text = prefs.getString('refreshInterval') ?? '';
         _controllerImeTiskalnika.text = prefs.getString('imeTiskalnika') ?? '';
+        _controllerStStolpcev.text = prefs.getString('stStolpcev') ?? '';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -93,10 +97,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setString('IP', _controllerIP.text);
     await prefs.setString('Port', _controllerPort.text);
     await prefs.setString('POS', _controllerPOS.text);
+    await prefs.setString('TID', _controllerTID.text);
     await prefs.setString('touchKey', _controllerTouchKey.text);
     await prefs.setString('textSize', _controllerTextSize.text);
     await prefs.setString('imeTiskalnika', _controllerImeTiskalnika.text);
     await prefs.setString('refreshInterval', _controllerRefresh.text);
+    await prefs.setString('stStolpcev', _controllerStStolpcev.text);
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
@@ -197,6 +203,20 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                           ApiKeyTextfield(
                             controller: _controllerPOS,
+                            inputwidth: 150,
+                            isHidden: false,
+                          ),
+                        ],
+                      ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text('TID:', style: TextStyle(fontSize: 16)),
+                          ),
+                          ApiKeyTextfield(
+                            controller: _controllerTID,
                             inputwidth: 150,
                             isHidden: false,
                           ),
@@ -397,6 +417,21 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             ),
                           ],
                         ),
+                      ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text('Število stolpcev:',
+                                style: TextStyle(fontSize: 16)),
+                          ),
+                          ApiKeyTextfield(
+                            controller: _controllerStStolpcev,
+                            inputwidth: 150,
+                            isHidden: false,
+                          ),
+                        ],
                       ),
                     if (widget.isDefaultPassword)
                       Row(
