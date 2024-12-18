@@ -80,6 +80,19 @@ class MainActivity : FlutterActivity() {
                 "getDiscoveredDevices" -> {
                     result.success(discoveredDevices)
                 }
+                "getBondedDevices" -> {
+                    if (checkPermissions()) {
+                        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+                        val devicesList =
+                                pairedDevices?.map { device ->
+                                    "${device.name ?: "Unknown"} (${device.address})"
+                                }
+                                        ?: emptyList()
+                        result.success(devicesList)
+                    } else {
+                        result.error("PERMISSION_DENIED", "Permissions not granted", null)
+                    }
+                }
                 "sendData" -> {
                     val dataLines = call.argument<List<String>>("dataLines")
                     if (currentDevice != null && dataLines != null) {
@@ -193,11 +206,11 @@ class MainActivity : FlutterActivity() {
                                         }
                                     }
                                 }
-                                outputStream.write("\r\n".toByteArray())
-                                outputStream.write("\r\n".toByteArray())
-                                outputStream.write("\r\n".toByteArray())
 
-                                outputStream.flush()
+                                outputStream.write(
+                                        byteArrayOf(0x1D, 0x56, 0x41, 0x10)
+                                ) // Paper cut command
+
                                 result.success("Data sent successfully")
                             } else {
                                 result.error("SEND_FAILED", "Output stream is null", null)

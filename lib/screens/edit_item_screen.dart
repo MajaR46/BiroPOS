@@ -6,6 +6,7 @@ import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // Define your screen as ConsumerStatefulWidget to access Riverpod providers
@@ -26,10 +27,28 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   void initState() {
     super.initState();
     _handleData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final narociloItems = ref.read(narociloNotifierProvider);
+      final currentItem = narociloItems.firstWhere(
+        (item) => item.product.name == widget.itemName,
+        orElse: () => NarociloItem(
+          product: Item(name: '', price: 0.0),
+          description: '',
+        ),
+      );
+
+      if (currentItem != null && currentItem.description != null) {
+        setState(() {
+          _opisController.text = currentItem.description;
+        });
+      }
+    });
   }
 
   void _updateTextField(String text) {
     setState(() {
+      print(itemOpis);
       itemOpis.add(text);
       _opisController.text = itemOpis.join(' ');
     });
@@ -37,9 +56,9 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   Future<void> _handleData() async {
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final box = Hive.box('biroposData');
       List<String> apiResponseList =
-          (prefs.getStringList('biropos_data') ?? []);
+          List<String>.from(box.get('biroPosData', defaultValue: []));
       _categorizeResponseItems(apiResponseList);
 
       if (apiResponseList == null) {

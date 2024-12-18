@@ -3,6 +3,7 @@ import 'package:biro_pos/controllers/print.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PorocilaScreen extends ConsumerStatefulWidget {
@@ -24,8 +25,9 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
   _handleData() async {
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      List<String> apiResponseList = prefs.getStringList('porocilo_data') ?? [];
+      final box = Hive.box('biroposData');
+      List<String> apiResponseList =
+          List<String>.from(box.get('porocilo_data') ?? []);
       List<String> extractedTexts = apiResponseList.map((element) {
         String cleanedElement = element.replaceAll('\r', '').trim();
         return cleanedElement.split("|")[0];

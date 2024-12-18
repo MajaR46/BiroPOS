@@ -1,15 +1,19 @@
+import 'package:biro_pos/controllers/bluetooth_controller.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/controllers/save_data_controller.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/models/podjetje.dart';
+import 'package:biro_pos/hive_adaprters/osebje.dart';
+import 'package:biro_pos/hive_adaprters/podjetje.dart';
+import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
-import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,13 +32,6 @@ abstract class ResponseItem {
   }
 }
 
-class Osebje extends ResponseItem {
-  final String password;
-  final String sfira;
-  Osebje(String ime, this.password, this.sfira)
-      : super(ime, ResponseCategory.osebje);
-}
-
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -48,104 +45,67 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final bool _isHidden = true;
   List<Osebje> osebje = [];
   List<Podjetje> podjetje = [];
+  final BluetoothService _bluetoothService = BluetoothService();
 
   @override
   void initState() {
     super.initState();
-    _handleData();
+    _initializeBluetooth();
   }
 
-  Future<bool> _handleData() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId') ?? "";
+  Future<void> _initializeLoginScreen() async {
+    bool dataHandled = await handleData();
+    if (dataHandled) {
+      // Load the categorized data from Hive
+      final box = Hive.box('biroposData');
+      osebje = List<Osebje>.from(box.get('osebje', defaultValue: []));
+      podjetje = List<Podjetje>.from(box.get('podjetje', defaultValue: []));
+      setState(() {});
+    }
 
+    await _initializeBluetooth();
+  }
+
+  Future<void> _initializeBluetooth() async {
     try {
-      List<String> apiResponseList = await sendRequest(userId, "BiroPOS.txt");
-      await _saveBiroPosData(apiResponseList);
-      _categorizeResponse(apiResponseList);
+      // Fetch bonded devices
+      List<BondedDevice> devices = await _bluetoothService.getBondedDevices();
 
-      return true;
-    } catch (e) {
-      print("Error fetching data: $e");
-      return false;
-    }
-  }
-
-  Future<void> _saveBiroPosData(List<String> apiResponseList) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> biroPosData = apiResponseList; // Convert list to a string
-    await prefs.setStringList('biropos_data', biroPosData); // Save the data
-  }
-
-  Future<void> getTables() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId') ?? "";
-
-    List<String> apiResponseList = await sendRequest(userId, "VrniSeznamMiz");
-    await prefs.setStringList('table_data', apiResponseList);
-  }
-
-  Future<void> getOpenTables() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId');
-
-    if (userId != null) {
-      List<String> apiResponseList =
-          await sendRequest(userId, "VrniOdprteMize\t$userId");
-      await prefs.setStringList('open_table_data', apiResponseList);
-    } else {
-      print("Error: User ID not found in SharedPreferences.");
-    }
-  }
-
-  Future<void> getPorocila() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString('userId') ?? "";
-
-    List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
-    await prefs.setStringList('porocilo_data', apiResponseList);
-  }
-
-  void _categorizeResponse(List<String> items) {
-    List<Osebje> osebje2 = [];
-    List<Podjetje> podatkiPodjetje2 = [];
-
-    for (String item in items) {
-      if (item.startsWith('4')) {
-        String sifra = item.split('|')[1];
-        String username = item.split('|')[2];
-        String password = item.split('|')[3];
-
-        osebje2.add(Osebje(username, password, sifra));
-      } else if (item.startsWith('0')) {
-        String podjetjeDavcna = item.split('|')[1];
-        String imePodjetja = item.split('|')[2];
-
-        podatkiPodjetje2.add(Podjetje(podjetjeDavcna, imePodjetja));
+      // Attempt to connect to the required device
+      for (final device in devices) {
+        if (device.name == "InnerPrinter") {
+          await _bluetoothService.connectToDevice(device.adress);
+          print("Connected to InnerPrinter");
+          break;
+        }
       }
+    } catch (e) {
+      print("Error initializing Bluetooth: $e");
     }
-
-    setState(() {
-      osebje = osebje2;
-      podjetje = podatkiPodjetje2;
-    });
   }
 
   void _handleOKPressed() async {
     final inputPassword = _logininputcontroller.text;
+
+    // Format current date and time for default password
     String formattedDate = DateFormat("dd").format(currentDate);
     String formattedTime = DateFormat("mm").format(currentDate);
 
+    // Default password
     if (inputPassword == "12${formattedTime}5${formattedDate}98") {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-            builder: (context) => const ApiKeyScreen(isDefaultPassword: true)),
+          builder: (context) => const ApiKeyScreen(isDefaultPassword: true),
+        ),
       );
       return;
     }
 
     Osebje? matchedUser;
+    final box = Hive.box('biroposData');
+    osebje = List<Osebje>.from(box.get('osebje', defaultValue: []));
+
     for (var user in osebje) {
       if (user.password == inputPassword) {
         matchedUser = user;
@@ -154,20 +114,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (matchedUser != null) {
-      // Store the matched user session
-      SessionManager().saveSession(matchedUser.ime, matchedUser.sfira);
+      SessionManager().saveSession(matchedUser.username, matchedUser.sifra);
+      await box.put('userId', matchedUser.sifra);
+      await box.put('userName', matchedUser.username);
+      await box.put('userPassword', matchedUser.password);
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userId', matchedUser.sfira);
-      await prefs.setString('userName', matchedUser.ime);
-      await prefs.setString('userPassword', matchedUser.password);
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const MeniScreen()));
-
-      await getTables();
-      await getOpenTables();
-      await getPorocila();
-      await prefs.setString('podjetjeDavcna', podjetje[0].toString());
     } else if (inputPassword == "999") {
       SystemNavigator.pop();
     } else {
@@ -219,9 +172,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _handleTestConnection() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    String? userId = prefs.getString('userId') ?? "";
+    String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
     List<String> responseList = await sendRequest(userId, "echo");
 
@@ -233,11 +184,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _refresh() async {
-    bool isDataHandled = await _handleData();
+    bool isDataHandled = await handleData(); // Calls the API and updates Hive
     if (isDataHandled) {
       setState(() {
         currentDate = DateTime.now();
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Podatki so bili osveženi!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Napaka pri osveževanju podatkov')),
+      );
     }
   }
 
@@ -254,7 +212,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           children: [
             const SizedBox(
-              height: 32,
+              height: 48,
             ),
             Text('Prijava',
                 style: AppStyles.heading1.copyWith(color: AppStyles.black)),
@@ -293,30 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               onOKPressed: _handleOKPressed,
             ),
             const SizedBox(
-              height: 30,
-            ),
-            SizedBox(
-              width: 200,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ApiKeyScreen(
-                                isDefaultPassword: false,
-                              )));
-                },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
-                child: Text(
-                  "Api ključ",
-                  style: AppStyles.heading3.copyWith(color: AppStyles.white),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
+              height: 24,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -374,26 +309,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
             ),
             const SizedBox(
-              height: 20,
+              height: 30,
             ),
-            Row(children: [
-              GestureDetector(
-                  onTap: () => _launchURL("https://www.biropos.si/"),
-                  child: const Text("BiroPOS", style: AppStyles.paragraph1)),
-              Spacer(),
-              GestureDetector(
-                  onTap: () => _launchURL(
-                      "https://play.google.com/store/apps/datasafety?id=si.Flop.BiroPOS&pli=1"),
-                  child:
-                      const Text("Pogoji uporabe", style: AppStyles.paragraph1))
-            ]),
-            Row(children: [
-              Text(
-                formattedDate + " " + formattedTime,
-                style: AppStyles.heading4
-                    .copyWith(color: AppStyles.black, fontSize: 10),
+            SizedBox(
+              width: 200,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ApiKeyScreen(
+                                isDefaultPassword: false,
+                              )));
+                },
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                child: Text(
+                  "Api ključ",
+                  style: AppStyles.heading3.copyWith(color: AppStyles.white),
+                ),
               ),
-            ])
+            ),
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Text(
+                  formattedDate + " " + formattedTime,
+                  style: AppStyles.heading4
+                      .copyWith(color: AppStyles.black, fontSize: 10),
+                ),
+              ),
+            )
           ],
         ),
       ),

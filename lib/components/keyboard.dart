@@ -1,12 +1,9 @@
-import 'dart:async';
-import 'package:biro_pos/controllers/payment_controller.dart';
-import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
+import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/models/narociloitem.dart';
-import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -38,10 +35,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   double finalSum = 0;
   List<NarociloItem> chosenItems = [];
   final TextEditingController searchController = TextEditingController();
+  late ProcessPayment paymentService;
 
   @override
   void initState() {
     super.initState();
+    paymentService = ProcessPayment(ref);
   }
 
   void _updateFinalSum() {
@@ -67,36 +66,47 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
 
-  Future<void> _processPayment(BuildContext context, String paymentType) async {
+  /*  Future<void> _processPayment(BuildContext context, String paymentType) async {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+    final settings = ref.watch(settingsProvider);
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? false;
 
     final paymentMethods = ref.watch(paymentMethodProvider);
     if (paymentMethods.isNotEmpty) {
       final response =
           await ref.read(orderProvider).createOrder(context, paymentType);
-      final filteredResponse = filterEmptyLines(response);
-      final printableResponse = filteredResponse.join("\r\n");
-      if (paymentType == "KAR") {
-        final gotovinaRacun = await callBesteron(finalSum);
-        await printTextWithFormatting(gotovinaRacun, "BlueTooth Printer", ref);
-      }
-      await printTextWithFormatting(
-          printableResponse, "BlueTooth Printer", ref);
 
-      _updateFinalSum();
+      if (bluetoothPrintanje == true) {
+        await BluetoothService.sendData(response, ref, context);
+        _updateFinalSum();
+      } else {
+        final filteredResponse = filterEmptyLines(response);
+        final printableResponse = filteredResponse.join("\r\n");
+        if (paymentType == "KAR") {
+          final gotovinaRacun = await callBesteron(finalSum);
+          await printTextWithFormatting(
+              gotovinaRacun, "BlueTooth Printer", ref);
+        }
+        await printTextWithFormatting(
+            printableResponse, "BlueTooth Printer", ref);
+
+        _updateFinalSum();
+      }
+
       // _showResponseDialog(context, response);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No payment methods available!")));
     }
   }
+ */
 
   void _paymentGotovina() {
-    _processPayment(context, "GOT");
+    paymentService.processPayment(context, "GOT");
   }
 
   void _paymentKartica() {
-    _processPayment(context, "KAR");
+    paymentService.processPayment(context, "KAR");
   }
 
   void _handleMultiply(double factor) {
@@ -210,9 +220,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      NumpadDelete(
+                      const KeyboardBack(
                         height: 50,
-                        controller: widget.controller,
                         fontSize: 16,
                         borderRadius: 20,
                       ),
@@ -439,6 +448,46 @@ class KeyboardRedirect extends StatelessWidget {
               text,
               style:
                   AppStyles.boldanparagraph1.copyWith(color: AppStyles.white),
+            ),
+          )),
+    );
+  }
+}
+
+class KeyboardBack extends ConsumerWidget {
+  final int fontSize;
+  final int borderRadius;
+  final int height;
+
+  const KeyboardBack(
+      {super.key,
+      required this.fontSize,
+      required this.borderRadius,
+      required this.height});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final chosenItems = ref.watch(narociloNotifierProvider);
+
+    return SizedBox(
+      width: 80,
+      height: height.toDouble(),
+      child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              backgroundColor: AppStyles.silver.withOpacity(0.1),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(borderRadius.toDouble()))),
+          onPressed: chosenItems.isEmpty
+              ? () => Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MeniScreen()))
+              : null,
+          child: Center(
+            child: Icon(
+              Icons.arrow_back,
+              color: AppStyles.black,
+              size: fontSize.toDouble(),
             ),
           )),
     );

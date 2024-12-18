@@ -1,6 +1,7 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/models/tableItem.dart';
@@ -35,9 +36,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
 
   Future<void> _fetchSingleTable() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      String? userId = prefs.getString('userId') ?? "";
+      String? userId = SessionManager().getLoggedInUserSifra() ?? '';
       String txtdata = 'VrniMizo\t$imeMize';
       List<String> apiResponseList = await sendRequest(userId, txtdata);
 

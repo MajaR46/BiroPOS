@@ -5,6 +5,7 @@ import 'package:biro_pos/screens/mize/new_table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddToTableScreen extends ConsumerStatefulWidget {
@@ -39,9 +40,9 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     });
 
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      List<String> apiResponseList = prefs.getStringList('table_data') ?? [];
+      final box = Hive.box('biroposData');
+      List<String> apiResponseList =
+          List<String>.from(box.get('table_data') ?? []);
 
       List<Map<String, String>> parsedTables = [];
 

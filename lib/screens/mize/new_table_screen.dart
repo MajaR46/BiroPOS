@@ -27,9 +27,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
 
   void _addToNewTable(String tableNumber) async {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
-    final prefs = await SharedPreferences.getInstance();
-
-    String? userId = prefs.getString('userId') ?? "";
+    String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
     List<String> narociloItems = [];
 

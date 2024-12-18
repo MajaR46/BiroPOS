@@ -4,6 +4,7 @@ import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final paymentMethodProvider = StateProvider<List<NacinPlacila>>((ref) => []);
@@ -21,9 +22,9 @@ class OrderService {
 
   Future<void> _handleData() async {
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final box = Hive.box('biroposData');
       List<String> apiResponseList =
-          (prefs.getStringList('biropos_data') ?? []);
+          List<String>.from(box.get('biroPosData', defaultValue: []));
       _kategorizirajNacinePlacila(apiResponseList);
 
       if (apiResponseList.isEmpty) {

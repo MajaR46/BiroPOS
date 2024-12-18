@@ -1,3 +1,5 @@
+import 'package:biro_pos/hive_adaprters/osebje.dart';
+import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
 import 'package:biro_pos/controllers/klic.dart';
@@ -27,11 +29,6 @@ class Dodatek extends ResponseItem {
   Dodatek(String ime) : super(ime, ResponseCategory.dodatki);
 }
 
-class Osebje extends ResponseItem {
-  final String password;
-  Osebje(String ime, this.password) : super(ime, ResponseCategory.osebje);
-}
-
 class TestScreen extends StatefulWidget {
   const TestScreen({super.key});
 
@@ -47,9 +44,9 @@ class _TestScreenState extends State<TestScreen> {
 
   Future<void> _handleData() async {
     try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final box = Hive.box('biroposData');
       List<String> apiResponseList =
-          (prefs.getString('biropos_data') ?? '').split('\n');
+          List<String>.from(box.get('biroPosData', defaultValue: []));
       _categoriseItems(apiResponseList);
 
       if (apiResponseList == null) {
@@ -79,9 +76,11 @@ class _TestScreenState extends State<TestScreen> {
         String kategorijaDodatka = item.split('|')[2];
         dodatki2.add(Dodatek(imeDodatka + kategorijaDodatka));
       } else if (item.startsWith('4')) {
+        String sifra = item.split('|')[1];
+
         String userName = item.split('|')[2];
         String password = item.split('|')[3];
-        osebje2.add(Osebje(userName, password));
+        osebje2.add(Osebje(userName, password, sifra));
       }
     }
 

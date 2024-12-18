@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart'; // For Base64 encoding/decoding
 
 Future<String> callBesteron(double finalSum) async {
@@ -11,15 +10,11 @@ Future<String> callBesteron(double finalSum) async {
 
   String baseUrl = posurl[1];
   String path = posurl[0];
-
   String authCredentials = posurl[2];
 
   String TID = prefs.getString('TID') ?? '';
-
   String authorizationHeader = 'Basic $authCredentials';
-
   String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
-
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic> requestBody = {
@@ -29,7 +24,7 @@ Future<String> callBesteron(double finalSum) async {
         "MessageClass": "Service",
         "MessageCategory": "Payment",
         "SaleID": podjetjeDavcna,
-        "POIID": TID, //
+        "POIID": TID,
         "ProtocolVersion": "3.1",
         "ServiceID": guid
       },
@@ -49,42 +44,49 @@ Future<String> callBesteron(double finalSum) async {
     }
   };
 
+  // Log request details
+  print("Sending request to Besteron...");
+  print("Request URL: $baseUrl/$path");
+  print("Request Body: ${jsonEncode(requestBody)}");
+  print("Authorization Header: $authorizationHeader");
+
   try {
-    // Make the POST request
+    // Sending the HTTP request
     final response = await http.post(
       Uri.parse('$baseUrl/$path'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': authorizationHeader,
       },
-      body: jsonEncode(requestBody), // Convert the body to JSON
+      body: jsonEncode(requestBody),
     );
 
-    // Print the raw response body for debugging
-    print('Response Body: ${response.body}');
+    // Log response status and body
+    print("Response Status Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
 
+    // Parse the response
     var decodedJson = jsonDecode(response.body);
 
-    // Check if 'PaymentResponse' and 'PaymentReceipt' exist in the response
     var paymentReceipt =
         decodedJson['SaleToPOIResponse']?['PaymentResponse']?['PaymentReceipt'];
 
     if (paymentReceipt != null && paymentReceipt.isNotEmpty) {
-      // Extracting OutputText if available
       var outputContent = paymentReceipt[0]['OutputContent'];
       if (outputContent != null && outputContent['OutputText'] != null) {
         List<String> textList = List<String>.from(
             outputContent['OutputText'].map((item) => item['Text']));
 
-        // Join the list into a single string for display in the modal
         String receiptText = textList.join('\n');
-        return receiptText; // Return the receipt text
+        return receiptText;
       }
+    } else {
+      print("Payment receipt is empty or not found in the response.");
     }
   } catch (e) {
-    print("napaka: $e");
-    return ""; // Return empty string in case of error
+    print("Error occurred while calling Besteron: $e");
+    return "";
   }
 
-  return ""; // Return empty string if no receipt text is found
+  return "";
 }

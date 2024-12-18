@@ -1,4 +1,6 @@
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/hive_adaprters/osebje.dart';
+import 'package:biro_pos/hive_adaprters/podjetje.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +11,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
+
+  Hive.registerAdapter(OsebjeAdapter());
+  Hive.registerAdapter(PodjetjeAdapter());
   await Hive.openBox('sessionBox');
+  await Hive.openBox('biroposData');
+
   Hive.box('sessionBox').clear();
 
   WidgetsBinding.instance.addObserver(_SystemUiObserver());

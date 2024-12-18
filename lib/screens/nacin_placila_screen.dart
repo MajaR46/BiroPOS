@@ -1,4 +1,5 @@
 import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
@@ -16,6 +17,8 @@ class NacinPlacilaScreen extends ConsumerStatefulWidget {
 
 class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
+  late ProcessPayment paymentService;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +26,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
+    paymentService = ProcessPayment(ref);
   }
 
   @override
@@ -110,11 +114,19 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                   ),
                   itemCount: paymentMethods.length,
                   itemBuilder: ((context, index) {
+                    final String nacinPlacila;
                     final paymentMethod = paymentMethods[index];
+                    if (paymentMethod.kodaNacinaPlacila == "01") {
+                      nacinPlacila = "GOT";
+                    } else if (paymentMethod.kodaNacinaPlacila == "02") {
+                      nacinPlacila = "KAR";
+                    } else {
+                      nacinPlacila = paymentMethod.kodaNacinaPlacila;
+                    }
 
                     return ElevatedButton(
                       onPressed: () =>
-                          createOrder(paymentMethod.kodaNacinaPlacila),
+                          paymentService.processPayment(context, nacinPlacila),
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.white,
                           shape: RoundedRectangleBorder(

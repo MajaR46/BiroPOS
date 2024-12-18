@@ -1,4 +1,5 @@
 import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,8 +28,8 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
 
   Future<void> _handleData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      String? userId = prefs.getString('userId') ?? "";
+      String? userId = SessionManager().getLoggedInUserSifra() ?? '';
+
       List<String> apiResponseList =
           await sendRequest(userId, "VrniOdprtaNarocila");
 

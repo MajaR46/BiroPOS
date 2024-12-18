@@ -1,5 +1,5 @@
 import 'package:biro_pos/controllers/bluetooth_page.dart';
-import 'package:biro_pos/controllers/payment_controller.dart';
+import 'package:biro_pos/controllers/besteron_controller.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
@@ -32,18 +32,6 @@ class MeniScreen extends ConsumerWidget {
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
-    }
-
-    Future<void> fetchReceipt() async {
-      double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
-
-      String receiptText = await callBesteron(finalSum);
-
-      if (receiptText.isNotEmpty) {
-        printTextWithFormatting(receiptText, "Bluetooth", ref);
-      } else {
-        print("No receipt text found or there was an error.");
-      }
     }
 
     return Scaffold(

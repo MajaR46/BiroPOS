@@ -1,4 +1,5 @@
 import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,13 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
   String _status = 'Bluetooth status unknown';
   List<Map<String, String>> _discoveredDevices = [];
   final TextEditingController _dataController = TextEditingController();
+  List<BondedDevice> bondedDevices = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getBondedDevices();
+  }
 
   Future<void> startDiscovery() async {
     try {
@@ -68,6 +76,21 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
     }
   }
 
+  Future<void> getBondedDevices() async {
+    try {
+      final result =
+          await platform.invokeMethod<List<dynamic>>('getBondedDevices');
+      setState(() {
+        bondedDevices = result
+                ?.map((device) => BondedDevice.fronRawString(device as String))
+                .toList() ??
+            [];
+      });
+    } catch (e) {
+      print('Error fetching devices: $e');
+    }
+  }
+
   Future<void> connectToDevice(String deviceAddress) async {
     try {
       final String result = await platform
@@ -82,7 +105,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
     }
   }
 
-  Future<void> sendData() async {
+  /* Future<void> sendData() async {
     final response = await ref.read(orderProvider).createOrder(context, "KAR");
     final filteredResponse = filterEmptyLines(response);
 
@@ -95,6 +118,28 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
       'sendData',
       {'dataLines': dataLines}, // Send one line at a time
     );
+  } */
+  Future<String> sendData(List<String> dataLines) async {
+    try {
+      return await platform.invokeMethod('sendData', {'dataLines': dataLines});
+    } catch (e) {
+      throw Exception('Error sending data: $e');
+    }
+  }
+
+  Future<void> sendBluetoothData() async {
+    final response = await ref.read(orderProvider).createOrder(context, "KAR");
+    final filteredResponse = filterEmptyLines(response);
+
+    // Convert filtered response into a list of strings
+    final List<String> dataLines =
+        filteredResponse.map((line) => line.trim()).toList();
+    try {
+      final result = await sendData(dataLines);
+      print('Send Data Result: $result');
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   @override
@@ -116,13 +161,12 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: _discoveredDevices.length,
+                itemCount: bondedDevices.length,
                 itemBuilder: (context, index) {
-                  final device = _discoveredDevices[index];
+                  final device = bondedDevices[index];
                   return ListTile(
-                    title: Text(device['name'] ?? 'Unknown'),
-                    subtitle: Text(device['address'] ?? 'Unknown'),
-                    onTap: () => connectToDevice(device['address'] ?? ''),
+                    title: Text(device.name),
+                    subtitle: Text(device.adress),
                   );
                 },
               ),
@@ -136,7 +180,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
               maxLines: 3,
             ),
             ElevatedButton(
-              onPressed: sendData,
+              onPressed: sendBluetoothData,
               child: Text('Send Data'),
             ),
           ],

@@ -21,6 +21,7 @@ import 'package:biro_pos/components/drawer.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:hive/hive.dart';
 
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
@@ -84,10 +85,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       String columNums = prefs.getString('stStolpcev') ?? '';
 
-      List<String> apiResponseList = prefs.getStringList('biropos_data') ?? [];
+      final box = Hive.box('biroposData');
+      List<String> apiResponseList =
+          List<String>.from(box.get('biroPosData', defaultValue: []));
 
-      print('apiResponseList: $apiResponseList');
-      print('stStolpcev: $columNums');
+      //List<String> apiResponseList = prefs.getStringList('biropos_data') ?? [];
 
       if (apiResponseList == null) {
         setState(() {

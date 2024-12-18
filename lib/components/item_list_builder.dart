@@ -66,8 +66,12 @@ Widget buildItemList({
                       int categoryIndex = categorizedItems.keys
                           .toList()
                           .indexOf(item['category']);
-                      Color assignedBackgroundColor = backgroundColors[
-                          categoryIndex % backgroundColors.length];
+                      Color assignedBackgroundColor = (categoryIndex >= 0 &&
+                              categoryIndex < backgroundColors.length)
+                          ? backgroundColors[
+                              categoryIndex % backgroundColors.length]
+                          : Colors.grey; // Default fallback color
+
                       Color assignedTextColor =
                           textColors[categoryIndex % textColors.length];
 
@@ -80,10 +84,12 @@ Widget buildItemList({
                           'categoryID': item['categoryID'],
                         }),
                         child: ItemCard(
-                          stStolpcev: columnNum,
+                          isAllLayout: true,
+                          stStolpcev: 1,
                           itemName: item['name'],
                           itemPrice: item['price'],
                           itemCategory: item['category'],
+                          cardBackground: AppStyles.white,
                           backgroundColor: assignedBackgroundColor,
                           textColor: assignedTextColor,
                         ),
@@ -102,17 +108,15 @@ Widget buildItemList({
     return LayoutBuilder(
       builder: (context, constraints) {
         int gridColumnCount = columnNum;
-        double itemWidth = (constraints.maxWidth - (gridColumnCount - 1) * 4) /
-            gridColumnCount;
 
-        double maxItemHeight = 100;
+        double maxItemHeight = 50;
 
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: gridColumnCount,
-            mainAxisSpacing: 4,
-            crossAxisSpacing: 4,
-            childAspectRatio: itemWidth / maxItemHeight,
+            mainAxisSpacing: 2,
+            crossAxisSpacing: 2,
+            childAspectRatio: 0.8 ?? maxItemHeight,
           ),
           itemCount: filteredItems.length,
           itemBuilder: (context, index) {
@@ -132,10 +136,12 @@ Widget buildItemList({
               child: SizedBox(
                 height: maxItemHeight,
                 child: ItemCard(
+                  isAllLayout: false,
                   stStolpcev: columnNum,
                   itemName: item['name'],
                   itemPrice: item['price'],
                   itemCategory: item['category'],
+                  cardBackground: assignedBackgroundColor,
                   backgroundColor: assignedBackgroundColor,
                   textColor: assignedTextColor,
                 ),
