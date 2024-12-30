@@ -153,25 +153,18 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
         children: [
           Column(
             children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 8),
-                child: Row(
-                  children: [
-                    Text("Izdelek",
-                        style:
-                            AppStyles.heading3.copyWith(color: AppStyles.blue)),
-                    const Spacer(),
-                    Text("Količina",
-                        style:
-                            AppStyles.heading3.copyWith(color: AppStyles.blue)),
-                  ],
-                ),
-              ),
               Expanded(
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
+                    : ListView.separated(
+                        separatorBuilder: (context, index) {
+                          return Divider(
+                            indent: 7,
+                            endIndent: 7,
+                            color: AppStyles.silver.withOpacity(0.6),
+                            thickness: 1,
+                          );
+                        },
                         itemCount: izdelki.length,
                         itemBuilder: (context, index) {
                           final item = izdelki[index];
@@ -185,31 +178,42 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                                   izbraniIzdelki.add(item);
                                 });
                               },
-                              child: Card(
-                                color: isSelected
-                                    ? Colors.blue.withOpacity(0.1)
-                                    : AppStyles.silver.withOpacity(0.1),
-                                elevation: 0,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  child: Row(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
                                     children: [
-                                      SizedBox(
-                                        width: 120,
-                                        child: Text(
-                                          item.productName,
-                                          style: AppStyles.paragraph2.copyWith(
-                                              fontWeight: FontWeight.bold),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              (item.productName),
+                                              style: AppStyles.boldanparagraph1,
+                                            )
+                                          ],
                                         ),
                                       ),
-                                      const Spacer(),
+                                      Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8),
+                                          child: Text(
+                                            '${item.price.toString()}€',
+                                            style: AppStyles.heading3,
+                                          )),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
                                               backgroundColor: AppStyles.red),
                                           onPressed: () =>
                                               _deleteFromRacun(index),
                                           icon: const Icon(Icons.delete)),
+                                      const Spacer(),
                                       QuantityIncrease(
                                         quantity: item.quantity,
                                         onQuantityChanged: (newQuantity) =>
@@ -217,8 +221,8 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                                                 newQuantity, index),
                                       ),
                                     ],
-                                  ),
-                                ),
+                                  )
+                                ],
                               ),
                             ),
                           );

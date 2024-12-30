@@ -4,6 +4,7 @@ import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class StornoScreen extends ConsumerStatefulWidget {
@@ -35,6 +36,8 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
       final filteredResponse = filterEmptyLines(apiResponse);
       final printableResponse = filteredResponse.join("\r\n");
       printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      Navigator.of(context).pop();
     } catch (e) {
       setState(() {
         _apiResponse = 'Error fetching data';
@@ -47,7 +50,9 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: AppStyles.white,
         appBar: AppBar(
+          backgroundColor: AppStyles.white,
           title: Text(
             "Storno računa",
             style: AppStyles.heading3.copyWith(color: AppStyles.black),

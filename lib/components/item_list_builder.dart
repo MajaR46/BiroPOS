@@ -66,11 +66,8 @@ Widget buildItemList({
                       int categoryIndex = categorizedItems.keys
                           .toList()
                           .indexOf(item['category']);
-                      Color assignedBackgroundColor = (categoryIndex >= 0 &&
-                              categoryIndex < backgroundColors.length)
-                          ? backgroundColors[
-                              categoryIndex % backgroundColors.length]
-                          : Colors.grey; // Default fallback color
+                      Color assignedBackgroundColor = backgroundColors[
+                          categoryIndex % backgroundColors.length];
 
                       Color assignedTextColor =
                           textColors[categoryIndex % textColors.length];
@@ -109,14 +106,17 @@ Widget buildItemList({
       builder: (context, constraints) {
         int gridColumnCount = columnNum;
 
-        double maxItemHeight = 50;
+        double maxItemHeight = 70;
+        double cardWidth = (constraints.maxWidth - (gridColumnCount - 1) * 2) /
+            gridColumnCount;
+        double calculatedAspectRatio = cardWidth / maxItemHeight;
 
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: gridColumnCount,
             mainAxisSpacing: 2,
             crossAxisSpacing: 2,
-            childAspectRatio: 0.8 ?? maxItemHeight,
+            childAspectRatio: calculatedAspectRatio,
           ),
           itemCount: filteredItems.length,
           itemBuilder: (context, index) {

@@ -76,7 +76,9 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
     }
 
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         title: Text(
           "Davčna DOB",
           style: AppStyles.heading3.copyWith(color: AppStyles.black),

@@ -51,10 +51,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: [SystemUiOverlay.top],
-    );
 
     _handleData();
     searchController.addListener(() {
@@ -528,8 +524,16 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         navigateToRacun: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) => const RacunScreen()),
+                            PageRouteBuilder(
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const RacunScreen(),
+                              transitionsBuilder: (context, animation,
+                                  secondaryAnimation, child) {
+                                return FadeTransition(
+                                    opacity: animation, child: child);
+                              },
+                            ),
                           ).then((_) {
                             _updateFinalSum(); // Update final sum on return
                           });

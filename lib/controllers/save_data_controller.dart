@@ -45,8 +45,12 @@ void categorizeResponse(List<String> items) {
       String sifra = item.split('|')[1];
       String username = item.split('|')[2];
       String password = item.split('|')[3];
+      String? pravicaPregledPorocil = item.split('|')[4];
+      String? pregledSamoSvojihDokumentov = item.split('|')[5];
+      String? pravicaStornoProdaja = item.split('|')[6];
 
-      osebje2.add(Osebje(username, password, sifra));
+      osebje2.add(Osebje(username, password, sifra, pravicaPregledPorocil,
+          pregledSamoSvojihDokumentov, pravicaStornoProdaja));
     } else if (item.startsWith('0')) {
       String podjetjeDavcna = item.split('|')[1];
       String imePodjetja = item.split('|')[2];
@@ -55,7 +59,6 @@ void categorizeResponse(List<String> items) {
     }
   }
 
-  // Save to Hive for persistent storage
   final box = Hive.box('biroposData');
   box.put('osebje', osebje2);
   box.put('podjetje', podatkiPodjetje2);

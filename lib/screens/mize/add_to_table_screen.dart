@@ -1,3 +1,5 @@
+import 'package:biro_pos/controllers/klic.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
@@ -40,10 +42,11 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     });
 
     try {
-      final box = Hive.box('biroposData');
-      List<String> apiResponseList =
-          List<String>.from(box.get('table_data') ?? []);
+      String? userId = SessionManager().getLoggedInUserSifra();
 
+      String txtData = 'VrniSeznamMiz';
+      List<String> apiResponseList = await sendRequest(userId!, txtData);
+      print(apiResponseList);
       List<Map<String, String>> parsedTables = [];
 
       for (String line in apiResponseList) {
@@ -124,7 +127,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
+                                horizontal: 16, vertical: 2),
                             child: GestureDetector(
                               onTap: () {
                                 _addToExistingTable(tableNumber);

@@ -31,7 +31,7 @@ class ItemCard extends StatelessWidget {
       padding: EdgeInsets.all(paddingOutCardValue),
       child: Container(
         decoration: BoxDecoration(
-          color: cardBackground,
+          color: stStolpcev > 3 ? cardBackground : AppStyles.white,
           borderRadius: BorderRadius.circular(8.0),
           boxShadow: const [
             BoxShadow(

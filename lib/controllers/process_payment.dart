@@ -29,7 +29,14 @@ class ProcessPayment {
         await ref.read(orderProvider).createOrder(context, paymentType);
 
     if (bluetoothPrintanje) {
-      await _processBluetoothPrinting(response, paymentType, finalSum);
+      try {
+        await _processBluetoothPrinting(
+            context, response, paymentType, finalSum);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Bluetooth error: $e")),
+        );
+      }
     } else {
       await _processInnerPrinting(response, paymentType, finalSum);
     }
@@ -37,23 +44,46 @@ class ProcessPayment {
     _updateFinalSum();
   }
 
-  Future<void> _processBluetoothPrinting(
+  Future<void> _processBluetoothPrinting(BuildContext context,
       List<String> response, String paymentType, double finalSum) async {
-    if (paymentType == "KAR") {
-      try {
+    try {
+      // Procesiranje plačila za kartico (KAR)
+      if (paymentType == "KAR") {
         print("Calling Besteron with amount: \$${finalSum}");
-        final gotovinaRacun = await callBesteron(finalSum);
-        await BluetoothService.sendData([gotovinaRacun], ref,
-            addEmptyLines: false);
-      } catch (e) {
-        print("Error in calling Besteron: $e");
+        try {
+          final gotovinaRacun = await callBesteron(finalSum);
+
+          await _checkBluetooth();
+          await BluetoothService.sendData([gotovinaRacun], ref,
+              addEmptyLines: false);
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Napaka pri komunikaciji z Besteronom: $e")),
+          );
+        }
       }
+
+      await _checkBluetooth();
+
+      // Pošiljanje podatkov za tiskanje
+      await BluetoothService.sendData(response, ref);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Napaka $e")),
+      );
     }
-    await BluetoothService.sendData(
-      response,
-      ref,
-    );
-    _updateFinalSum();
+  }
+
+  Future<void> _checkBluetooth() async {
+    final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
+    if (!bluetoothEnabled) {
+      throw Exception("Bluetooth ni vklopljen");
+    }
+    // Preverite, če je naprava povezana
+    final deviceConnected = await BluetoothService.isBluetoothConnected();
+    if (!deviceConnected) {
+      throw Exception("Tiskalnik ni povezan.");
+    }
   }
 
   Future<void> _processInnerPrinting(

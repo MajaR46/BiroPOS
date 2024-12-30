@@ -249,6 +249,12 @@ class MainActivity : FlutterActivity() {
                         result.error("INVALID_PARAMETER", "Device address not provided", null)
                     }
                 }
+                "isBluetoothConnected" -> {
+                    result.success(isBluetoothConnected())
+                }
+                "isBluetoothEnabled" -> {
+                    result.success(isBluetoothEnabled())
+                }
                 else -> result.notImplemented()
             }
         }
@@ -279,6 +285,14 @@ class MainActivity : FlutterActivity() {
             return true
         }
         return true // No runtime permission required for below Android 12
+    }
+
+    private fun isBluetoothConnected(): Boolean {
+        return currentDevice != null && bluetoothAdapter?.isEnabled == true
+    }
+
+    private fun isBluetoothEnabled(): Boolean {
+        return bluetoothAdapter?.isEnabled == true
     }
 
     private fun requestBluetoothPermissions() {

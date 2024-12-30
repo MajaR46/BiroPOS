@@ -80,7 +80,11 @@ class _TestScreenState extends State<TestScreen> {
 
         String userName = item.split('|')[2];
         String password = item.split('|')[3];
-        osebje2.add(Osebje(userName, password, sifra));
+        String pravicaPregledPorocil = item.split('|')[4];
+        String pregledSamoSvojihDokumentov = item.split('|')[5];
+        String pravicaStornoProdaja = item.split('|')[6];
+        osebje2.add(Osebje(userName, password, sifra, pravicaPregledPorocil,
+            pregledSamoSvojihDokumentov, pravicaStornoProdaja));
       }
     }
 

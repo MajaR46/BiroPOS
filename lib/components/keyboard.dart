@@ -102,7 +102,13 @@ class _KeyboardState extends ConsumerState<Keyboard> {
  */
 
   void _paymentGotovina() {
-    paymentService.processPayment(context, "GOT");
+    try {
+      paymentService.processPayment(context, "GOT");
+    } catch (e) {
+      print("Težava z bluetooth");
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+    }
   }
 
   void _paymentKartica() {

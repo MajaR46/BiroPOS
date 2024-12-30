@@ -53,7 +53,9 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     }
 
     return Scaffold(
+        backgroundColor: AppStyles.white,
         appBar: AppBar(
+          backgroundColor: AppStyles.white,
           title: Text(
             "Način plačila",
             style: AppStyles.heading3.copyWith(color: AppStyles.black),
@@ -128,7 +130,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                       onPressed: () =>
                           paymentService.processPayment(context, nacinPlacila),
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.white,
+                          backgroundColor: AppStyles.grey,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15))),
                       child: Text(paymentMethod.nacinPlacila,

@@ -16,7 +16,9 @@ class DavcnaStrankaScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         title: Text(
           "Davčna stranka",
           style: AppStyles.heading3.copyWith(color: AppStyles.black),

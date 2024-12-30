@@ -28,6 +28,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
     final chosenItems = ref.watch(narociloNotifierProvider);
 
     return Drawer(
+      backgroundColor: AppStyles.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -44,12 +45,13 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const MeniScreen()),
-                  );
-                },
+                onPressed: chosenItems.isEmpty
+                    ? () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const MeniScreen()),
+                        )
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.blue,
                   disabledBackgroundColor: AppStyles.grey,

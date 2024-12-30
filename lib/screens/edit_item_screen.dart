@@ -5,6 +5,7 @@ import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,9 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   void initState() {
     super.initState();
     _handleData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final narociloItems = ref.read(narociloNotifierProvider);
@@ -109,24 +113,32 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
       ),
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // Dismiss keyboard
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
+            overlays: []); // Reinforce UI mode
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        backgroundColor: AppStyles.white,
+        appBar: AppBar(
+          backgroundColor: AppStyles.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: AppStyles.black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text("Opis",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+          centerTitle: true,
         ),
-        title: Text("Opis",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          Padding(
+        body: SingleChildScrollView(
+          // Add SingleChildScrollView here
+          child: Padding(
             padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
             child: Column(
               children: [
-                // Example: Displaying and updating the first NarociloItem
                 if (narociloItems.isNotEmpty)
                   Container(
                     decoration: BoxDecoration(
@@ -183,52 +195,60 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                   child: SizedBox(
                     height: 500,
                     child: GridView.builder(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 3,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16),
-                        itemCount: dodatki.length,
-                        itemBuilder: (context, index) {
-                          return GestureDetector(
-                              onTap: () {
-                                _updateTextField(dodatki[index].ime);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppStyles.blue, // Background color
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.all(8),
-                                child: Center(
-                                  child: Text(
-                                    dodatki[index].ime,
-                                    style: AppStyles.button1
-                                        .copyWith(color: AppStyles.white),
-                                  ),
-                                ),
-                              ));
-                        }),
+                      shrinkWrap:
+                          true, // Add this to avoid taking up extra space
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 3,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: dodatki.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            _updateTextField(dodatki[index].ime);
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppStyles.blue, // Background color
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.all(8),
+                            child: Center(
+                              child: Text(
+                                dodatki[index].ime,
+                                style: AppStyles.button1
+                                    .copyWith(color: AppStyles.white),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 )
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(right: 16, bottom: 32),
-            child: Align(
-              alignment: Alignment.bottomRight,
-              child: OKButton(onPressed: () {
+        ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(right: 16, bottom: 32),
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: OKButton(
+              onPressed: () {
                 final resultOpis = _opisController.text.trim();
 
-                // Update the opis for the selected NarociloItem
                 narociloNotifier.updateOpis(currentItem.product.id, resultOpis);
+                SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();
-              }),
+              },
             ),
           ),
-        ],
+        ),
       ),
     );
   }

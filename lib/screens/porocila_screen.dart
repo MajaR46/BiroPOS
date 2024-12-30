@@ -1,5 +1,6 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/print.dart';
+import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,9 +26,8 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
   _handleData() async {
     try {
-      final box = Hive.box('biroposData');
-      List<String> apiResponseList =
-          List<String>.from(box.get('porocilo_data') ?? []);
+      String userId = SessionManager().getLoggedInUserSifra() ?? '';
+      List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
       List<String> extractedTexts = apiResponseList.map((element) {
         String cleanedElement = element.replaceAll('\r', '').trim();
         return cleanedElement.split("|")[0];
@@ -62,7 +62,9 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         title: Text(
           "Poročila",
           style: AppStyles.heading3.copyWith(color: AppStyles.black),

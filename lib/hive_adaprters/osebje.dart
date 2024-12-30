@@ -12,6 +12,13 @@ class Osebje {
 
   @HiveField(2)
   final String sifra;
+  @HiveField(3)
+  final String? pravicaPregledPorocil;
+  @HiveField(4)
+  final String? pregledSamoSvojihDokumentov;
+  @HiveField(5)
+  final String? pravicaStornoProdaja;
 
-  Osebje(this.username, this.password, this.sifra);
+  Osebje(this.username, this.password, this.sifra, this.pravicaPregledPorocil,
+      this.pregledSamoSvojihDokumentov, this.pravicaStornoProdaja);
 }

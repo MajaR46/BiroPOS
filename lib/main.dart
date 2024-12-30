@@ -19,22 +19,9 @@ void main() async {
 
   Hive.box('sessionBox').clear();
 
-  WidgetsBinding.instance.addObserver(_SystemUiObserver());
-
-  // Set to immersive sticky mode
-  SystemChrome.setEnabledSystemUIMode(
-    SystemUiMode.immersiveSticky,
-  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
   runApp(const ProviderScope(child: MyApp()));
-}
-
-class _SystemUiObserver with WidgetsBindingObserver {
-  @override
-  void didChangeMetrics() {
-    super.didChangeMetrics();
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  }
 }
 
 class MyApp extends StatelessWidget {

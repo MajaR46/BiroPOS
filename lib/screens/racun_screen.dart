@@ -261,7 +261,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final chosenItems = ref.watch(narociloNotifierProvider);
 
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppStyles.black),
@@ -610,7 +612,15 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _navigateToBlagajnaScreen() async {
-    Navigator.push(context,
-        MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const BlagajnaScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
   }
 }

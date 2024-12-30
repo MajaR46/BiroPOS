@@ -67,7 +67,9 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         title: Text(
           "Naročila",
           style: AppStyles.heading3.copyWith(color: AppStyles.black),

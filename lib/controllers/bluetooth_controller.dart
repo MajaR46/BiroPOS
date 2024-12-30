@@ -73,4 +73,25 @@ class BluetoothService {
       return 'Failed to send data: ${e.message}';
     }
   }
+
+  static Future<bool> isBluetoothConnected() async {
+    try {
+      final bool isConnected =
+          await platform.invokeMethod('isBluetoothConnected');
+      return isConnected;
+    } on PlatformException catch (e) {
+      print('Error checking Bluetooth connection: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> isBluetoothEnabled() async {
+    try {
+      final bool isEnabled = await platform.invokeMethod('isBluetoothEnabled');
+      return isEnabled;
+    } on PlatformException catch (e) {
+      print('Error checking Bluetooth connection: $e');
+      return false;
+    }
+  }
 }

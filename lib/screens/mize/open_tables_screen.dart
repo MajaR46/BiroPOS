@@ -112,7 +112,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
+                                    horizontal: 16, vertical: 2),
                                 child: GestureDetector(
                                   onTap: () {
                                     setState(() {

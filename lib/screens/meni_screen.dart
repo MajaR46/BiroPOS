@@ -25,6 +25,11 @@ class MeniScreen extends ConsumerWidget {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     final bool isLoggedIn = SessionManager().isLoggedIn();
+    final String? pravicaStorno = SessionManager().pravicaStorno();
+    final String? pravicaPregledPorocil =
+        SessionManager().pravicaPregledPorocil();
+    print("pravica Storno $pravicaStorno");
+    print("pravicaPregled porocil $pravicaPregledPorocil");
 
     void logout() {
       SessionManager().clearSession();
@@ -36,7 +41,9 @@ class MeniScreen extends ConsumerWidget {
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         title: Text("Meni",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
@@ -66,7 +73,7 @@ class MeniScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 64),
-          if (!prikazujSamoNarocila)
+          if (pravicaStorno == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
                 width: 160,
@@ -112,7 +119,7 @@ class MeniScreen extends ConsumerWidget {
           const SizedBox(
             height: 32,
           ),
-          if (!prikazujSamoNarocila)
+          if (pravicaPregledPorocil == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
                 width: 160,
@@ -151,25 +158,6 @@ class MeniScreen extends ConsumerWidget {
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
                   child: Text(
                     "Pregled naročil",
-                    style: AppStyles.button1.copyWith(color: AppStyles.black),
-                  )),
-            ),
-          ),
-          Center(
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => BluetoothScreen()));
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
-                  child: Text(
-                    "Klic",
                     style: AppStyles.button1.copyWith(color: AppStyles.black),
                   )),
             ),

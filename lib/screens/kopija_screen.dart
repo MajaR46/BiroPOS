@@ -4,6 +4,7 @@ import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class KopijaScreen extends ConsumerStatefulWidget {
@@ -22,33 +23,47 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
     _kopijaRacunController.clear();
   }
 
-  //to printaj
-  _handleData() async {
+  Future<void> _handleData() async {
     try {
-      String stRacuna = _kopijaRacunController.text;
-      List<String> apiResponse;
+      final String stRacuna = _kopijaRacunController.text;
+      final String txtData = stRacuna.isEmpty
+          ? 'VrniZadnjiRacun\t$userSifra'
+          : 'VrniKopijoRacuna\t$userSifra\t$stRacuna';
 
-      if (stRacuna.isEmpty) {
-        String txtDataZadnjiracun = 'VrniZadnjiRacun\t$userSifra';
-        apiResponse = await sendRequest(userSifra ?? '', txtDataZadnjiracun);
-        final filteredResponse = filterEmptyLines(apiResponse);
-        final printableResponse = filteredResponse.join("\r\n");
-        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
-      } else {
-        String txtData = 'VrniKopijoRacuna\t$userSifra\t$stRacuna';
-        apiResponse = await sendRequest(userSifra ?? '', txtData);
-        final filteredResponse = filterEmptyLines(apiResponse);
-        final printableResponse = filteredResponse.join("\r\n");
-        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+      final List<String> apiResponse =
+          await sendRequest(userSifra ?? '', txtData);
+      _processAndPrintResponse(apiResponse);
+    } catch (e) {
+      _showError("Ni izdelkov");
+    }
+  }
+
+  void _processAndPrintResponse(List<String> apiResponse) async {
+    final filteredResponse = filterEmptyLines(apiResponse);
+    final printableResponse = filteredResponse.join("\r\n");
+
+    try {
+      await printTextWithFormatting(
+          printableResponse, "BlueTooth Printer", ref);
+
+      if (mounted) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        Navigator.of(context).pop();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni izdelkov")),
-      );
-      setState(() {
-        _apiResponse = 'Error fetching data';
-      });
+      if (mounted) {
+        _showError("Error during printing: $e");
+      }
     }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+    setState(() {
+      _apiResponse = 'Error fetching data';
+    });
   }
 
   @override
@@ -56,7 +71,9 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: AppStyles.white,
         appBar: AppBar(
+          backgroundColor: AppStyles.white,
           title: Text(
             "Kopija računa",
             style: AppStyles.heading3.copyWith(color: AppStyles.black),
@@ -102,8 +119,6 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Display the API response below the TextField
                 if (_apiResponse != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),

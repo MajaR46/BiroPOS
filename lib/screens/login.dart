@@ -14,7 +14,6 @@ import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -46,11 +45,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Osebje> osebje = [];
   List<Podjetje> podjetje = [];
   final BluetoothService _bluetoothService = BluetoothService();
+  String? lastRefresh;
+  String verzijaPrograma = '5.0';
 
   @override
   void initState() {
     super.initState();
     _initializeBluetooth();
+    _loadLastRefreshTime();
+  }
+
+  Future<void> _loadLastRefreshTime() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      lastRefresh = prefs.getString('refreshDate');
+    });
   }
 
   Future<void> _initializeLoginScreen() async {
@@ -114,7 +123,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (matchedUser != null) {
-      SessionManager().saveSession(matchedUser.username, matchedUser.sifra);
+      SessionManager().saveSession(matchedUser.username, matchedUser.sifra,
+          matchedUser.pravicaStornoProdaja, matchedUser.pravicaPregledPorocil);
       await box.put('userId', matchedUser.sifra);
       await box.put('userName', matchedUser.username);
       await box.put('userPassword', matchedUser.password);
@@ -126,16 +136,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } else {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
-    }
-  }
-
-  _launchURL(String urlString) async {
-    Uri url = Uri.parse(urlString);
-
-    if (await launchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch $url';
     }
   }
 
@@ -184,11 +184,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _refresh() async {
-    bool isDataHandled = await handleData(); // Calls the API and updates Hive
+    bool isDataHandled = await handleData();
     if (isDataHandled) {
       setState(() {
         currentDate = DateTime.now();
+        lastRefresh = currentDate.toIso8601String();
       });
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('refreshDate', lastRefresh!);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Podatki so bili osveženi!')),
       );
@@ -204,8 +208,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final bool isLoggedIn = SessionManager().isLoggedIn();
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+
+    String formattedLastRefresh = lastRefresh != null
+        ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))
+        : "Ni podatka";
     print(isLoggedIn);
     return Scaffold(
+      backgroundColor: AppStyles.white,
       resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -335,7 +344,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Text(
-                  formattedDate + " " + formattedTime,
+                  'Osveženo: $formattedLastRefresh, verzija: $verzijaPrograma',
                   style: AppStyles.heading4
                       .copyWith(color: AppStyles.black, fontSize: 10),
                 ),

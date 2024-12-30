@@ -138,7 +138,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     final isButtonsDisabled = ref.watch(settingsProvider);
 
     return Scaffold(
+      backgroundColor: AppStyles.white,
       appBar: AppBar(
+        backgroundColor: AppStyles.white,
         leading: IconButton(
           icon:
               const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
