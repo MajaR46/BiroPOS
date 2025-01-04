@@ -155,6 +155,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+    final prikazujSamoRacune = settings['isCheckedPrikazujRacune'] ?? false;
 
     return Container(
       padding: const EdgeInsets.only(top: 8),
@@ -271,13 +272,14 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                       text: "KAR",
                       onPressed: _paymentKartica),
                 ),
-              Padding(
-                padding: const EdgeInsets.all(2.0),
-                child: KeyboardRedirect(
-                    backgroundColor: AppStyles.darkPurple,
-                    text: "MIZA",
-                    onPressed: widget.navigateToMizaScreen),
-              ),
+              if (!prikazujSamoRacune)
+                Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: KeyboardRedirect(
+                      backgroundColor: AppStyles.darkPurple,
+                      text: "MIZA",
+                      onPressed: widget.navigateToMizaScreen),
+                ),
               if (!prikazujSamoNarocila)
                 Padding(
                   padding: const EdgeInsets.all(2.0),

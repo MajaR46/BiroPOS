@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/bluetooth_controller.dart';
 import 'package:biro_pos/controllers/besteron_controller.dart';
 import 'package:biro_pos/controllers/print.dart';
@@ -20,7 +21,7 @@ class ProcessPayment {
 
     if (paymentMethods.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No payment methods available!")),
+        const SnackBar(content: Text("Ne najdem načinov plačil!")),
       );
       return;
     }
@@ -53,7 +54,7 @@ class ProcessPayment {
         try {
           final gotovinaRacun = await callBesteron(finalSum);
 
-          await _checkBluetooth();
+          await checkBluetooth();
           await BluetoothService.sendData([gotovinaRacun], ref,
               addEmptyLines: false);
         } catch (e) {
@@ -63,7 +64,7 @@ class ProcessPayment {
         }
       }
 
-      await _checkBluetooth();
+      await checkBluetooth();
 
       // Pošiljanje podatkov za tiskanje
       await BluetoothService.sendData(response, ref);
@@ -74,7 +75,7 @@ class ProcessPayment {
     }
   }
 
-  Future<void> _checkBluetooth() async {
+  static Future<void> checkBluetooth() async {
     final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
     if (!bluetoothEnabled) {
       throw Exception("Bluetooth ni vklopljen");
@@ -88,13 +89,15 @@ class ProcessPayment {
 
   Future<void> _processInnerPrinting(
       List<String> response, String paymentType, double finalSum) async {
-    final filteredResponse = filterEmptyLines(response);
+    final filteredResponse = Utils.filterEmptyLines(response);
     final printableResponse = filteredResponse.join("\r\n");
     if (paymentType == "KAR") {
       final gotovinaRacun = await callBesteron(finalSum);
-      await printTextWithFormatting(gotovinaRacun, "BlueTooth Printer", ref);
+      await Utils.printTextWithIntegratedSunmi(
+          gotovinaRacun, "BlueTooth Printer", ref);
     }
-    await printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+    await Utils.printTextWithIntegratedSunmi(
+        printableResponse, "BlueTooth Printer", ref);
   }
 
   void _updateFinalSum() {

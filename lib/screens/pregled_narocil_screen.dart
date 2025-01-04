@@ -52,7 +52,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
         final isPrinted = notifier.isPrinted(order);
 
         if (!isPrinted) {
-          await printTextWithFormatting(order, "BlueTooth Printer", ref);
+          await Print.printText(context, order, "PrinterName", ref);
           notifier.sprintanaNarocila(order);
         }
       }

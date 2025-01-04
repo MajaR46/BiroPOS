@@ -1,8 +1,10 @@
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,9 +54,13 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
     String txtData = 'VrniPorocilo\t$naslovPorocila';
 
     List<String> responsePorocilaList = await sendRequest(userId, txtData);
-    final filteredResponse = filterEmptyLines(responsePorocilaList);
+    final filteredResponse = Utils.filterEmptyLines(responsePorocilaList);
     final printableResponse = filteredResponse.join("\r\n");
-    printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+    if (printableResponse != "#NAPAKA#Blagajna je zakljucena#") {
+      await Print.printText(context, printableResponse, "PrinterName", ref);
+    }
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    Navigator.of(context).pop();
 
     return responsePorocilaList;
   }

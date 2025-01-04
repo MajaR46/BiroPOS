@@ -73,13 +73,15 @@ Widget buildItemList({
                           textColors[categoryIndex % textColors.length];
 
                       return GestureDetector(
-                        onTap: () => onSelectItem({
-                          'name': item['name'],
-                          'price': item['price'],
-                          'category': item['category'],
-                          'itemId': item['itemId'],
-                          'categoryID': item['categoryID'],
-                        }),
+                        onTap: () {
+                          onSelectItem({
+                            'name': item['name'],
+                            'price': item['price'],
+                            'category': item['category'],
+                            'itemId': item['itemId'],
+                            'categoryID': item['categoryID'],
+                          });
+                        },
                         child: ItemCard(
                           isAllLayout: true,
                           stStolpcev: 1,

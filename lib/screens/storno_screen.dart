@@ -1,4 +1,5 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
@@ -33,9 +34,9 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
       String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
       List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
 
-      final filteredResponse = filterEmptyLines(apiResponse);
+      final filteredResponse = Utils.filterEmptyLines(apiResponse);
       final printableResponse = filteredResponse.join("\r\n");
-      printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+      await Print.printText(context, printableResponse, "PrinterName", ref);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       Navigator.of(context).pop();
     } catch (e) {

@@ -102,7 +102,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
         ref.read(narociloNotifierProvider.notifier); // To modify state
 
     if (narociloItems.isEmpty) {
-      return const Center(child: Text('No item found to edit.'));
+      return const Center(child: Text('Ni izdelka za dodajanje opisa.'));
     }
 
     final currentItem = narociloItems.firstWhere(
@@ -142,22 +142,21 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                 if (narociloItems.isNotEmpty)
                   Container(
                     decoration: BoxDecoration(
-                        color: AppStyles.silver.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Text(currentItem.product.name,
-                              style: AppStyles.heading3),
-                          const Spacer(),
-                          Text(
-                            '${currentItem.product.price.toStringAsFixed(2)} €',
-                            style: AppStyles.heading3
-                                .copyWith(fontWeight: FontWeight.normal),
+                      color: AppStyles.silver.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            currentItem.product.name,
+                            style: AppStyles.heading4,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 Padding(

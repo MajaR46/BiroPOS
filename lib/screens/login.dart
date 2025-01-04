@@ -39,7 +39,6 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  DateTime currentDate = DateTime.now();
   final TextEditingController _logininputcontroller = TextEditingController();
   final bool _isHidden = true;
   List<Osebje> osebje = [];
@@ -95,6 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleOKPressed() async {
     final inputPassword = _logininputcontroller.text;
+    DateTime currentDate = DateTime.now();
 
     // Format current date and time for default password
     String formattedDate = DateFormat("dd").format(currentDate);
@@ -184,6 +184,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _refresh() async {
+    DateTime currentDate = DateTime.now();
+
     bool isDataHandled = await handleData();
     if (isDataHandled) {
       setState(() {
@@ -206,8 +208,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
-    String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
-    String formattedTime = DateFormat("HH:mm").format(currentDate);
 
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))
@@ -302,8 +302,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 60,
                   child: ElevatedButton(
                     onPressed: () {
-                      printTextWithFormatting("Programska oprema BiroPOS",
-                          "BlueTooth Printer", ref);
+                      Print.printText(context, "Programska oprema BiroPOS",
+                          "PrinterName", ref);
                     },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,

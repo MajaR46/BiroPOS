@@ -1,4 +1,5 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
@@ -39,12 +40,11 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   }
 
   void _processAndPrintResponse(List<String> apiResponse) async {
-    final filteredResponse = filterEmptyLines(apiResponse);
+    final filteredResponse = Utils.filterEmptyLines(apiResponse);
     final printableResponse = filteredResponse.join("\r\n");
 
     try {
-      await printTextWithFormatting(
-          printableResponse, "BlueTooth Printer", ref);
+      await Print.printText(context, printableResponse, "PrinterName", ref);
 
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

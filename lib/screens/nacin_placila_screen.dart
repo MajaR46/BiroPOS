@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
@@ -36,13 +37,23 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     final String? davcnaSt = ref.watch(taxNumberProvider);
     orderService = ref.watch(orderProvider);
 
+    void _paymentPrint(String paymentMethod) {
+      try {
+        paymentService.processPayment(context, paymentMethod);
+      } catch (e) {
+        print("Težava z bluetooth");
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+      }
+    }
+
     void createOrder(String paymentMethod) async {
       if (paymentMethods.isNotEmpty) {
         final response =
             await orderService.createOrder(context, paymentMethod, davcnaSt);
-        final filteredResponse = filterEmptyLines(response);
+        final filteredResponse = Utils.filterEmptyLines(response);
         final printableResponse = filteredResponse.join("\r\n");
-        printTextWithFormatting(printableResponse, "BlueTooth Printer", ref);
+        _paymentPrint(paymentMethod);
 
         //_showResponseDialog(response);
       } else {
@@ -127,8 +138,9 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                     }
 
                     return ElevatedButton(
-                      onPressed: () =>
-                          paymentService.processPayment(context, nacinPlacila),
+                      onPressed: () {
+                        createOrder(nacinPlacila);
+                      },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.grey,
                           shape: RoundedRectangleBorder(

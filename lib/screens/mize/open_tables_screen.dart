@@ -81,7 +81,9 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: AppStyles.white,
         appBar: AppBar(
+          backgroundColor: AppStyles.white,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppStyles.black),

@@ -202,25 +202,40 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _ouputselectedItem(dynamic outputtedItem) {
     setState(() {
-      itemQuantity = 1;
+      // Pretvori izhodni element v objekt Item in NarociloItem
+      Item newItem = Item.fromMap(outputtedItem);
+      NarociloItem? existingItem;
 
-      bool itemExists = false;
+      // Preveri, ali element že obstaja v naročilu
+      for (var item in chosenItems) {
+        if (item.product.id == newItem.id) {
+          existingItem = item;
+          break;
+        }
+      }
 
-      // Assuming outputtedItem is a map and you're creating an Item from it
-      Item newItem = Item.fromMap(outputtedItem); // Convert map to Item
-      NarociloItem newNarociloItem = NarociloItem(product: newItem);
-
-      if (!itemExists) {
+      if (existingItem != null) {
+        // Če element že obstaja, posodobi količino glede na trenutno stanje
+        existingItem.quantity++;
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .updateQuantity(existingItem.product.id, existingItem.quantity);
+      } else {
+        // Če element še ne obstaja, ga dodaj z začetno količino
+        NarociloItem newNarociloItem =
+            NarociloItem(product: newItem, quantity: 1);
+        chosenItems.add(newNarociloItem);
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
+        existingItem = newNarociloItem;
       }
 
-      // Convert map to NarociloItem before assigning
-      selectedItem = newNarociloItem;
-      ref.read(selectedItemProvider.notifier).state = newNarociloItem;
-
-      _updateFinalSum();
+      // Nastavi izbran element in posodobi stanje
+      selectedItem = existingItem;
+      ref.read(selectedItemProvider.notifier).state = existingItem;
+      itemQuantity = existingItem.quantity.toDouble(); // Sinhroniziraj količino
+      _updateFinalSum(); // Posodobi skupni znesek
     });
   }
 
@@ -419,16 +434,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _increaseQuantity() {
-    setState(() {
-      itemQuantity++;
-    });
-    final selectedItem = ref.read(selectedItemProvider.notifier).state;
-    // Update the quantity in the provider
     if (selectedItem != null) {
+      setState(() {
+        itemQuantity++;
+        selectedItem.quantity = itemQuantity; // Sinhroniziraj
+      });
       ref
           .read(narociloNotifierProvider.notifier)
           .updateQuantity(selectedItem.product.id, itemQuantity);
-      _updateFinalSum(); // Update the final sum after changing quantity
+      _updateFinalSum();
     }
   }
 
@@ -491,16 +505,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                   children: [
                     _categoryList(),
                     Expanded(
-                      child: buildItemList(
-                        columnNum: stStolpcev,
-                        categorizedItems: categorizedItems,
-                        getFilteredItems: _getFilteredItems,
-                        selectedCategory: selectedCategory,
-                        onSelectItem: _ouputselectedItem,
-                        backgroundColors: backgroundColors,
-                        textColors: textColors,
-                      ),
-                    ),
+                        child: buildItemList(
+                      columnNum: stStolpcev,
+                      categorizedItems: categorizedItems,
+                      getFilteredItems: _getFilteredItems,
+                      selectedCategory: selectedCategory,
+                      onSelectItem: _ouputselectedItem,
+                      backgroundColors: backgroundColors,
+                      textColors: textColors,
+                    )),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: GestureDetector(

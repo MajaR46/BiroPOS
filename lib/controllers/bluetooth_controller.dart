@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
@@ -41,7 +42,8 @@ class BluetoothService {
   static Future<String> sendData(List<String> response, WidgetRef ref,
       {bool addEmptyLines = true}) async {
     try {
-      final filteredResponse = filterEmptyLines(response); // Filter empty lines
+      final filteredResponse =
+          Utils.filterEmptyLines(response); // Filter empty lines
       // Apply the character replacement inline to each line
       final List<String> dataLines = filteredResponse.map((line) {
         return line

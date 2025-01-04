@@ -62,7 +62,9 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
+        backgroundColor: AppStyles.white,
         appBar: AppBar(
+          backgroundColor: AppStyles.white,
           title: Text(
             "Prenos mize",
             style: AppStyles.heading3.copyWith(color: AppStyles.black),

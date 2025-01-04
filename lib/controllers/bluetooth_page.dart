@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
@@ -129,7 +130,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
 
   Future<void> sendBluetoothData() async {
     final response = await ref.read(orderProvider).createOrder(context, "KAR");
-    final filteredResponse = filterEmptyLines(response);
+    final filteredResponse = Utils.filterEmptyLines(response);
 
     // Convert filtered response into a list of strings
     final List<String> dataLines =
