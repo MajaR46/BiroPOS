@@ -22,14 +22,13 @@ class MeniScreen extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
 
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+    final prikazNarocil = settings['isCheckedPregledNarocil'] ?? false;
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     final bool isLoggedIn = SessionManager().isLoggedIn();
     final String? pravicaStorno = SessionManager().pravicaStorno();
     final String? pravicaPregledPorocil =
         SessionManager().pravicaPregledPorocil();
-    print("pravica Storno $pravicaStorno");
-    print("pravicaPregled porocil $pravicaPregledPorocil");
 
     void logout() {
       SessionManager().clearSession();
@@ -145,26 +144,28 @@ class MeniScreen extends ConsumerWidget {
           const SizedBox(
             height: 32,
           ),
-          Center(
-            child: SizedBox(
-              width: 200,
-              height: 60,
-              child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const PregledNarocilScreen()));
-                  },
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
-                  child: Text(
-                    "Pregled naročil",
-                    style: AppStyles.heading3.copyWith(color: AppStyles.black),
-                  )),
+          if (prikazNarocil)
+            Center(
+              child: SizedBox(
+                width: 200,
+                height: 60,
+                child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const PregledNarocilScreen()));
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.grey),
+                    child: Text(
+                      "Pregled naročil",
+                      style:
+                          AppStyles.heading3.copyWith(color: AppStyles.black),
+                    )),
+              ),
             ),
-          ),
           const SizedBox(height: 64),
           Center(
             child: SizedBox(

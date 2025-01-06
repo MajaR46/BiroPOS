@@ -474,6 +474,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             setState(() {
                               _isCheckedPregledNarocil = value ?? false;
                             });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .togglePregledNarocil(value ?? false);
                           },
                         ),
                       ],
