@@ -262,6 +262,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             const SizedBox(
               height: 24,
             ),
+            SizedBox(
+              width: 150,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _refresh,
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                child: Text(
+                  "Osveži",
+                  style: AppStyles.heading3.copyWith(
+                      color: AppStyles.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 50,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -285,12 +302,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   width: 80,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _refresh,
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const ApiKeyScreen(
+                                    isDefaultPassword: false,
+                                  )));
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: EdgeInsets.zero,
                     ),
                     child: Text(
-                      "Osveži",
+                      "Api ključ",
                       textAlign: TextAlign.center,
                       style: AppStyles.button2.copyWith(color: AppStyles.black),
                     ),
@@ -317,35 +341,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ],
             ),
-            const SizedBox(
-              height: 30,
-            ),
-            SizedBox(
-              width: 200,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ApiKeyScreen(
-                                isDefaultPassword: false,
-                              )));
-                },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
-                child: Text(
-                  "Api ključ",
-                  style: AppStyles.heading3.copyWith(color: AppStyles.white),
-                ),
-              ),
-            ),
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: Text(
                   'Osveženo: $formattedLastRefresh, verzija: $verzijaPrograma',
-                  style: AppStyles.heading4
+                  style: AppStyles.paragraph3
                       .copyWith(color: AppStyles.black, fontSize: 10),
                 ),
               ),

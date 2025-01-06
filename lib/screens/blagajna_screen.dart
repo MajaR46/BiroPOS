@@ -506,14 +506,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     _categoryList(),
                     Expanded(
                         child: buildItemList(
-                      columnNum: stStolpcev,
-                      categorizedItems: categorizedItems,
-                      getFilteredItems: _getFilteredItems,
-                      selectedCategory: selectedCategory,
-                      onSelectItem: _ouputselectedItem,
-                      backgroundColors: backgroundColors,
-                      textColors: textColors,
-                    )),
+                            columnNum: stStolpcev,
+                            categorizedItems: categorizedItems,
+                            getFilteredItems: _getFilteredItems,
+                            selectedCategory: selectedCategory,
+                            onSelectItem: _ouputselectedItem,
+                            backgroundColors: backgroundColors,
+                            textColors: textColors,
+                            ref: ref)),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: GestureDetector(

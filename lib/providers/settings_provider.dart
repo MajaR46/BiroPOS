@@ -6,7 +6,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       : super({
           'isCheckedPrikazujNarocila': false,
           'isCheckedPrikazujRacune': false,
-          'isCheckedBluetoothPrintanje': false
+          'isCheckedBluetoothPrintanje': false,
+          'isCheckedEnojniKlik': false,
         }) {
     _loadSettings();
   }
@@ -19,12 +20,14 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
     final prikazujRacune = prefs.getBool('isCheckedPrikazujRacune') ?? false;
     final bluetoothprintanje =
         prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
+    final enojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
 
     // Update the state with both values
     state = {
       'isCheckedPrikazujNarocila': prikazujNarocila,
       'isCheckedPrikazujRacune': prikazujRacune,
-      'isCheckedBluetoothPrintanje': bluetoothprintanje
+      'isCheckedBluetoothPrintanje': bluetoothprintanje,
+      'isCheckedEnojniKlik': enojniKlik,
     };
   }
 
@@ -49,6 +52,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void toggleBluetoothPrinting(bool isEnabled) {
     state = {...state, 'isCheckedBluetoothPrintanje': isEnabled};
     _saveSetting('isCheckedBluetoothPrintanje', isEnabled);
+  }
+
+  void toogleEnojniKlik(bool isEnabled) {
+    state = {...state, 'isCheckedEnojniKlik': isEnabled};
+    _saveSetting('isCheckedEnojniKlik', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

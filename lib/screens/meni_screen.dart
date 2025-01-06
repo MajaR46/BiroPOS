@@ -54,8 +54,8 @@ class MeniScreen extends ConsumerWidget {
           const SizedBox(height: 64),
           Center(
             child: SizedBox(
-              width: 160,
-              height: 50,
+              width: 180,
+              height: 60,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -67,7 +67,7 @@ class MeniScreen extends ConsumerWidget {
                     ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
                 child: Text(
                   "Blagajna",
-                  style: AppStyles.button1.copyWith(color: AppStyles.white),
+                  style: AppStyles.heading3.copyWith(color: AppStyles.white),
                 ),
               ),
             ),
@@ -76,8 +76,8 @@ class MeniScreen extends ConsumerWidget {
           if (pravicaStorno == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 160,
-                height: 50,
+                width: 180,
+                height: 60,
                 child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -89,7 +89,8 @@ class MeniScreen extends ConsumerWidget {
                         backgroundColor: AppStyles.grey),
                     child: Text(
                       "Storno",
-                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                      style:
+                          AppStyles.heading3.copyWith(color: AppStyles.black),
                     )),
               ),
             ),
@@ -99,8 +100,8 @@ class MeniScreen extends ConsumerWidget {
           if (!prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 160,
-                height: 50,
+                width: 180,
+                height: 60,
                 child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -112,7 +113,8 @@ class MeniScreen extends ConsumerWidget {
                         backgroundColor: AppStyles.grey),
                     child: Text(
                       "Kopija",
-                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                      style:
+                          AppStyles.heading3.copyWith(color: AppStyles.black),
                     )),
               ),
             ),
@@ -122,8 +124,8 @@ class MeniScreen extends ConsumerWidget {
           if (pravicaPregledPorocil == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 160,
-                height: 50,
+                width: 180,
+                height: 60,
                 child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
@@ -135,7 +137,8 @@ class MeniScreen extends ConsumerWidget {
                         backgroundColor: AppStyles.grey),
                     child: Text(
                       "Poročila",
-                      style: AppStyles.button1.copyWith(color: AppStyles.black),
+                      style:
+                          AppStyles.heading3.copyWith(color: AppStyles.black),
                     )),
               ),
             ),
@@ -144,8 +147,8 @@ class MeniScreen extends ConsumerWidget {
           ),
           Center(
             child: SizedBox(
-              width: 160,
-              height: 50,
+              width: 200,
+              height: 60,
               child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(
@@ -158,22 +161,22 @@ class MeniScreen extends ConsumerWidget {
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.grey),
                   child: Text(
                     "Pregled naročil",
-                    style: AppStyles.button1.copyWith(color: AppStyles.black),
+                    style: AppStyles.heading3.copyWith(color: AppStyles.black),
                   )),
             ),
           ),
           const SizedBox(height: 64),
           Center(
             child: SizedBox(
-              width: 160,
-              height: 50,
+              width: 180,
+              height: 60,
               child: ElevatedButton(
                   onPressed: () => logout(),
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.red),
                   child: Text(
                     "Odjava",
-                    style: AppStyles.button1.copyWith(color: AppStyles.white),
+                    style: AppStyles.heading3.copyWith(color: AppStyles.white),
                   )),
             ),
           ),

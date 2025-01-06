@@ -26,9 +26,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controllerTID = TextEditingController();
   final TextEditingController _controllerStStolpcev = TextEditingController();
 
-  final TextEditingController _controllerImeTiskalnika =
-      TextEditingController();
-
   bool _isCheckedMoney = false;
   bool _isCheckedOrders = false;
   bool _isCheckedPrikazujNarocila = false;
@@ -38,10 +35,10 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedZakljuciRacun = false;
   bool _isCheckedPregledNarocilTiskalnik = false;
   bool _isCheckedTiskajNarociloPriRacunu = false;
-  bool _isCheckedVprasajZaTiskanje = false;
   bool _isCheckedPregledNarocil = false;
   bool _isCheckedPrintService = false;
   bool _isCheckedBluetoothPrintanje = false;
+  bool _isCheckedEnojniKlik = false;
 
   @override
   void initState() {
@@ -61,7 +58,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _controllerTouchKey.text = prefs.getString('touchKey') ?? '';
         _controllerTextSize.text = prefs.getString('textSize') ?? '';
         _controllerRefresh.text = prefs.getString('refreshInterval') ?? '';
-        _controllerImeTiskalnika.text = prefs.getString('imeTiskalnika') ?? '';
         _controllerStStolpcev.text = prefs.getString('stStolpcev') ?? '';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
@@ -80,14 +76,14 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getBool('isCheckedPregledNarocilTiskalnik') ?? false;
         _isCheckedTiskajNarociloPriRacunu =
             prefs.getBool('isCheckedTiskajNarociloPriRacunu') ?? false;
-        _isCheckedVprasajZaTiskanje =
-            prefs.getBool('isCheckedVprasajZaTiskanje') ?? false;
+
         _isCheckedPregledNarocil =
             prefs.getBool('isCheckedPregledNarocil') ?? false;
         _isCheckedPrintService =
             prefs.getBool('isCheckedPrintService') ?? false;
         _isCheckedBluetoothPrintanje =
             prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
+        _isCheckedEnojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -105,7 +101,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setString('TID', _controllerTID.text);
     await prefs.setString('touchKey', _controllerTouchKey.text);
     await prefs.setString('textSize', _controllerTextSize.text);
-    await prefs.setString('imeTiskalnika', _controllerImeTiskalnika.text);
     await prefs.setString('refreshInterval', _controllerRefresh.text);
     await prefs.setString('stStolpcev', _controllerStStolpcev.text);
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
@@ -122,12 +117,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         'isCheckedPregledNarocilTiskalnik', _isCheckedPregledNarocilTiskalnik);
     await prefs.setBool(
         'isCheckedTiskajNarociloPriRacunu', _isCheckedTiskajNarociloPriRacunu);
-    await prefs.setBool(
-        'isCheckedVprasajZaTiskanje', _isCheckedVprasajZaTiskanje);
+
     await prefs.setBool('isCheckedPregledNarocil', _isCheckedPregledNarocil);
     await prefs.setBool('isCheckedPrintService', _isCheckedPrintService);
     await prefs.setBool(
         'isCheckedBluetoothPrintanje', _isCheckedBluetoothPrintanje);
+    await prefs.setBool('isCheckedEnojniKlik', _isCheckedEnojniKlik);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -174,9 +169,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             controller: _controllerApiKey, isHidden: true)
                       ],
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         children: [
@@ -192,9 +184,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
-                    const SizedBox(
-                      height: 32,
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         children: [
@@ -210,9 +199,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
-                    const SizedBox(
-                      height: 32,
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         children: [
@@ -228,9 +214,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
-                    const SizedBox(
-                      height: 32,
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         children: [
@@ -242,24 +225,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                           ApiKeyTextfield(
                             controller: _controllerTID,
-                            isHidden: false,
-                          ),
-                        ],
-                      ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                    if (widget.isDefaultPassword)
-                      Column(
-                        children: [
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('ime tiskalnika:',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                          ApiKeyTextfield(
-                            controller: _controllerImeTiskalnika,
                             isHidden: false,
                           ),
                         ],
@@ -288,65 +253,50 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ),
                       ],
                     ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Expanded(
-                          child: Text("Prikazuj samo naročila:",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                        ApiKeyCheckbox(
-                          value: _isCheckedPrikazujNarocila,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _isCheckedPrikazujNarocila = value ?? false;
-                            });
-                            ref
-                                .read(settingsProvider.notifier)
-                                .togglePrikazujNarocila(value ?? false);
-                          },
-                        ),
-                      ],
-                    ),
                     if (widget.isDefaultPassword)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Expanded(
-                            child: Text("Pregled naročil tiskalnik:",
+                            child: Text("Prikazuj samo naročila:",
                                 style: TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                           ApiKeyCheckbox(
-                            value: _isCheckedPregledNarocilTiskalnik,
+                            value: _isCheckedPrikazujNarocila,
                             onChanged: (bool? value) {
                               setState(() {
-                                _isCheckedPregledNarocilTiskalnik =
-                                    value ?? false;
+                                _isCheckedPrikazujNarocila = value ?? false;
                               });
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .togglePrikazujNarocila(value ?? false);
                             },
                           ),
                         ],
                       ),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Expanded(
-                          child: Text("Prikazuj samo račune:",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                        ApiKeyCheckbox(
-                          value: _isCheckedPrikazujRacune,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              _isCheckedPrikazujRacune = value ?? false;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text("Prikazuj samo račune:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyCheckbox(
+                            value: _isCheckedPrikazujRacune,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isCheckedPrikazujRacune = value ?? false;
+                              });
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .togglePrikazujRacune(value ?? false);
+                            },
+                          ),
+                        ],
+                      ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -384,49 +334,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
-                    if (widget.isDefaultPassword)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text("Zaključi račun pri enem artiklu:",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                          ApiKeyCheckbox(
-                            value: _isCheckedZakljuciRacun,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _isCheckedZakljuciRacun = value ?? false;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    if (widget.isDefaultPassword)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Expanded(
-                              child: Text("- Izbiraj načine plačil:",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                            ApiKeyCheckbox(
-                              value: _isCheckedIzbirajNacinePlacil,
-                              onChanged: (bool? value) {
-                                setState(() {
-                                  _isCheckedIzbirajNacinePlacil =
-                                      value ?? false;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -442,62 +349,97 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ),
                       ],
                     ),
-                    if (widget.isDefaultPassword)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Expanded(
-                              child: Text("- Velikost pisave:",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                            ApiKeyTextfield(
-                              controller: _controllerTextSize,
-                              inputwidth: 90,
-                              isHidden: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (widget.isDefaultPassword)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 10.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Expanded(
-                              child: Text("- Osveži št. minut:",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                            ApiKeyTextfield(
-                              controller: _controllerRefresh,
-                              inputwidth: 90,
-                              isHidden: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (widget.isDefaultPassword)
-                      Row(
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10.0),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Expanded(
-                            child: Text('Število stolpcev:',
+                            child: Text("- Velikost pisave:",
                                 style: TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                           ApiKeyTextfield(
-                            controller: _controllerStStolpcev,
-                            inputwidth: 150,
+                            controller: _controllerTextSize,
+                            inputwidth: 90,
                             isHidden: false,
                           ),
                         ],
                       ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text("- Osveži št. minut:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyTextfield(
+                            controller: _controllerRefresh,
+                            inputwidth: 90,
+                            isHidden: false,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Pregled naročil tiskalnik:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedPregledNarocilTiskalnik,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedPregledNarocilTiskalnik =
+                                  value ?? false;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Število stolpcev:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerStStolpcev,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Touch enojni klik:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedEnojniKlik,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedEnojniKlik = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toogleEnojniKlik(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
                     if (widget.isDefaultPassword)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -513,25 +455,6 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                               setState(() {
                                 _isCheckedTiskajNarociloPriRacunu =
                                     value ?? false;
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                    if (widget.isDefaultPassword)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text("Vprašaj za tiskanje računa:",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                          ApiKeyCheckbox(
-                            value: _isCheckedVprasajZaTiskanje,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                _isCheckedVprasajZaTiskanje = value ?? false;
                               });
                             },
                           ),

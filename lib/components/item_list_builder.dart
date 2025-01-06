@@ -1,6 +1,8 @@
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/components/item_card.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 List<Color> backgroundColors = [
   AppStyles.lightBrown,
@@ -18,16 +20,19 @@ List<Color> textColors = [
   AppStyles.darkPurple
 ];
 
-Widget buildItemList({
-  required Map<String, List<dynamic>> categorizedItems,
-  required List<dynamic> Function() getFilteredItems,
-  required String selectedCategory,
-  required Function(dynamic) onSelectItem,
-  required List<Color> backgroundColors,
-  required List<Color> textColors,
-  required int columnNum,
-}) {
+Widget buildItemList(
+    {required Map<String, List<dynamic>> categorizedItems,
+    required List<dynamic> Function() getFilteredItems,
+    required String selectedCategory,
+    required Function(dynamic) onSelectItem,
+    required List<Color> backgroundColors,
+    required List<Color> textColors,
+    required int columnNum,
+    required WidgetRef ref}) {
   List<dynamic> filteredItems = getFilteredItems();
+
+  final settings = ref.watch(settingsProvider);
+  final enojniKlik = settings['isCheckedEnojniKlik'] ?? false;
 
   if (selectedCategory == "") {
     return const Center(child: Text("Ni izbrane kategorije"));
@@ -73,15 +78,28 @@ Widget buildItemList({
                           textColors[categoryIndex % textColors.length];
 
                       return GestureDetector(
-                        onTap: () {
-                          onSelectItem({
-                            'name': item['name'],
-                            'price': item['price'],
-                            'category': item['category'],
-                            'itemId': item['itemId'],
-                            'categoryID': item['categoryID'],
-                          });
-                        },
+                        onTap: enojniKlik
+                            ? () {
+                                onSelectItem({
+                                  'name': item['name'],
+                                  'price': item['price'],
+                                  'category': item['category'],
+                                  'itemId': item['itemId'],
+                                  'categoryID': item['categoryID'],
+                                });
+                              }
+                            : null,
+                        onDoubleTap: !enojniKlik
+                            ? () {
+                                onSelectItem({
+                                  'name': item['name'],
+                                  'price': item['price'],
+                                  'category': item['category'],
+                                  'itemId': item['itemId'],
+                                  'categoryID': item['categoryID'],
+                                });
+                              }
+                            : null,
                         child: ItemCard(
                           isAllLayout: true,
                           stStolpcev: 1,
@@ -134,7 +152,8 @@ Widget buildItemList({
                 textColors[categoryIndex % textColors.length];
 
             return GestureDetector(
-              onTap: () => onSelectItem(item),
+              onTap: enojniKlik ? () => onSelectItem(item) : null,
+              onDoubleTap: !enojniKlik ? () => onSelectItem(item) : null,
               child: SizedBox(
                 height: maxItemHeight,
                 child: ItemCard(
