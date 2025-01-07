@@ -165,7 +165,11 @@ Widget buildItemList(
                   isAllLayout: false,
                   stStolpcev: columnNum,
                   itemName: item['name'],
-                  itemPrice: item['price'],
+                  itemPrice: hhCene == true
+                      ? (item['hhPrice']?.isEmpty ?? true)
+                          ? item['price']
+                          : item['hhPrice']
+                      : item['price'],
                   itemCategory: item['category'],
                   cardBackground: assignedBackgroundColor,
                   backgroundColor: assignedBackgroundColor,
