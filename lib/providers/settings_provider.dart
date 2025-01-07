@@ -9,6 +9,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
           'isCheckedBluetoothPrintanje': false,
           'isCheckedEnojniKlik': false,
           'isCheckedPregledNarocil': false,
+          'isCheckedHHCene': false,
         }) {
     _loadSettings();
   }
@@ -23,6 +24,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
         prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
     final enojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
     final pregledNarocil = prefs.getBool('isCheckedPregledNarocil') ?? false;
+    final hhCene = prefs.getBool('isCheckedHHCene') ?? false;
 
     // Update the state with both values
     state = {
@@ -30,7 +32,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedPrikazujRacune': prikazujRacune,
       'isCheckedBluetoothPrintanje': bluetoothprintanje,
       'isCheckedEnojniKlik': enojniKlik,
-      'isCheckedPregledNarocil': pregledNarocil
+      'isCheckedPregledNarocil': pregledNarocil,
+      'isCheckedHHCene': hhCene
     };
   }
 
@@ -65,6 +68,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void togglePregledNarocil(bool isEnabled) {
     state = {...state, 'isCheckedPregledNarocil': isEnabled};
     _saveSetting('isCheckedPregledNarocil', isEnabled);
+  }
+
+  void toggleHHCene(bool isEnabled) {
+    state = {...state, 'isCheckedHHCene': isEnabled};
+    _saveSetting('isCheckedHHCene', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

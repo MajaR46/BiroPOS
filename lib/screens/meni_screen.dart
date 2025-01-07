@@ -23,9 +23,7 @@ class MeniScreen extends ConsumerWidget {
 
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
     final prikazNarocil = settings['isCheckedPregledNarocil'] ?? false;
-    double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
-    final bool isLoggedIn = SessionManager().isLoggedIn();
     final String? pravicaStorno = SessionManager().pravicaStorno();
     final String? pravicaPregledPorocil =
         SessionManager().pravicaPregledPorocil();

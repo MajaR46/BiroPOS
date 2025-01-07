@@ -105,7 +105,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     try {
       paymentService.processPayment(context, "GOT");
     } catch (e) {
-      print("Težava z bluetooth");
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
     }
@@ -116,11 +115,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   }
 
   void _handleMultiply(double factor) {
-    print('Multiply function triggered!');
-
-    final cartItems = ref.watch(narociloNotifierProvider);
-    print('Controller text: ${searchController.text}');
-
     // Fetch the selected item from the provider
     final selectedItem = ref.read(selectedItemProvider.notifier).state;
     if (selectedItem != null) {
@@ -489,7 +483,7 @@ class KeyboardBack extends ConsumerWidget {
                       BorderRadius.circular(borderRadius.toDouble()))),
           onPressed: chosenItems.isEmpty
               ? () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MeniScreen()))
+                  MaterialPageRoute(builder: (context) => const MeniScreen()))
               : null,
           child: Center(
             child: Icon(

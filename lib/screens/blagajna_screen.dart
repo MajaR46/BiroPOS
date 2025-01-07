@@ -8,6 +8,7 @@ import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
 import 'package:biro_pos/screens/mize/open_tables_screen.dart';
@@ -163,6 +164,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           categorized[categoryName]!.add({
             'name': imeIzdelka,
             'price': cenaString,
+            'hhPrice': hhCenaString,
             'category': categoryName,
             'itemId': izdelekId,
             'categoryID': kategorijaID,
@@ -173,6 +175,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             {
               'name': imeIzdelka,
               'price': cenaString,
+              'hhPrice': hhCenaString,
               'category': categoryName,
               'itemId': izdelekId,
               'categoryID': kategorijaID,

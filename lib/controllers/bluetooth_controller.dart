@@ -1,9 +1,6 @@
 import 'package:biro_pos/components/utils.dart';
-import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
-import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

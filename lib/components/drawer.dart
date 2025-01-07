@@ -1,10 +1,12 @@
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomDrawer extends ConsumerStatefulWidget {
   const CustomDrawer({super.key});
@@ -14,12 +16,37 @@ class CustomDrawer extends ConsumerStatefulWidget {
 }
 
 class _CustomDrawerState extends ConsumerState<CustomDrawer> {
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefereces();
+  }
+
   void _logout() {
     SessionManager().clearSession();
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
+  }
+
+  bool toggleHHCene = false;
+
+  Future<void> _loadPrefereces() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        toggleHHCene = prefs.getBool('isCheckedHHCene') ?? false;
+      });
+    } catch (e) {
+      print('Error loading preferences: $e');
+      // Handle the error gracefully, perhaps show a message or fallback state
+    }
+  }
+
+  Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isCheckedHHCene', toggleHHCene);
   }
 
   @override
@@ -63,6 +90,29 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               ),
             ),
           ),
+          Row(children: [
+            const Padding(
+              padding: EdgeInsets.only(left: 20, right: 8, top: 24),
+              child: Text(
+                "HH Cene",
+                style: AppStyles.boldanparagraph1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: Switch(
+                  activeColor: AppStyles.white,
+                  activeTrackColor: AppStyles.blue,
+                  value: toggleHHCene,
+                  onChanged: (value) {
+                    setState(() {
+                      toggleHHCene = value;
+                    });
+                    _savePreferences();
+                    ref.read(settingsProvider.notifier).toggleHHCene(value);
+                  }),
+            ),
+          ]),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 16.0, bottom: 32.0),

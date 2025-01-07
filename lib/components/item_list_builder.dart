@@ -33,6 +33,7 @@ Widget buildItemList(
 
   final settings = ref.watch(settingsProvider);
   final enojniKlik = settings['isCheckedEnojniKlik'] ?? false;
+  final hhCene = settings['isCheckedHHCene'] ?? false;
 
   if (selectedCategory == "") {
     return const Center(child: Text("Ni izbrane kategorije"));
@@ -104,7 +105,11 @@ Widget buildItemList(
                           isAllLayout: true,
                           stStolpcev: 1,
                           itemName: item['name'],
-                          itemPrice: item['price'],
+                          itemPrice: hhCene == true
+                              ? (item['hhPrice']?.isEmpty ?? true)
+                                  ? item['price']
+                                  : item['hhPrice']
+                              : item['price'],
                           itemCategory: item['category'],
                           cardBackground: AppStyles.white,
                           backgroundColor: assignedBackgroundColor,

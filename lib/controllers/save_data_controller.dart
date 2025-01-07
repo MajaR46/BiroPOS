@@ -13,10 +13,8 @@ Future<bool> handleData() async {
   String? userId = box.get('userId', defaultValue: "");
 
   try {
-    // Fetch data from API
     List<String> apiResponseList = await sendRequest(userId!, "BiroPOS.txt");
 
-    // Save data to Hive
     await _saveBiroPosData(apiResponseList, box);
 
     // Categorize and store responses
