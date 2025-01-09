@@ -513,7 +513,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                   children: [
                     _categoryList(),
                     Expanded(
-                        child: buildItemList(
+                        child: ItemListBuilder(
                             columnNum: stStolpcev,
                             categorizedItems: categorizedItems,
                             getFilteredItems: _getFilteredItems,

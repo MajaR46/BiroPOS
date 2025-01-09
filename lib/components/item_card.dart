@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ItemCard extends StatelessWidget {
   final String itemName;
@@ -10,6 +11,7 @@ class ItemCard extends StatelessWidget {
   final int stStolpcev;
   final Color cardBackground;
   final bool isAllLayout;
+  final dynamic textSize;
 
   const ItemCard(
       {super.key,
@@ -20,7 +22,8 @@ class ItemCard extends StatelessWidget {
       required this.textColor,
       required this.stStolpcev,
       required this.cardBackground,
-      required this.isAllLayout});
+      required this.isAllLayout,
+      required this.textSize});
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +52,12 @@ class ItemCard extends StatelessWidget {
             children: [
               Text(
                 itemName,
-                style:
-                    AppStyles.paragraph3.copyWith(fontWeight: FontWeight.bold),
-                maxLines: 3, // Limit to 4 lines
-                overflow: TextOverflow
-                    .ellipsis, // Show ellipsis if the text exceeds 4 lines
+                style: AppStyles.paragraph3.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: textSize,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
               if (stStolpcev < 3)
                 Text(

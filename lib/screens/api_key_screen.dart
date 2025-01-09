@@ -335,55 +335,52 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ],
                       ),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const Expanded(
                           child: Text("Velikost pisave touch tipke:",
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
+                        DropdownMenu(
+                            onSelected: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _controllerTouchKey.text = value;
+                                });
+                              }
+                            },
+                            initialSelection: _controllerTouchKey.text,
+                            width: 150,
+                            menuStyle: MenuStyle(
+                              backgroundColor: WidgetStatePropertyAll(
+                                  const Color.fromARGB(255, 235, 233,
+                                      233)), // Use WidgetStateProperty instead
+                            ),
+                            dropdownMenuEntries: const <DropdownMenuEntry<
+                                String>>[
+                              DropdownMenuEntry(
+                                  value: 'Majhna', label: 'Majhna'),
+                              DropdownMenuEntry(
+                                  value: 'Srednja', label: 'Srednja'),
+                              DropdownMenuEntry(
+                                  value: 'Velika', label: 'Velika')
+                            ])
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Osveži št. minut:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
                         ApiKeyTextfield(
-                          controller: _controllerTouchKey,
+                          controller: _controllerRefresh,
                           inputwidth: 90,
                           isHidden: false,
                         ),
                       ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text("- Velikost pisave:",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                          ApiKeyTextfield(
-                            controller: _controllerTextSize,
-                            inputwidth: 90,
-                            isHidden: false,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const Expanded(
-                            child: Text("- Osveži št. minut:",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
-                          ),
-                          ApiKeyTextfield(
-                            controller: _controllerRefresh,
-                            inputwidth: 90,
-                            isHidden: false,
-                          ),
-                        ],
-                      ),
                     ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
