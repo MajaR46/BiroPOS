@@ -83,7 +83,11 @@ Widget buildItemList(
                             ? () {
                                 onSelectItem({
                                   'name': item['name'],
-                                  'price': item['price'],
+                                  'price': hhCene == true
+                                      ? (item['hhPrice']?.isEmpty ?? true)
+                                          ? item['price']
+                                          : item['hhPrice']
+                                      : item['price'],
                                   'category': item['category'],
                                   'itemId': item['itemId'],
                                   'categoryID': item['categoryID'],
@@ -94,7 +98,11 @@ Widget buildItemList(
                             ? () {
                                 onSelectItem({
                                   'name': item['name'],
-                                  'price': item['price'],
+                                  'price': hhCene == true
+                                      ? (item['hhPrice']?.isEmpty ?? true)
+                                          ? item['price']
+                                          : item['hhPrice']
+                                      : item['price'],
                                   'category': item['category'],
                                   'itemId': item['itemId'],
                                   'categoryID': item['categoryID'],

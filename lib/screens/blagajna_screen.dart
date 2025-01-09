@@ -205,11 +205,16 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _ouputselectedItem(dynamic outputtedItem) {
     setState(() {
-      // Pretvori izhodni element v objekt Item in NarociloItem
+      // Convert the outputted item to an Item object
       Item newItem = Item.fromMap(outputtedItem);
       NarociloItem? existingItem;
 
-      // Preveri, ali element že obstaja v naročilu
+      // Ensure chosenItems is synchronized with the provider state
+      final currentItems = ref.read(narociloNotifierProvider);
+      chosenItems.removeWhere((item) =>
+          !currentItems.any((ci) => ci.product.id == item.product.id));
+
+      // Check if the item already exists in chosenItems
       for (var item in chosenItems) {
         if (item.product.id == newItem.id) {
           existingItem = item;
@@ -218,13 +223,13 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }
 
       if (existingItem != null) {
-        // Če element že obstaja, posodobi količino glede na trenutno stanje
+        // If the item exists, update its quantity
         existingItem.quantity++;
         ref
             .read(narociloNotifierProvider.notifier)
             .updateQuantity(existingItem.product.id, existingItem.quantity);
       } else {
-        // Če element še ne obstaja, ga dodaj z začetno količino
+        // If the item doesn't exist, add it with an initial quantity of 1
         NarociloItem newNarociloItem =
             NarociloItem(product: newItem, quantity: 1);
         chosenItems.add(newNarociloItem);
@@ -234,11 +239,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         existingItem = newNarociloItem;
       }
 
-      // Nastavi izbran element in posodobi stanje
+      // Update selectedItem and synchronize states
       selectedItem = existingItem;
       ref.read(selectedItemProvider.notifier).state = existingItem;
-      itemQuantity = existingItem.quantity.toDouble(); // Sinhroniziraj količino
-      _updateFinalSum(); // Posodobi skupni znesek
+      itemQuantity = existingItem.quantity.toDouble(); // Synchronize quantity
+      _updateFinalSum(); // Update the total sum
     });
   }
 
