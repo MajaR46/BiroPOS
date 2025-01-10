@@ -53,7 +53,7 @@ class Utils {
           if (qrCodeData.isNotEmpty) {
             if (qrCodeData.length > 400) {
               await SunmiPrinter.printText(
-                  'QR Code data too long. Please check.',
+                  'QR Code data too long. Please check. Frontend',
                   style: SunmiStyle(align: SunmiPrintAlign.LEFT));
             } else {
               await SunmiPrinter.printQRCode(qrCodeData, size: 4);

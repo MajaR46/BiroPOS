@@ -1,7 +1,9 @@
 package com.example.biro_pos
 
+import android.bluetooth.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.*
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -175,7 +177,7 @@ class MainActivity : FlutterActivity() {
                                                 outputStream.write("\r\n".toByteArray())
                                             } else if (qrCodeData.length > 400) {
                                                 val errorMessage =
-                                                        "QR Code data too long. Please check."
+                                                        "QR Code data too long. Please check. Backend, ${qrCodeData.length}, $qrCodeData"
                                                 outputStream.write(
                                                         (errorMessage + "\n").toByteArray()
                                                 )

@@ -1,8 +1,4 @@
-import 'package:biro_pos/controllers/bluetooth_page.dart';
-import 'package:biro_pos/controllers/besteron_controller.dart';
-import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
@@ -13,7 +9,6 @@ import 'package:biro_pos/screens/storno_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MeniScreen extends ConsumerWidget {
   const MeniScreen({super.key});
@@ -93,7 +88,7 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(
-            height: 32,
+            height: 16,
           ),
           if (!prikazujSamoNarocila)
             Center(
@@ -117,7 +112,7 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(
-            height: 32,
+            height: 16,
           ),
           if (pravicaPregledPorocil == "1" && !prikazujSamoNarocila)
             Center(
@@ -141,7 +136,7 @@ class MeniScreen extends ConsumerWidget {
               ),
             ),
           const SizedBox(
-            height: 32,
+            height: 16,
           ),
           if (prikazNarocil)
             Center(
@@ -165,19 +160,23 @@ class MeniScreen extends ConsumerWidget {
                     )),
               ),
             ),
-          const SizedBox(height: 64),
-          Center(
-            child: SizedBox(
-              width: 180,
-              height: 60,
-              child: ElevatedButton(
-                  onPressed: () => logout(),
-                  style:
-                      ElevatedButton.styleFrom(backgroundColor: AppStyles.red),
-                  child: Text(
-                    "Odjava",
-                    style: AppStyles.heading3.copyWith(color: AppStyles.white),
-                  )),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 32),
+            child: Center(
+              child: SizedBox(
+                width: 180,
+                height: 60,
+                child: ElevatedButton(
+                    onPressed: () => logout(),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.red),
+                    child: Text(
+                      "Odjava",
+                      style:
+                          AppStyles.heading3.copyWith(color: AppStyles.white),
+                    )),
+              ),
             ),
           ),
         ],

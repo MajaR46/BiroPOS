@@ -3,6 +3,7 @@ import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -397,6 +398,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                               _isCheckedPregledNarocilTiskalnik =
                                   value ?? false;
                             });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .togglePregledNarocilTiskalnik(value ?? false);
                           },
                         ),
                       ],

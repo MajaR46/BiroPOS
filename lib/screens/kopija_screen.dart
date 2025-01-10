@@ -40,11 +40,8 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   }
 
   void _processAndPrintResponse(List<String> apiResponse) async {
-    final filteredResponse = Utils.filterEmptyLines(apiResponse);
-    final printableResponse = filteredResponse.join("\r\n");
-
     try {
-      await Print.printText(context, printableResponse, "PrinterName", ref);
+      await Print.printText(context, apiResponse, "PrinterName", ref);
 
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

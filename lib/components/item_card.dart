@@ -56,7 +56,7 @@ class ItemCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   fontSize: textSize,
                 ),
-                maxLines: 3,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
               if (stStolpcev < 3)

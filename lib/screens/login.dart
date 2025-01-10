@@ -326,7 +326,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 60,
                   child: ElevatedButton(
                     onPressed: () {
-                      Print.printText(context, "Programska oprema BiroPOS",
+                      Print.printText(context, ["Programska oprema BiroPOS"],
                           "PrinterName", ref);
                     },
                     style: ElevatedButton.styleFrom(

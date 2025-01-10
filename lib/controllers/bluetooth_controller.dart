@@ -64,7 +64,6 @@ class BluetoothService {
         {'dataLines': dataLines},
       );
 
-      print("result: ${dataLines.toString()}");
       ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
 
       return result; // Return success or error message

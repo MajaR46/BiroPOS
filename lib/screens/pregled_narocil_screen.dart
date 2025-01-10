@@ -1,5 +1,6 @@
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,10 +24,18 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
   @override
   void initState() {
     super.initState();
-    _handleData();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _handleData(); // Safe to call here since Riverpod is fully initialized
   }
 
   Future<void> _handleData() async {
+    final settings = ref.watch(settingsProvider);
+    final prikazuNarocilTiskalnik =
+        settings['isCheckedPregledNarocilTiskalnik'] ?? false;
     try {
       String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
@@ -51,8 +60,8 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
       for (var order in parts) {
         final isPrinted = notifier.isPrinted(order);
 
-        if (!isPrinted) {
-          await Print.printText(context, order, "PrinterName", ref);
+        if (!isPrinted && prikazuNarocilTiskalnik) {
+          await Print.printText(context, [order], "PrinterName", ref);
           notifier.sprintanaNarocila(order);
         }
       }
