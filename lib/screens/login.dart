@@ -83,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       for (final device in devices) {
         if (device.name == "InnerPrinter") {
           await _bluetoothService.connectToDevice(device.adress);
-          print("Connected to InnerPrinter");
+          print("Connected to ${device.adress}");
           break;
         }
       }
