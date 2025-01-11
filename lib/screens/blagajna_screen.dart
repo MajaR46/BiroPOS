@@ -209,8 +209,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       Item newItem = Item.fromMap(outputtedItem);
       NarociloItem? existingItem;
 
-      // Ensure chosenItems is synchronized with the provider state
-      final currentItems = ref.read(narociloNotifierProvider);
+      final currentItems = ref.watch(narociloNotifierProvider);
       chosenItems.removeWhere((item) =>
           !currentItems.any((ci) => ci.product.id == item.product.id));
 
@@ -307,7 +306,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void generatePairs() {
     String input = searchController.text;
 
-    // Extract numbers from the input string
     List<int> numbers = extractNumbers(input)
         .where((numb) => numberToLetters.containsKey(numb))
         .toList();

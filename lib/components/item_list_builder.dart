@@ -1,7 +1,9 @@
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/components/item_card.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,7 +51,9 @@ class ItemListBuilder extends StatefulWidget {
 
 class _ItemListBuilderState extends State<ItemListBuilder> {
   late String dropdownvalue = '';
+  late bool nastaviCeno = false;
   late double selectedTextSize;
+  final TextEditingController priceController = TextEditingController();
 
   @override
   void initState() {
@@ -61,7 +65,100 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       dropdownvalue = prefs.getString('touchKey') ?? 'Default Value';
+      nastaviCeno = prefs.getBool('isCheckedMoney') ?? false;
     });
+  }
+
+  void _clearText() {
+    priceController.clear();
+  }
+
+  Future openDialog(String itemId, String itemPrice, String itemName) {
+    // Set the controller's initial value to the current item price.
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppStyles.white,
+        title: const Text(
+          textAlign: TextAlign.center,
+          "Nastavi ceno", // Title: Set Price
+          style: AppStyles.heading3,
+        ),
+        content: TextField(
+          controller: priceController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppStyles.silver.withOpacity(0.1),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearText, // Clears the text input
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              itemPrice = priceController.text;
+              final double newPrice = double.tryParse(itemPrice) ?? 0.0;
+
+              // Debugging: Check the parsed price before calling updatePrice
+              print('Parsed price: $newPrice');
+              final narociloNotifier =
+                  widget.ref.read(narociloNotifierProvider.notifier);
+              narociloNotifier.updatePrice(itemId, newPrice);
+
+              Navigator.of(context).pop();
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppStyles.blue,
+            ),
+            child: Text("OK",
+                style: AppStyles.button1.copyWith(color: AppStyles.white)),
+          ),
+        ],
+        actionsAlignment: MainAxisAlignment.center,
+      ),
+    );
+  }
+
+  void _handleItemSelectItem(dynamic item, bool hhCene) {
+    String itemPrice = item['price'] ?? '0.00';
+    String itemName = item['name'];
+    String itemID = item['itemId'] ?? '';
+
+    if (itemPrice == '0,00' && nastaviCeno) {
+      openDialog(itemID, itemPrice, itemName);
+      widget.onSelectItem({
+        'name': item['name'],
+        'price': hhCene == true
+            ? (item['hhPrice']?.isEmpty ?? true)
+                ? item['price']
+                : item['hhPrice']
+            : item['price'],
+        'category': item['category'],
+        'itemId': item['itemId'],
+        'categoryID': item['categoryID'],
+      });
+    } else {
+      widget.onSelectItem({
+        'name': item['name'],
+        'price': hhCene == true
+            ? (item['hhPrice']?.isEmpty ?? true)
+                ? item['price']
+                : item['hhPrice']
+            : item['price'],
+        'category': item['category'],
+        'itemId': item['itemId'],
+        'categoryID': item['categoryID'],
+      });
+    }
   }
 
   @override
@@ -126,34 +223,10 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
 
                         return GestureDetector(
                           onTap: enojniKlik
-                              ? () {
-                                  widget.onSelectItem({
-                                    'name': item['name'],
-                                    'price': hhCene == true
-                                        ? (item['hhPrice']?.isEmpty ?? true)
-                                            ? item['price']
-                                            : item['hhPrice']
-                                        : item['price'],
-                                    'category': item['category'],
-                                    'itemId': item['itemId'],
-                                    'categoryID': item['categoryID'],
-                                  });
-                                }
+                              ? () => _handleItemSelectItem(item, hhCene)
                               : null,
                           onDoubleTap: !enojniKlik
-                              ? () {
-                                  widget.onSelectItem({
-                                    'name': item['name'],
-                                    'price': hhCene == true
-                                        ? (item['hhPrice']?.isEmpty ?? true)
-                                            ? item['price']
-                                            : item['hhPrice']
-                                        : item['price'],
-                                    'category': item['category'],
-                                    'itemId': item['itemId'],
-                                    'categoryID': item['categoryID'],
-                                  });
-                                }
+                              ? () => _handleItemSelectItem(item, hhCene)
                               : null,
                           child: ItemCard(
                             isAllLayout: true,
@@ -214,9 +287,12 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                   widget.textColors[categoryIndex % widget.textColors.length];
 
               return GestureDetector(
-                onTap: enojniKlik ? () => widget.onSelectItem(item) : null,
-                onDoubleTap:
-                    !enojniKlik ? () => widget.onSelectItem(item) : null,
+                onTap: enojniKlik
+                    ? () => _handleItemSelectItem(item, hhCene)
+                    : null,
+                onDoubleTap: !enojniKlik
+                    ? () => _handleItemSelectItem(item, hhCene)
+                    : null,
                 child: SizedBox(
                   height: maxItemHeight,
                   child: ItemCard(

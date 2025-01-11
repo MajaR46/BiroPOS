@@ -84,6 +84,22 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
+  void updatePrice(String productId, double newPrice) {
+    print(
+        'updatePrice() called for productId: $productId, newPrice: $newPrice');
+
+    final updatedItems = state.map((item) {
+      if (item.product.id == productId) {
+        final updatedProduct = item.product.copyWith(price: newPrice);
+        print('Updated product: $productId with price: $newPrice');
+        return item.copyWith(product: updatedProduct);
+      }
+      return item;
+    }).toList();
+
+    state = updatedItems;
+  }
+
   // Clears all items in the list
   void clearChosenItems() {
     state = [];
