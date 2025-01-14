@@ -33,6 +33,7 @@ class Print {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka $e")),
         );
+        return;
       }
     } else {
       try {

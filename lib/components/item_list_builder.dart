@@ -1,6 +1,7 @@
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selectedcategory_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,15 +75,13 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
   }
 
   Future openDialog(String itemId, String itemPrice, String itemName) {
-    // Set the controller's initial value to the current item price.
-
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppStyles.white,
         title: const Text(
           textAlign: TextAlign.center,
-          "Nastavi ceno", // Title: Set Price
+          "Nastavi ceno",
           style: AppStyles.heading3,
         ),
         content: TextField(
@@ -107,8 +106,6 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
               itemPrice = priceController.text;
               final double newPrice = double.tryParse(itemPrice) ?? 0.0;
 
-              // Debugging: Check the parsed price before calling updatePrice
-              print('Parsed price: $newPrice');
               final narociloNotifier =
                   widget.ref.read(narociloNotifierProvider.notifier);
               narociloNotifier.updatePrice(itemId, newPrice);
@@ -168,7 +165,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     final enojniKlik = settings['isCheckedEnojniKlik'] ?? false;
     final hhCene = settings['isCheckedHHCene'] ?? false;
 
-    if (dropdownvalue == "Mala") {
+    if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
     } else if (dropdownvalue == "Srednja") {
       selectedTextSize = 12;

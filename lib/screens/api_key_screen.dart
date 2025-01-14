@@ -352,10 +352,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             },
                             initialSelection: _controllerTouchKey.text,
                             width: 150,
-                            menuStyle: MenuStyle(
+                            menuStyle: const MenuStyle(
                               backgroundColor: WidgetStatePropertyAll(
-                                  const Color.fromARGB(255, 235, 233,
-                                      233)), // Use WidgetStateProperty instead
+                                  const Color.fromARGB(255, 235, 233, 233)),
                             ),
                             dropdownMenuEntries: const <DropdownMenuEntry<
                                 String>>[

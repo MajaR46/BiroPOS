@@ -13,6 +13,7 @@ import 'package:biro_pos/screens/mize/open_tables_screen.dart';
 import 'package:biro_pos/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
@@ -200,6 +201,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             onPressed: () {
               _submit(index, isFinalDiscount,
                   double.tryParse(discountController.text));
+              SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
               Navigator.of(context).pop();
             },
             style: ElevatedButton.styleFrom(

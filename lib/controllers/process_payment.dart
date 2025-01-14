@@ -53,7 +53,6 @@ class ProcessPayment {
         print("Calling Besteron with amount: \$${finalSum}");
         try {
           final gotovinaRacun = await callBesteron(finalSum);
-          print("gotovina racun $gotovinaRacun");
 
           await checkBluetooth();
           await BluetoothService.sendData([gotovinaRacun], ref,

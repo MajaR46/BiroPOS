@@ -62,7 +62,7 @@ class ItemCard extends StatelessWidget {
               if (stStolpcev < 3)
                 Text(
                   '${itemPrice.toString()} €',
-                  style: AppStyles.paragraph4,
+                  style: TextStyle(fontSize: textSize - 2),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -77,7 +77,8 @@ class ItemCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
                       itemCategory,
-                      style: AppStyles.paragraph4.copyWith(
+                      style: TextStyle(
+                        fontSize: textSize - 2,
                         color: textColor,
                       ),
                       maxLines: 1,

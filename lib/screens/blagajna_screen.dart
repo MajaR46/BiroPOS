@@ -7,6 +7,7 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selectedcategory_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
@@ -344,19 +345,26 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
 //filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
-    generatePairs(); // Generate letter combinations based on input
+    final stateSelectedCategory = ref.watch(selectedCategoryProvider);
+
+    // če uporabnik začne z iskanjem avtomatsko preklopi na "VSE"
+    searchController.addListener(() {
+      if (searchController.text.isNotEmpty) {
+        ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+      }
+    });
+
+    generatePairs();
 
     List<dynamic> filteredItems = [];
 
-    // Filter by category
-    if (selectedCategory == "Vse") {
-      // Combine all items if "Vse" (All) is selected
+    if (stateSelectedCategory == "Vse") {
       for (var categoryItems in categorizedItems.values) {
         filteredItems.addAll(categoryItems);
       }
     } else {
       // Get items for the selected category
-      filteredItems = categorizedItems[selectedCategory] ?? [];
+      filteredItems = categorizedItems[stateSelectedCategory] ?? [];
     }
 
     String searchText = searchController.text;
@@ -387,6 +395,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 //category list na vrhu zaslona
   Widget _categoryList() {
     List<String> categories = ["Vse"] + categorizedItems.keys.toList();
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
@@ -407,9 +416,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
             return GestureDetector(
               onTap: () {
-                setState(() {
-                  selectedCategory = category;
-                });
+                ref.read(selectedCategoryProvider.notifier).state = category;
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -476,6 +483,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String formattedTime = DateFormat("HH:mm").format(currentDate);
 
     final String? user = SessionManager().getLoggedInUserName();
+    final stateSelectedCategory = ref.watch(selectedCategoryProvider);
 
     orderService = ref.read(orderProvider);
 
@@ -515,7 +523,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                             columnNum: stStolpcev,
                             categorizedItems: categorizedItems,
                             getFilteredItems: _getFilteredItems,
-                            selectedCategory: selectedCategory,
+                            selectedCategory: stateSelectedCategory ?? "Vse",
                             onSelectItem: _ouputselectedItem,
                             backgroundColors: backgroundColors,
                             textColors: textColors,
