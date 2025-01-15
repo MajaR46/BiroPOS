@@ -47,7 +47,7 @@ class MeniScreen extends ConsumerWidget {
           const SizedBox(height: 64),
           Center(
             child: SizedBox(
-              width: 180,
+              width: MediaQuery.of(context).size.width * 0.5,
               height: 60,
               child: ElevatedButton(
                 onPressed: () {
@@ -69,7 +69,7 @@ class MeniScreen extends ConsumerWidget {
           if (pravicaStorno == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 180,
+                width: MediaQuery.of(context).size.width * 0.5,
                 height: 60,
                 child: ElevatedButton(
                     onPressed: () {
@@ -93,7 +93,7 @@ class MeniScreen extends ConsumerWidget {
           if (!prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 180,
+                width: MediaQuery.of(context).size.width * 0.5,
                 height: 60,
                 child: ElevatedButton(
                     onPressed: () {
@@ -117,7 +117,7 @@ class MeniScreen extends ConsumerWidget {
           if (pravicaPregledPorocil == "1" && !prikazujSamoNarocila)
             Center(
               child: SizedBox(
-                width: 180,
+                width: MediaQuery.of(context).size.width * 0.5,
                 height: 60,
                 child: ElevatedButton(
                     onPressed: () {
@@ -141,7 +141,7 @@ class MeniScreen extends ConsumerWidget {
           if (prikazNarocil)
             Center(
               child: SizedBox(
-                width: 200,
+                width: MediaQuery.of(context).size.width * 0.5,
                 height: 60,
                 child: ElevatedButton(
                     onPressed: () {
@@ -165,7 +165,7 @@ class MeniScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 32),
             child: Center(
               child: SizedBox(
-                width: 180,
+                width: MediaQuery.of(context).size.width * 0.5,
                 height: 60,
                 child: ElevatedButton(
                     onPressed: () => logout(),

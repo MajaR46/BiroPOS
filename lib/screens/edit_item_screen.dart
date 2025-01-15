@@ -1,9 +1,9 @@
 import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/models/dodatek.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/screens/test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +13,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Define your screen as ConsumerStatefulWidget to access Riverpod providers
 class EditItemScreen extends ConsumerStatefulWidget {
   final String itemName;
-  const EditItemScreen({super.key, required this.itemName});
+  final String itemCategory;
+  const EditItemScreen(
+      {super.key, required this.itemName, required this.itemCategory});
 
   @override
   ConsumerState<EditItemScreen> createState() => _EditItemScreenState();
@@ -23,6 +25,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   final TextEditingController _opisController = TextEditingController();
   List<String> itemOpis = [];
   List<Dodatek> dodatki = [];
+  List<Dodatek> filteredDodatki = [];
 
   @override
   void initState() {
@@ -80,12 +83,23 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
     for (String item in items) {
       if (item.startsWith('D')) {
         String imeDodatka = item.split('|')[1];
-        dodatki2.add(Dodatek(imeDodatka));
+        String pripadajocaKateogrija = item.split('|')[2];
+        dodatki2.add(Dodatek(
+            ime: imeDodatka, pripadajocaKategorija: pripadajocaKateogrija));
       }
     }
 
     setState(() {
       dodatki = dodatki2;
+      _filterDodatki(widget.itemCategory);
+    });
+  }
+
+  void _filterDodatki(String categoryId) {
+    setState(() {
+      filteredDodatki = dodatki
+          .where((dodatek) => dodatek.pripadajocaKategorija == categoryId)
+          .toList();
     });
   }
 
@@ -96,20 +110,15 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Access the list of NarociloItems from the NarociloNotifier provider
     final narociloItems = ref.watch(narociloNotifierProvider);
-    final narociloNotifier =
-        ref.read(narociloNotifierProvider.notifier); // To modify state
-
-    if (narociloItems.isEmpty) {
-      return const Center(child: Text('Ni izdelka za dodajanje opisa.'));
-    }
+    final narociloNotifier = ref.read(narociloNotifierProvider.notifier);
 
     final currentItem = narociloItems.firstWhere(
-      (item) => item.product.name == widget.itemName,
+      (item) =>
+          item.product.name == widget.itemName &&
+          item.product.categoryID == widget.itemCategory,
       orElse: () => NarociloItem(
-        product:
-            Item(name: '', price: 0.0), // A default NarociloItem if not found
+        product: Item(name: '', price: 0.0),
       ),
     );
 
@@ -133,105 +142,108 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
               style: AppStyles.heading3.copyWith(color: AppStyles.black)),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          // Add SingleChildScrollView here
-          child: Padding(
-            padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
-            child: Column(
-              children: [
-                if (narociloItems.isNotEmpty)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppStyles.silver.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            currentItem.product.name,
-                            style: AppStyles.heading4,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
+        body: narociloItems.isEmpty
+            ? const Center(child: Text('Ni izdelka za dodajanje opisa.'))
+            : SingleChildScrollView(
+                // Add SingleChildScrollView here
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
+                  child: Column(
+                    children: [
+                      if (narociloItems.isNotEmpty)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppStyles.silver.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  currentItem.product.name,
+                                  style: AppStyles.heading4,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: SizedBox(
-                    width: 250,
-                    child: TextField(
-                      controller: _opisController,
-                      cursorHeight: 20,
-                      cursorColor: AppStyles.blue,
-                      textAlignVertical: TextAlignVertical.bottom,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 5.0, horizontal: 10.0),
-                        enabledBorder: const UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: AppStyles.blue, width: 1),
-                        ),
-                        focusedBorder: const UnderlineInputBorder(
-                          borderSide:
-                              BorderSide(color: AppStyles.blue, width: 2),
-                        ),
-                        suffixIconColor: AppStyles.blue,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: _clearText,
-                          focusColor: AppStyles.blue,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 32, left: 16, right: 16),
-                  child: SizedBox(
-                    height: 500,
-                    child: GridView.builder(
-                      shrinkWrap:
-                          true, // Add this to avoid taking up extra space
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 3,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: dodatki.length,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {
-                            _updateTextField(dodatki[index].ime);
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppStyles.blue, // Background color
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.all(8),
-                            child: Center(
-                              child: Text(
-                                dodatki[index].ime,
-                                style: AppStyles.button1
-                                    .copyWith(color: AppStyles.white),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: SizedBox(
+                          width: 250,
+                          child: TextField(
+                            controller: _opisController,
+                            cursorHeight: 20,
+                            cursorColor: AppStyles.blue,
+                            textAlignVertical: TextAlignVertical.bottom,
+                            decoration: InputDecoration(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 5.0, horizontal: 10.0),
+                              enabledBorder: const UnderlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: AppStyles.blue, width: 1),
+                              ),
+                              focusedBorder: const UnderlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: AppStyles.blue, width: 2),
+                              ),
+                              suffixIconColor: AppStyles.blue,
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: _clearText,
+                                focusColor: AppStyles.blue,
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(top: 32, left: 16, right: 16),
+                        child: SizedBox(
+                          height: 500,
+                          child: GridView.builder(
+                            shrinkWrap:
+                                true, // Add this to avoid taking up extra space
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 3,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                            ),
+                            itemCount: filteredDodatki.length,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  _updateTextField(filteredDodatki[index].ime);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppStyles.blue, // Background color
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  padding: const EdgeInsets.all(8),
+                                  child: Center(
+                                    child: Text(
+                                      filteredDodatki[index].ime,
+                                      style: AppStyles.button1
+                                          .copyWith(color: AppStyles.white),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      )
+                    ],
                   ),
-                )
-              ],
-            ),
-          ),
-        ),
+                ),
+              ),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(right: 16, bottom: 32),
           child: Align(

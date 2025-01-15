@@ -328,7 +328,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => EditItemScreen(
-                                          itemName: item.product.name)));
+                                            itemName: item.product.name,
+                                            itemCategory:
+                                                item.product.categoryID,
+                                          )));
                             },
                             icon: const Icon(Icons.edit),
                           ),

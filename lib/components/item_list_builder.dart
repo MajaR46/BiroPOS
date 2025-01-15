@@ -255,11 +255,14 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
         builder: (context, constraints) {
           int gridColumnCount = widget.columnNum;
 
-          double maxItemHeight = 70;
+          // Dinamična širina kartice glede na število stolpcev
           double cardWidth =
               (constraints.maxWidth - (gridColumnCount - 1) * 2) /
                   gridColumnCount;
-          double calculatedAspectRatio = cardWidth / maxItemHeight;
+
+          // Prilagoditev razmerja glede na širino in privzeto višino
+          double cardHeight = selectedTextSize * 4 + 20; // Približna višina
+          double calculatedAspectRatio = cardWidth / cardHeight;
 
           return GridView.builder(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -290,23 +293,20 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                 onDoubleTap: !enojniKlik
                     ? () => _handleItemSelectItem(item, hhCene)
                     : null,
-                child: SizedBox(
-                  height: maxItemHeight,
-                  child: ItemCard(
-                    isAllLayout: false,
-                    stStolpcev: widget.columnNum,
-                    itemName: item['name'],
-                    itemPrice: hhCene == true
-                        ? (item['hhPrice']?.isEmpty ?? true)
-                            ? item['price']
-                            : item['hhPrice']
-                        : item['price'],
-                    itemCategory: item['category'],
-                    cardBackground: assignedBackgroundColor,
-                    backgroundColor: assignedBackgroundColor,
-                    textColor: assignedTextColor,
-                    textSize: selectedTextSize,
-                  ),
+                child: ItemCard(
+                  isAllLayout: false,
+                  stStolpcev: widget.columnNum,
+                  itemName: item['name'],
+                  itemPrice: hhCene == true
+                      ? (item['hhPrice']?.isEmpty ?? true)
+                          ? item['price']
+                          : item['hhPrice']
+                      : item['price'],
+                  itemCategory: item['category'],
+                  cardBackground: assignedBackgroundColor,
+                  backgroundColor: assignedBackgroundColor,
+                  textColor: assignedTextColor,
+                  textSize: selectedTextSize,
                 ),
               );
             },

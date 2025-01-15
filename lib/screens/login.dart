@@ -282,14 +282,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(
-                  width: 80,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _handleTestConnection,
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                    ),
+                ElevatedButton(
+                  onPressed: _handleTestConnection,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: Text(
                       "Test\npovezave",
                       textAlign: TextAlign.center,
@@ -298,21 +297,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(width: 20),
-                SizedBox(
-                  width: 80,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ApiKeyScreen(
-                                    isDefaultPassword: false,
-                                  )));
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                    ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ApiKeyScreen(
+                                  isDefaultPassword: false,
+                                )));
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: Text(
                       "Api ključ",
                       textAlign: TextAlign.center,
@@ -321,17 +319,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(width: 20),
-                SizedBox(
-                  width: 80,
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Print.printText(context, ["Programska oprema BiroPOS"],
-                          "PrinterName", ref);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                    ),
+                ElevatedButton(
+                  onPressed: () {
+                    Print.printText(context, ["Programska oprema BiroPOS"],
+                        "PrinterName", ref);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
                     child: Text(
                       "Test\ntiskalnika",
                       textAlign: TextAlign.center,

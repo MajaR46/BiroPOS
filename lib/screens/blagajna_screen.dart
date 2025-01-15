@@ -611,8 +611,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              EditItemScreen(itemName: selectedItem.product.name),
+          builder: (context) => EditItemScreen(
+            itemName: selectedItem.product.name,
+            itemCategory: selectedItem.product.categoryID,
+          ),
         ),
       );
     } else {

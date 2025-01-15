@@ -27,7 +27,7 @@ class ItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double paddingInCardValue = isAllLayout ? 12.0 : 4.0;
+    double paddingInCardValue = isAllLayout ? 8.0 : 8.0;
     double paddingOutCardValue = isAllLayout ? 2.0 : 0.0;
 
     return Padding(
@@ -56,7 +56,7 @@ class ItemCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                   fontSize: textSize,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               if (stStolpcev < 3)

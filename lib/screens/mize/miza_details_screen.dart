@@ -284,48 +284,52 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
               Padding(
                 padding: const EdgeInsets.only(
                     left: 16, bottom: 24, top: 8, right: 16),
-                child: Row(
+                child: Flex(
+                  direction: Axis.horizontal,
                   children: [
+                    // Button 1
                     SizedBox(
                       height: 50,
-                      width: 120,
                       child: ElevatedButton(
-                          onPressed: _prenosMize,
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AppStyles.silver.withOpacity(0.1),
-                              elevation: 0),
-                          child: Text(
-                            "PRENOS",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black),
-                          )),
+                        onPressed: _prenosMize,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.silver.withOpacity(0.1),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          "Prenos",
+                          style: AppStyles.button1
+                              .copyWith(color: AppStyles.black),
+                        ),
+                      ),
                     ),
                     const Spacer(),
+                    // Button 2
                     SizedBox(
                       height: 50,
-                      width: 120,
                       child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    SplitRacunScreen(imeMize: imeMize),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  AppStyles.silver.withOpacity(0.1),
-                              elevation: 0),
-                          child: Text(
-                            "RAZDELI",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black),
-                          )),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  SplitRacunScreen(imeMize: imeMize),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.silver.withOpacity(0.1),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          "Razdeli",
+                          style: AppStyles.button1
+                              .copyWith(color: AppStyles.black),
+                        ),
+                      ),
                     ),
                     const Spacer(),
+                    // Button 3
                     Align(
                       alignment: Alignment.bottomRight,
                       child: OKButton(onPressed: _ok),
