@@ -184,23 +184,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _refresh() async {
-    DateTime currentDate = DateTime.now();
+    try {
+      bool isDataHandled = await handleData();
+      if (isDataHandled) {
+        setState(() {
+          DateTime currentDate = DateTime.now();
+          lastRefresh = currentDate.toIso8601String();
+        });
 
-    bool isDataHandled = await handleData();
-    if (isDataHandled) {
-      setState(() {
-        currentDate = DateTime.now();
-        lastRefresh = currentDate.toIso8601String();
-      });
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('refreshDate', lastRefresh!);
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('refreshDate', lastRefresh!);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Podatki so bili osveženi!')),
+        );
+      }
+    } catch (e) {
+      // Display an error message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Podatki so bili osveženi!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Napaka pri osveževanju podatkov')),
+        SnackBar(content: Text('Napaka pri osveževanju podatkov: $e')),
       );
     }
   }

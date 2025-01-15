@@ -53,12 +53,15 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
       } else {
         return ['Result field not found in response'];
       }
+    } else if (response.statusCode == 400) {
+      print("bad request");
+      throw Exception('Request failed with status 400: Bad Request');
     } else {
       return [
         'Request failed with status: ${response.statusCode} - Body: ${response.body}'
       ];
     }
   } catch (e) {
-    return ['Error occurred: $e'];
+    rethrow;
   }
 }

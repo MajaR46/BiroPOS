@@ -25,8 +25,8 @@ Future<bool> handleData() async {
 
     return true;
   } catch (e) {
-    print("Error fetching data: $e");
-    return false;
+    print("Error in handleData: $e");
+    rethrow; // Propagate the error upwards
   }
 }
 
