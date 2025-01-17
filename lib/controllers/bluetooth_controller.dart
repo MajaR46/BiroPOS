@@ -55,7 +55,9 @@ class BluetoothService {
 
       // Conditionally add two empty lines at the end of dataLines
       if (addEmptyLines) {
-        dataLines.addAll(['', '', '']);
+        dataLines.addAll(
+          ['', '', '', '', '', '', '', '', ''],
+        );
       }
 
       // Send data to platform method

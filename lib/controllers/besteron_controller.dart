@@ -4,17 +4,23 @@ import 'package:shared_preferences/shared_preferences.dart'; // For Base64 encod
 
 Future<String> callBesteron(double finalSum) async {
   final prefs = await SharedPreferences.getInstance();
+  print("Fetching POS");
   String? posUrlNastavitve = prefs.getString('POS') ?? "";
+  print("pos nastavitve $posUrlNastavitve");
 
   List<String> posurl = posUrlNastavitve.split(';');
+  print("pos url $posurl");
 
   String baseUrl = posurl[1];
   String path = posurl[0];
   String authCredentials = posurl[2];
+  print('Base URL: $baseUrl, Path: $path, Auth Credentials: $authCredentials');
 
   String TID = prefs.getString('TID') ?? '';
+  print("TID $TID");
   String authorizationHeader = 'Basic $authCredentials';
   String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
+  print("podjetjeDavcna $podjetjeDavcna");
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic> requestBody = {
@@ -43,12 +49,7 @@ Future<String> callBesteron(double finalSum) async {
       }
     }
   };
-
-  // Log request details
-  print("Sending request to Besteron...");
-  print("Request URL: $baseUrl/$path");
-  print("Request Body: ${jsonEncode(requestBody)}");
-  print("Authorization Header: $authorizationHeader");
+  print('Request Body: ${jsonEncode(requestBody)}');
 
   try {
     // Sending the HTTP request
@@ -61,9 +62,8 @@ Future<String> callBesteron(double finalSum) async {
       body: jsonEncode(requestBody),
     );
 
-    // Log response status and body
-    print("Response Status Code: ${response.statusCode}");
-    print("Response Body: ${response.body}");
+    print('Response Status Code: ${response.statusCode}');
+    print('Response Body: ${response.body}');
 
     // Parse the response
     var decodedJson = jsonDecode(response.body);
@@ -81,12 +81,11 @@ Future<String> callBesteron(double finalSum) async {
         return receiptText;
       }
     } else {
-      print("Payment receipt is empty or not found in the response.");
+      throw Exception("Račun je prazen.");
     }
   } catch (e) {
-    print("Error occurred while calling Besteron: $e");
-    return "";
+    throw Exception("Error occurred while calling Besteron 1: $e");
   }
 
-  return "";
+  throw Exception("Error occurred while calling Besteron:");
 }

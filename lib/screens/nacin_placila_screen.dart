@@ -34,32 +34,17 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   Widget build(BuildContext context) {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
     final paymentMethods = ref.watch(paymentMethodProvider);
-    final String? davcnaSt = ref.watch(taxNumberProvider);
+    final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
     orderService = ref.watch(orderProvider);
 
-    void _paymentPrint(String paymentMethod) {
+    void paymentPrint(String paymentMethod, String davcnaSt) {
       try {
-        paymentService.processPayment(context, paymentMethod);
+        paymentService.processPayment(context, paymentMethod, davcnaSt);
+        clearDavcna(ref);
       } catch (e) {
         print("Težava z bluetooth");
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
-      }
-    }
-
-    void createOrder(String paymentMethod) async {
-      if (paymentMethods.isNotEmpty) {
-        final response =
-            await orderService.createOrder(context, paymentMethod, davcnaSt);
-        final filteredResponse = Utils.filterEmptyLines(response);
-        final printableResponse = filteredResponse.join("\r\n");
-        _paymentPrint(paymentMethod);
-
-        //_showResponseDialog(response);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No payment methods available!")),
-        );
       }
     }
 
@@ -139,7 +124,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
                     return ElevatedButton(
                       onPressed: () {
-                        createOrder(nacinPlacila);
+                        paymentPrint(nacinPlacila, davcnaSt!);
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.grey,

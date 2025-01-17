@@ -61,10 +61,8 @@ class OrderService {
       return [];
     }
 
-    // Get payment methods from the provider
     final paymentMethods = ref.watch(paymentMethodProvider);
 
-    // Check if payment methods are loaded
     if (paymentMethods.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No payment methods available!")),
@@ -74,10 +72,9 @@ class OrderService {
 
     final chosenItems = ref.watch(narociloNotifierProvider);
 
-    // Initialize lists to separate table and direct billing items
     List<String> tableOrderItems = [];
     List<String> directOrderItems = [];
-    bool hasDirectItems = false; // Flag for new direct items
+    bool hasDirectItems = false;
 
     for (var item in chosenItems) {
       String productCode = item.product.id.toString();
@@ -133,6 +130,7 @@ class OrderService {
     // Send the request to the server
     List<String> serverResponse =
         await sendRequest(userId, allOrderItems.join('\r\n'));
+    print("all order items $allOrderItems");
 
     return serverResponse;
   }

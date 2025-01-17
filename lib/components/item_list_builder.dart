@@ -263,53 +263,55 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
           // Prilagoditev razmerja glede na širino in privzeto višino
           double cardHeight = selectedTextSize * 4 + 20; // Približna višina
           double calculatedAspectRatio = cardWidth / cardHeight;
+          final sortedItems = filteredItems
+            ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
 
-          return GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: gridColumnCount,
-              mainAxisSpacing: 2,
-              crossAxisSpacing: 2,
-              childAspectRatio: calculatedAspectRatio,
+          return SingleChildScrollView(
+            child: Wrap(
+              spacing: 2.0, // Razmik med karticami horizontalno
+              runSpacing: 2.0, // Razmik med vrsticami
+              children: sortedItems.map((item) {
+                int categoryIndex = widget.categorizedItems.keys
+                    .toList()
+                    .indexOf(item['category']);
+                Color assignedBackgroundColor = widget.backgroundColors[
+                    categoryIndex % widget.backgroundColors.length];
+                Color assignedTextColor =
+                    widget.textColors[categoryIndex % widget.textColors.length];
+
+                return GestureDetector(
+                  onTap: enojniKlik
+                      ? () => _handleItemSelectItem(item, hhCene)
+                      : null,
+                  onDoubleTap: !enojniKlik
+                      ? () => _handleItemSelectItem(item, hhCene)
+                      : null,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: (MediaQuery.of(context).size.width - 32) /
+                          widget.columnNum, // Prilagodi širino stolpca
+                      maxWidth: (MediaQuery.of(context).size.width - 32) /
+                          widget.columnNum,
+                    ),
+                    child: ItemCard(
+                      isAllLayout: false,
+                      stStolpcev: widget.columnNum,
+                      itemName: item['name'],
+                      itemPrice: hhCene == true
+                          ? (item['hhPrice']?.isEmpty ?? true)
+                              ? item['price']
+                              : item['hhPrice']
+                          : item['price'],
+                      itemCategory: item['category'],
+                      cardBackground: assignedBackgroundColor,
+                      backgroundColor: assignedBackgroundColor,
+                      textColor: assignedTextColor,
+                      textSize: selectedTextSize,
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-            itemCount: filteredItems.length,
-            itemBuilder: (context, index) {
-              final sortedItems = filteredItems
-                ..sort(
-                    (item1, item2) => item1['name'].compareTo(item2['name']));
-              final item = sortedItems[index];
-
-              int categoryIndex = widget.categorizedItems.keys
-                  .toList()
-                  .indexOf(item['category']);
-              Color assignedBackgroundColor = widget.backgroundColors[
-                  categoryIndex % widget.backgroundColors.length];
-              Color assignedTextColor =
-                  widget.textColors[categoryIndex % widget.textColors.length];
-
-              return GestureDetector(
-                onTap: enojniKlik
-                    ? () => _handleItemSelectItem(item, hhCene)
-                    : null,
-                onDoubleTap: !enojniKlik
-                    ? () => _handleItemSelectItem(item, hhCene)
-                    : null,
-                child: ItemCard(
-                  isAllLayout: false,
-                  stStolpcev: widget.columnNum,
-                  itemName: item['name'],
-                  itemPrice: hhCene == true
-                      ? (item['hhPrice']?.isEmpty ?? true)
-                          ? item['price']
-                          : item['hhPrice']
-                      : item['price'],
-                  itemCategory: item['category'],
-                  cardBackground: assignedBackgroundColor,
-                  backgroundColor: assignedBackgroundColor,
-                  textColor: assignedTextColor,
-                  textSize: selectedTextSize,
-                ),
-              );
-            },
           );
         },
       );
