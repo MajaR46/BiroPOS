@@ -63,8 +63,10 @@ class ProcessPayment {
           await checkBluetooth();
           await BluetoothService.sendData([gotovinaRacun], ref,
               addEmptyLines: false);
-          await checkBluetooth();
-          await BluetoothService.sendData(response, ref, addEmptyLines: true);
+          if (!gotovinaRacun.contains("Transakcija zavrnjena")) {
+            await checkBluetooth();
+            await BluetoothService.sendData(response, ref, addEmptyLines: true);
+          }
         } catch (e) {
           // Show error message to the user
           print(" Napaka pri komunikaciji z Besteronom: ${e.toString()}");

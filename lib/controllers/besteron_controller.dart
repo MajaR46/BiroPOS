@@ -78,6 +78,7 @@ Future<String> callBesteron(double finalSum) async {
             outputContent['OutputText'].map((item) => item['Text']));
 
         String receiptText = textList.join('\n');
+
         return receiptText;
       }
     } else {
