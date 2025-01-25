@@ -10,12 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 
-Map<String, Color> itemColorMapping = {
-  'D': Colors.red,
-  'G': const Color.fromARGB(255, 33, 100, 242),
-  // Add more mappings as needed
-};
-
 List<Color> backgroundColors = [
   AppStyles.lightBrown,
   AppStyles.lightOrange,
@@ -174,6 +168,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     final settings = widget.ref.watch(settingsProvider);
     final enojniKlik = settings['isCheckedEnojniKlik'] ?? false;
     final hhCene = settings['isCheckedHHCene'] ?? false;
+    final defaultColors = settings['isCheckedBarve'] ?? false;
 
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
@@ -247,9 +242,15 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                                 : item['price'],
                             itemCategory: item['category'],
                             cardBackground: AppStyles.white,
-                            backgroundColor: assignedBackgroundColor,
-                            textColor: itemColorMapping[itemColor] ??
-                                assignedTextColor, // Use item's text color, fallback to category color
+                            itemNameColor: defaultColors == true
+                                ? Colors.black
+                                : itemColorMapping[itemColor] ?? Colors.black,
+                            itemCategoryBackgroundColor: defaultColors == true
+                                ? assignedBackgroundColor
+                                : AppStyles.lightBlue,
+                            itemCategoryTextColor: defaultColors == true
+                                ? assignedTextColor
+                                : AppStyles.black,
                             textSize: selectedTextSize,
                           ),
                         );
@@ -288,6 +289,8 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                     .indexOf(item['category']);
                 Color assignedBackgroundColor = widget.backgroundColors[
                     categoryIndex % widget.backgroundColors.length];
+                Color assignedTextColor =
+                    widget.textColors[categoryIndex % widget.textColors.length];
                 final String itemColor = item['itemColor'];
 
                 return GestureDetector(
@@ -315,10 +318,15 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                           : item['price'],
                       itemCategory: item['category'],
                       cardBackground: assignedBackgroundColor,
-                      backgroundColor: assignedBackgroundColor,
-                      textColor: itemColorMapping[itemColor] ??
-                          Colors
-                              .amber, // Use item's text color, fallback to category color
+                      itemNameColor: defaultColors == true
+                          ? Colors.black
+                          : itemColorMapping[itemColor] ?? Colors.black,
+                      itemCategoryBackgroundColor: defaultColors == true
+                          ? assignedBackgroundColor
+                          : AppStyles.lightBlue,
+                      itemCategoryTextColor: defaultColors == true
+                          ? assignedTextColor
+                          : AppStyles.black,
                       textSize: selectedTextSize,
                     ),
                   ),
@@ -345,8 +353,18 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
   }
 
   Map<String, Color> itemColorMapping = {
-    'G': Colors.blue,
-    'D': Colors.red,
+    'A': AppStyles.blue,
+    'B': AppStyles.darkBrown,
+    'C': AppStyles.darkOrange,
+    'D': AppStyles.red,
+    'E': AppStyles.pink,
+    'F': AppStyles.yellow,
+    'G': AppStyles.silver,
+    'H': AppStyles.darkBlue,
+    'I': AppStyles.darkBlue,
+    'J': AppStyles.darkPurple,
+    'K': AppStyles.green,
+
     // Add more mappings as needed
   };
 }

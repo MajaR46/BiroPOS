@@ -6,8 +6,9 @@ class ItemCard extends StatelessWidget {
   final String itemName;
   final String itemPrice;
   final String itemCategory;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color itemCategoryBackgroundColor;
+  final Color itemCategoryTextColor;
+  final Color itemNameColor;
   final int stStolpcev;
   final Color cardBackground;
   final bool isAllLayout;
@@ -18,8 +19,9 @@ class ItemCard extends StatelessWidget {
       required this.itemName,
       required this.itemPrice,
       required this.itemCategory,
-      required this.backgroundColor,
-      required this.textColor,
+      required this.itemCategoryBackgroundColor,
+      required this.itemCategoryTextColor,
+      required this.itemNameColor,
       required this.stStolpcev,
       required this.cardBackground,
       required this.isAllLayout,
@@ -53,9 +55,9 @@ class ItemCard extends StatelessWidget {
               Text(
                 itemName,
                 style: AppStyles.paragraph3.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: textSize,
-                ),
+                    fontWeight: FontWeight.bold,
+                    fontSize: textSize,
+                    color: itemNameColor),
               ),
               if (stStolpcev < 3)
                 Text(
@@ -68,7 +70,7 @@ class ItemCard extends StatelessWidget {
               if (stStolpcev < 3)
                 Container(
                   decoration: BoxDecoration(
-                    color: backgroundColor,
+                    color: itemCategoryBackgroundColor,
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: Padding(
@@ -76,9 +78,9 @@ class ItemCard extends StatelessWidget {
                     child: Text(
                       itemCategory,
                       style: TextStyle(
-                        fontSize: textSize - 2,
-                        color: textColor,
-                      ),
+                          fontSize: textSize - 6,
+                          color: itemCategoryTextColor,
+                          fontWeight: FontWeight.w500),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

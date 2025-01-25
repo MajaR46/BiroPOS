@@ -7,6 +7,10 @@ class AppStyles {
   static const Color blue = Color(0xff2D70F4);
   static const Color silver = Color(0xFFBFBFBF);
   static const Color red = Color(0xffFC4A4A);
+  static const Color pink = Color(0xffeD8ACF);
+  static const Color yellow = Color(0xffFFEA4C);
+  static const Color green = Color(0xff7DCE82);
+  static const Color gold = Color(0xffffbf00);
 
   static const Color lightBrown = Color(0xffFEF8F1);
   static const Color darkBrown = Color(0xffA77B5B);

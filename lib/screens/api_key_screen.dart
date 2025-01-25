@@ -40,6 +40,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedPrintService = false;
   bool _isCheckedBluetoothPrintanje = false;
   bool _isCheckedEnojniKlik = false;
+  bool _isCheckedBarve = false;
 
   @override
   void initState() {
@@ -85,6 +86,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedBluetoothPrintanje =
             prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
         _isCheckedEnojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
+        _isCheckedBarve = prefs.getBool('isCheckedBarve') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -124,6 +126,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool(
         'isCheckedBluetoothPrintanje', _isCheckedBluetoothPrintanje);
     await prefs.setBool('isCheckedEnojniKlik', _isCheckedEnojniKlik);
+    await prefs.setBool('isCheckedBarve', _isCheckedBarve);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -416,6 +419,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           controller: _controllerStStolpcev,
                           inputwidth: 150,
                           isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Privzete barve:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedBarve,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedBarve = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleBarve(value ?? false);
+                          },
                         ),
                       ],
                     ),

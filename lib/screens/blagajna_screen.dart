@@ -412,6 +412,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 //category list na vrhu zaslona
   Widget _categoryList() {
     List<String> categories = ["Vse"] + categorizedItems.keys.toList();
+    final settings = ref.watch(settingsProvider);
+    final defaultColors = settings['isCheckedBarve'] ?? false;
+    final selectedCategoryState = ref.watch(selectedCategoryProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -431,6 +434,18 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             Color assignedTextColor =
                 textColors[categoryIndex % textColors.length];
 
+            Color backgroundColor = (selectedCategoryState == category)
+                ? AppStyles.blue
+                : (defaultColors == true
+                    ? assignedBackgroundColor
+                    : AppStyles.silver.withOpacity(0.1));
+
+            Color textColor = (selectedCategoryState == category)
+                ? Colors.white
+                : (defaultColors == true
+                    ? assignedTextColor
+                    : AppStyles.silver);
+
             return GestureDetector(
               onTap: () {
                 ref.read(selectedCategoryProvider.notifier).state = category;
@@ -441,16 +456,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    color: assignedBackgroundColor,
-                  ),
+                      borderRadius: BorderRadius.circular(20.0),
+                      color: backgroundColor),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Center(
                       child: Text(
                         category,
-                        style: AppStyles.button2
-                            .copyWith(color: assignedTextColor),
+                        style: AppStyles.button2.copyWith(color: textColor),
                       ),
                     ),
                   ),
@@ -501,6 +514,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     final String? user = SessionManager().getLoggedInUserName();
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
+    final settings = ref.watch(settingsProvider);
+    final defaultBarve = settings['isCheckedBarve'] ?? false;
 
     orderService = ref.read(orderProvider);
 
