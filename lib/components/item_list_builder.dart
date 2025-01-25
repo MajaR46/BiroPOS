@@ -8,6 +8,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter/material.dart';
+
+Map<String, Color> itemColorMapping = {
+  'D': Colors.red,
+  'G': const Color.fromARGB(255, 33, 100, 242),
+  // Add more mappings as needed
+};
+
 List<Color> backgroundColors = [
   AppStyles.lightBrown,
   AppStyles.lightOrange,
@@ -142,6 +150,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
         'category': item['category'],
         'itemId': item['itemId'],
         'categoryID': item['categoryID'],
+        'itemColor': item['itemColor']
       });
     } else {
       widget.onSelectItem({
@@ -154,6 +163,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
         'category': item['category'],
         'itemId': item['itemId'],
         'categoryID': item['categoryID'],
+        'itemColor': item['itemColor']
       });
     }
   }
@@ -217,6 +227,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
 
                         Color assignedTextColor = widget.textColors[
                             categoryIndex % widget.textColors.length];
+                        final String itemColor = item['itemColor'];
 
                         return GestureDetector(
                           onTap: enojniKlik
@@ -237,7 +248,8 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                             itemCategory: item['category'],
                             cardBackground: AppStyles.white,
                             backgroundColor: assignedBackgroundColor,
-                            textColor: assignedTextColor,
+                            textColor: itemColorMapping[itemColor] ??
+                                assignedTextColor, // Use item's text color, fallback to category color
                             textSize: selectedTextSize,
                           ),
                         );
@@ -276,8 +288,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                     .indexOf(item['category']);
                 Color assignedBackgroundColor = widget.backgroundColors[
                     categoryIndex % widget.backgroundColors.length];
-                Color assignedTextColor =
-                    widget.textColors[categoryIndex % widget.textColors.length];
+                final String itemColor = item['itemColor'];
 
                 return GestureDetector(
                   onTap: enojniKlik
@@ -305,7 +316,9 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                       itemCategory: item['category'],
                       cardBackground: assignedBackgroundColor,
                       backgroundColor: assignedBackgroundColor,
-                      textColor: assignedTextColor,
+                      textColor: itemColorMapping[itemColor] ??
+                          Colors
+                              .amber, // Use item's text color, fallback to category color
                       textSize: selectedTextSize,
                     ),
                   ),
@@ -330,4 +343,10 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     }
     return categories;
   }
+
+  Map<String, Color> itemColorMapping = {
+    'G': Colors.blue,
+    'D': Colors.red,
+    // Add more mappings as needed
+  };
 }

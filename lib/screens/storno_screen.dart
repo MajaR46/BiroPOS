@@ -36,7 +36,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
 
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
       final printableResponse = filteredResponse.join("\r\n");
-      await Print.printText(context, apiResponse, "PrinterName", ref);
+      await Print.printText(context, apiResponse, ref);
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       Navigator.of(context).pop();
     } catch (e) {

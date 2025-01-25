@@ -57,7 +57,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
     final filteredResponse = Utils.filterEmptyLines(responsePorocilaList);
     final printableResponse = filteredResponse.join("\r\n");
     if (printableResponse != "#NAPAKA#Blagajna je zakljucena#") {
-      await Print.printText(context, filteredResponse, "PrinterName", ref);
+      await Print.printText(context, filteredResponse, ref);
     }
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
     Navigator.of(context).pop();

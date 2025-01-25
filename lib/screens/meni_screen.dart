@@ -6,6 +6,7 @@ import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/porocila_screen.dart';
 import 'package:biro_pos/screens/pregled_narocil_screen.dart';
 import 'package:biro_pos/screens/storno_screen.dart';
+import 'package:biro_pos/screens/testbluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

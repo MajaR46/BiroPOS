@@ -61,7 +61,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
         final isPrinted = notifier.isPrinted(order);
 
         if (!isPrinted && prikazuNarocilTiskalnik) {
-          await Print.printText(context, [order], "PrinterName", ref);
+          await Print.printText(context, [order], ref);
           notifier.sprintanaNarocila(order);
         }
       }

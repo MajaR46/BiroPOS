@@ -25,6 +25,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:hive/hive.dart';
 
+import 'package:flutter/material.dart';
+
+Map<String, Color> itemColorMapping = {
+  'D': Colors.red,
+  'G': const Color.fromARGB(255, 33, 100, 242),
+  // Add more mappings as needed
+};
+
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
 
@@ -101,15 +109,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         });
       }
 
-      Map<String, String> itemToCategoryMap = {};
+      Map<String, Map<String, String>> itemToCategoryMap = {};
 
       for (String line in apiResponseList) {
         if (line.startsWith('T')) {
           List<String> parts = line.split('|');
-          if (parts.length >= 3) {
+          if (parts.length >= 4) {
+            // Ensure there are at least 4 parts
             String categoryName = parts[1];
             String itemId = parts[2];
-            itemToCategoryMap[itemId] = categoryName;
+            String itemColor = parts[3].trim(); // Get the "G" part as itemColor
+            itemToCategoryMap[itemId] = {
+              'categoryName': categoryName,
+              'itemColor': itemColor
+            };
           }
         }
       }
@@ -125,7 +138,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _categorizeResponseItems(
-      List<String> items, Map<String, String> itemToCategoryMap) {
+      List<String> items, Map<String, Map<String, String>> itemToCategoryMap) {
     List<Item> izdelki2 = [];
     Map<String, List<dynamic>> categorized = {};
 
@@ -160,7 +173,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
         izdelki2.add(newIzdelek);
 
-        String categoryName = itemToCategoryMap[izdelekId] ?? 'Ostalo';
+        String categoryName =
+            itemToCategoryMap[izdelekId]?['categoryName'] ?? 'Ostalo';
+        String itemColor = itemToCategoryMap[izdelekId]?['itemColor'] ?? 'G';
         if (categorized.containsKey(categoryName)) {
           categorized[categoryName]!.add({
             'name': imeIzdelka,
@@ -169,7 +184,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             'category': categoryName,
             'itemId': izdelekId,
             'categoryID': kategorijaID,
-            'eanCode': eancode
+            'eanCode': eancode,
+            'itemColor': itemColor
           });
         } else {
           categorized[categoryName] = [
@@ -180,7 +196,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               'category': categoryName,
               'itemId': izdelekId,
               'categoryID': kategorijaID,
-              'eanCode': eancode
+              'eanCode': eancode,
+              'itemColor': itemColor
             }
           ];
         }

@@ -60,30 +60,50 @@ class ProcessPayment {
       if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
         try {
           final gotovinaRacun = await callBesteron(finalSum);
-          await checkBluetooth();
+          await checkBluetooth(); // Preverimo povezavo z Bluetoothom
           await BluetoothService.sendData([gotovinaRacun], ref,
-              addEmptyLines: false);
+              addEmptyLines: false, context: context);
           if (!gotovinaRacun.contains("Transakcija zavrnjena")) {
-            await checkBluetooth();
-            await BluetoothService.sendData(response, ref, addEmptyLines: true);
+            await checkBluetooth(); // Ponovno preverimo
+            await BluetoothService.sendData(response, ref,
+                context: context, addEmptyLines: true);
           }
         } catch (e) {
-          // Show error message to the user
-          print(" Napaka pri komunikaciji z Besteronom: ${e.toString()}");
+          // Napaka pri komunikaciji z Besteronom
+          print("Napaka pri komunikaciji z Besteronom: ${e.toString()}");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(
-                    "Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
-                duration: const Duration(seconds: 15)),
+              content:
+                  Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
+              duration: const Duration(seconds: 15), // Daljša prikaz napake
+            ),
           );
         }
       } else {
-        await checkBluetooth();
-        await BluetoothService.sendData(response, ref, addEmptyLines: true);
+        try {
+          await checkBluetooth(); // Preverimo povezavo z Bluetoothom
+          await BluetoothService.sendData(response, ref,
+              context: context, addEmptyLines: true);
+        } catch (e) {
+          // Napaka pri pošiljanju podatkov preko Bluetootha
+          print("Bluetooth data send failed: ${e.toString()}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
+              duration: const Duration(seconds: 15), // Daljša prikaz napake
+            ),
+          );
+        }
       }
     } catch (e) {
+      // Splošna napaka pri obdelavi plačila
+      print("Napaka pri obdelavi plačila: ${e.toString()}");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Napaka pri obdelavi plačila: ${e.toString()}")),
+        SnackBar(
+          content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
+          duration: const Duration(seconds: 15), // Daljša prikaz napake
+        ),
       );
     }
   }
@@ -107,11 +127,9 @@ class ProcessPayment {
     final printableResponse = filteredResponse.join("\r\n");
     if (paymentType == "KAR") {
       final gotovinaRacun = await callBesteron(finalSum);
-      await Utils.printTextWithIntegratedSunmi(
-          gotovinaRacun, "BlueTooth Printer", ref);
+      await Utils.printTextWithIntegratedSunmi(gotovinaRacun, ref);
     }
-    await Utils.printTextWithIntegratedSunmi(
-        printableResponse, "BlueTooth Printer", ref);
+    await Utils.printTextWithIntegratedSunmi(printableResponse, ref);
   }
 
   void _updateFinalSum() {

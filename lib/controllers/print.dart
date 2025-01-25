@@ -17,16 +17,24 @@ class Print {
 
   Print(this.ref);
 
-  static Future<void> printText(BuildContext context, List<String> text,
-      String printerName, WidgetRef ref) async {
+  static Future<void> printText(
+      BuildContext context, List<String> text, WidgetRef ref) async {
     final settings = ref.watch(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? false;
     final paymentMethods = ref.watch(paymentMethodProvider);
+    print(
+        "Bluetooth printanje: $bluetoothPrintanje"); // <- DODANO ZA PREVERJANJE
 
     if (bluetoothPrintanje == true) {
       try {
         await ProcessPayment.checkBluetooth();
-        await BluetoothService.sendData(text, ref, addEmptyLines: true);
+
+        print("Attempting to print via Bluetooth...");
+
+        // Add new line before every item
+        await BluetoothService.sendData(text, ref,
+            context: context, addEmptyLines: true);
+        print("Data sent to Bluetooth printer.");
 
         print("PRINTANO Z BLUETOOTH");
       } catch (e) {
@@ -37,8 +45,7 @@ class Print {
       }
     } else {
       try {
-        await Utils.printTextWithIntegratedSunmi(
-            text.join('\n'), printerName, ref);
+        await Utils.printTextWithIntegratedSunmi(text.join('\n'), ref);
         print("PRINTANO Z INTEGRIRANIM");
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

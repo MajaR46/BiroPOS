@@ -7,6 +7,7 @@ import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/hive_adaprters/osebje.dart';
 import 'package:biro_pos/hive_adaprters/podjetje.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
@@ -78,11 +79,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       // Fetch bonded devices
       List<BondedDevice> devices = await _bluetoothService.getBondedDevices();
+      final settings = ref.watch(settingsProvider);
 
       // Attempt to connect to the required device
       for (final device in devices) {
-        if (device.name == "InnerPrinter") {
-          await _bluetoothService.connectToDevice(device.adress);
+        if (device.name == "InnerPrinter" ||
+            device.name == "BlueTooth Printer" ||
+            device.name == "IPosPrinter" ||
+            device.name == "IPos2Printer" ||
+            device.name == "OM BP" ||
+            device.name == "P58E" ||
+            device.name == "RPP-02" ||
+            device.name == "RPP02N" ||
+            device.name == "TimPOS") {
+          await _bluetoothService.connectToDevice(device.adress, context);
           print("Connected to ${device.adress}");
           break;
         }
@@ -323,8 +333,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () {
-                    Print.printText(context, ["Programska oprema BiroPOS"],
-                        "PrinterName", ref);
+                    Print.printText(
+                        context, ["Programska oprema BiroPOS"], ref);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,

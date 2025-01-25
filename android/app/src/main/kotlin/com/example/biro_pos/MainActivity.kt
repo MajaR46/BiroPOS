@@ -42,7 +42,10 @@ class MainActivity : FlutterActivity() {
                             Log.d("Bluetooth", "Discovery started")
                         }
                         BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-                            Log.d("Bluetooth", "Discovery finished")
+                            Log.d(
+                                    "Bluetooth",
+                                    "Discovery finished. Devices found: $discoveredDevices"
+                            )
                         }
                     }
                 }
@@ -84,10 +87,13 @@ class MainActivity : FlutterActivity() {
                 }
                 "getBondedDevices" -> {
                     if (checkPermissions()) {
-                        val pairedDevices: Set<BluetoothDevice>? = bluetoothAdapter?.bondedDevices
+                        val pairedDevices = bluetoothAdapter?.bondedDevices
                         val devicesList =
                                 pairedDevices?.map { device ->
-                                    "${device.name ?: "Unknown"} (${device.address})"
+                                    val deviceInfo =
+                                            "${device.name ?: "Unknown"} (${device.address})"
+                                    Log.d("Bluetooth", "Bonded Device: $deviceInfo")
+                                    deviceInfo
                                 }
                                         ?: emptyList()
                         result.success(devicesList)
@@ -98,535 +104,94 @@ class MainActivity : FlutterActivity() {
                 "sendData" -> {
                     val dataLines = call.argument<List<String>>("dataLines")
                     if (currentDevice != null && dataLines != null) {
-                        val socket = currentDevice?.createRfcommSocketToServiceRecord(MY_UUID)
-                        Log.d(
-                                "Bluetooth",
-                                "Sending data to device: ${currentDevice?.name} (${currentDevice?.address})"
-                        )
-                        try {
-                            socket?.connect()
-                            val outputStream: OutputStream? = socket?.outputStream
+                        val device = currentDevice
+                        Thread {
+                                    var socket: BluetoothSocket? = null
+                                    var outputStream: OutputStream? = null
+                                    var exceptionMessage: String? = null
+                                    var connected = false
+                                    val maxRetries = 3
+                                    var retries = 0
 
-                            if (outputStream != null) {
-                                for (line in dataLines) {
-                                    when {
-                                        line.contains("#QRKODA#") -> {
-                                            var qrCodeData = line.replace("#QRKODA#", "").trim()
-                                            if (qrCodeData.endsWith("#")) {
-                                                qrCodeData =
-                                                        qrCodeData.substring(
-                                                                0,
-                                                                qrCodeData.length - 1
-                                                        )
-                                            }
-                                            if (qrCodeData.isNotEmpty() && qrCodeData.length <= 400
-                                            ) {
+                                    try {
+                                        socket = device?.createRfcommSocketToServiceRecord(MY_UUID)
+                                        Log.d(
+                                                "Bluetooth",
+                                                "Sending data to device: ${device?.name} (${device?.address})"
+                                        )
 
-                                                val toSend = mutableListOf<Byte>()
-
-                                                if (currentDevice?.name === "InnerPrinter") {
-
-                                                    // Model
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            4,
-                                                                            0,
-                                                                            49,
-                                                                            65,
-                                                                            50,
-                                                                            0
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Size
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            67,
-                                                                            5
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Error correction
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            69,
-                                                                            49
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Store data
-                                                    val qrDataBytes = qrCodeData.toByteArray()
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            (qrDataBytes.size + 3)
-                                                                                    .toByte(),
-                                                                            0,
-                                                                            49,
-                                                                            80,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                    toSend.addAll(qrDataBytes.toList())
-
-                                                    // Print command
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            81,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                } else if (currentDevice?.name === "IPosPrinter") {
-
-                                                    // Error correction
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            69,
-                                                                            49
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Store data
-                                                    val qrDataBytes = qrCodeData.toByteArray()
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            (qrDataBytes.size + 3)
-                                                                                    .toByte(),
-                                                                            0,
-                                                                            49,
-                                                                            80,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                    toSend.addAll(qrDataBytes.toList())
-
-                                                    // Print command
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            81,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                } else if (currentDevice?.name === "IPos2Printer") {
-
-                                                    // Size
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            67,
-                                                                            8
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Error correction
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            69,
-                                                                            49
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Store data
-                                                    val qrDataBytes = qrCodeData.toByteArray()
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            (qrDataBytes.size + 3)
-                                                                                    .toByte(),
-                                                                            0,
-                                                                            49,
-                                                                            80,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                    toSend.addAll(qrDataBytes.toList())
-
-                                                    // Print command
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            81,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                } else if (currentDevice?.name ==
-                                                                "BlueTooth Printer"
-                                                ) {
-                                                    // Model
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            31,
-                                                                            28,
-                                                                            5,
-                                                                            1,
-                                                                            60,
-                                                                            0,
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    val qrDataBytes =
-                                                            qrCodeData.toByteArray(Charsets.UTF_8)
-
-                                                    // Send the QR code data
-                                                    toSend.addAll(qrDataBytes.toList())
-                                                } else if (currentDevice?.name == "OM BP") {
-                                                    // Model
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            4,
-                                                                            0,
-                                                                            49,
-                                                                            65,
-                                                                            50,
-                                                                            0
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Size
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            67,
-                                                                            5
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Error correction
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            69,
-                                                                            49
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Store data
-                                                    val qrDataBytes = qrCodeData.toByteArray()
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            (qrDataBytes.size + 3)
-                                                                                    .toByte(),
-                                                                            0,
-                                                                            49,
-                                                                            80,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                    toSend.addAll(qrDataBytes.toList())
-
-                                                    // Print command
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            81,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                } else if (currentDevice?.name == "P58E") {
-                                                    // Model
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            4,
-                                                                            0,
-                                                                            49,
-                                                                            65,
-                                                                            50,
-                                                                            0
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Size
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            67,
-                                                                            5
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Error correction
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            69,
-                                                                            49
-                                                                    )
-                                                                    .toList()
-                                                    )
-
-                                                    // Store data
-                                                    val qrDataBytes = qrCodeData.toByteArray()
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            (qrDataBytes.size + 3)
-                                                                                    .toByte(),
-                                                                            0,
-                                                                            49,
-                                                                            80,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                    toSend.addAll(qrDataBytes.toList())
-
-                                                    // Print command
-                                                    toSend.addAll(
-                                                            byteArrayOf(
-                                                                            29,
-                                                                            40,
-                                                                            107,
-                                                                            3,
-                                                                            0,
-                                                                            49,
-                                                                            81,
-                                                                            48
-                                                                    )
-                                                                    .toList()
-                                                    )
-                                                } else if (currentDevice?.name == "RPP-02" ||
-                                                                currentDevice?.name == "RPP02N" ||
-                                                                currentDevice?.name == "TIMPOS"
-                                                ) {
-                                                    val command =
-                                                            byteArrayOf(
-                                                                    29,
-                                                                    40,
-                                                                    107,
-                                                                    3,
-                                                                    0,
-                                                                    49,
-                                                                    67,
-                                                                    5, // Size
-                                                                    29,
-                                                                    40,
-                                                                    107,
-                                                                    3,
-                                                                    0,
-                                                                    49,
-                                                                    69,
-                                                                    49, // Error correction
-                                                                    29,
-                                                                    40,
-                                                                    107,
-                                                                    3,
-                                                                    0,
-                                                                    49,
-                                                                    80,
-                                                                    48 // Print command
-                                                            )
-                                                    toSend.addAll(command.toList())
+                                        // Retry connection logic
+                                        while (!connected && retries < maxRetries) {
+                                            try {
+                                                socket?.connect() // Blocking call
+                                                connected = true
+                                                outputStream = socket?.outputStream
+                                            } catch (e: IOException) {
+                                                retries++
+                                                Log.e(
+                                                        "Bluetooth",
+                                                        "Connection attempt failed, retrying... ($retries/$maxRetries)",
+                                                        e
+                                                )
+                                                if (retries >= maxRetries) {
+                                                    exceptionMessage =
+                                                            "Failed to connect after $maxRetries attempts."
+                                                    break
                                                 }
+                                                Thread.sleep(1000) // Wait before retrying
+                                            }
+                                        }
 
-                                                // Write to the printer's output stream
-                                                outputStream.write(toSend.toByteArray())
-                                                outputStream.write("\r\n".toByteArray())
-                                            } else if (qrCodeData.length > 400) {
-                                                val errorMessage =
-                                                        "QR Code data too long. Please check. Backend, ${qrCodeData.length}, $qrCodeData"
-                                                outputStream.write(
-                                                        (errorMessage + "\n").toByteArray()
-                                                )
-                                            } else {
-                                                val invalidMessage =
-                                                        "QR Code data is empty or invalid."
-                                                outputStream.write(
-                                                        (invalidMessage + "\n").toByteArray()
-                                                )
-                                            }
-                                        }
-                                        line.contains("#VELIKOST-START#") -> {
-                                            if (currentDevice?.name == "InnerPrinter" ||
-                                                            currentDevice?.name == "IPosPrinter" ||
-                                                            currentDevice?.name == "IPos2Printer" ||
-                                                            currentDevice?.name == "OM BP"
-                                            ) {
-                                                val largeFontCommand =
-                                                        byteArrayOf(
-                                                                27,
-                                                                33,
-                                                                16
-                                                        ) // Alternative for double width/height
-                                                outputStream.write(largeFontCommand)
-                                            } else if (currentDevice?.name == "BlueTooth Printer") {
-                                                val largeFontCommand =
-                                                        byteArrayOf(
-                                                                27,
-                                                                33,
-                                                                19
-                                                        ) // Alternative for double width/height
-                                                outputStream.write(largeFontCommand)
-                                            } else if (currentDevice?.name == "P58E" ||
-                                                            currentDevice?.name == "RPP-02" ||
-                                                            currentDevice?.name == "RPP02N" ||
-                                                            currentDevice?.name == "TimPOS"
-                                            ) {
-                                                val largeFontCommand =
-                                                        byteArrayOf(
-                                                                27,
-                                                                33,
-                                                                88
-                                                        ) // Alternative for double width/height
-                                                outputStream.write(largeFontCommand)
-                                            }
-                                        }
-                                        line.contains("#VELIKOST-END#") -> {
-                                            if (currentDevice?.name == "InnerPrinter" ||
-                                                            currentDevice?.name == "OM BP"
-                                            ) {
-                                                val defaultFontCommand = byteArrayOf(27, 33, 0)
-                                                outputStream.write(defaultFontCommand)
-                                            } else if (currentDevice?.name == "IPosPrinter" ||
-                                                            currentDevice?.name == "IPos2Printer" ||
-                                                            currentDevice?.name == "P58E" ||
-                                                            currentDevice?.name == "RPP-02" ||
-                                                            currentDevice?.name == "RPP02N" ||
-                                                            currentDevice?.name == "TimPOS"
-                                            ) {
-                                                val defaultFontCommand = byteArrayOf(27, 33, 8)
-                                                outputStream.write(defaultFontCommand)
-                                            } else if (currentDevice?.name == "BlueTooth Printer") {
+                                        if (connected && outputStream != null) {
+                                            outputStream.write(" ".toByteArray(Charsets.UTF_8))
 
-                                                val defaultFontCommand = byteArrayOf(27, 33, 5)
-                                                outputStream.write(defaultFontCommand)
+                                            for (line in dataLines) {
+
+                                                handleLine(line, outputStream)
+                                            }
+                                            outputStream.flush()
+                                            outputStream.write(
+                                                    byteArrayOf(0x1D, 0x56, 0x41, 0x10)
+                                            ) // Paper cut command
+                                            outputStream.flush()
+
+                                            activity.runOnUiThread {
+                                                result.success("Data sent successfully")
+                                            }
+                                            Thread.sleep(1000) // Wait for the printer to process
+                                        } else {
+                                            activity.runOnUiThread {
+                                                result.error(
+                                                        "SEND_FAILED",
+                                                        exceptionMessage ?: "Output stream is null",
+                                                        null
+                                                )
                                             }
                                         }
-                                        else -> {
-                                            // Append line feed or carriage return as needed
-                                            outputStream.write((line + "\r\n").toByteArray())
+                                    } catch (e: IOException) {
+                                        Log.e("Bluetooth", "Error while sending data", e)
+                                        exceptionMessage = e.message
+                                        activity.runOnUiThread {
+                                            result.error(
+                                                    "SEND_FAILED",
+                                                    "Error while sending data: ${e.message}",
+                                                    e.message
+                                            )
+                                        }
+                                    } finally {
+                                        try {
+                                            outputStream?.close()
+                                            socket?.takeIf { it.isConnected }?.close()
+                                        } catch (closeException: IOException) {
+                                            Log.e(
+                                                    "Bluetooth",
+                                                    "Error closing socket",
+                                                    closeException
+                                            )
                                         }
                                     }
                                 }
-
-                                outputStream.write(
-                                        byteArrayOf(0x1D, 0x56, 0x41, 0x10)
-                                ) // Paper cut command
-
-                                result.success("Data sent successfully")
-                            } else {
-                                result.error("SEND_FAILED", "Output stream is null", null)
-                            }
-                            socket?.close()
-                        } catch (e: IOException) {
-                            Log.e("Bluetooth", "Error while sending data", e)
-                            result.error(
-                                    "SEND_FAILED",
-                                    "Error while sending data: ${e.message}",
-                                    null
-                            )
-                        }
+                                .start()
                     } else {
                         result.error("SEND_FAILED", "No device connected or invalid data", null)
                     }
@@ -634,26 +199,42 @@ class MainActivity : FlutterActivity() {
                 "connectToDevice" -> {
                     val deviceAddress = call.argument<String>("deviceAddress")
                     if (deviceAddress != null) {
-                        val device = bluetoothAdapter?.getRemoteDevice(deviceAddress)
-                        if (device != null) {
-                            currentDevice = device
-                            val socket = device.createRfcommSocketToServiceRecord(MY_UUID)
-                            try {
-                                socket.connect()
+                        try {
+                            Log.d(
+                                    "Bluetooth",
+                                    "Attempting to connect to device with address: $deviceAddress"
+                            )
+                            val device = bluetoothAdapter?.getRemoteDevice(deviceAddress)
+                            if (device != null) {
                                 Log.d(
                                         "Bluetooth",
-                                        "Connected to device: ${device.name} (${device.address})"
+                                        "Device object retrieved: ${device.name} (${device.address})"
                                 )
-
-                                result.success("Connected to device")
-                            } catch (e: IOException) {
-                                Log.e("Bluetooth", "Connection failed", e)
-                                result.error("CONNECTION_FAILED", "Failed to connect", null)
+                                currentDevice = device
+                                try {
+                                    Log.d(
+                                            "Bluetooth",
+                                            "Successfully connected to ${device.name} (${device.address})"
+                                    )
+                                    result.success("Connected to device")
+                                } catch (e: IOException) {
+                                    Log.e("Bluetooth", "Socket connection failed", e)
+                                    result.error(
+                                            "CONNECTION_FAILED",
+                                            "Failed to connect to ${device.name}",
+                                            e.message
+                                    )
+                                }
+                            } else {
+                                Log.e("Bluetooth", "Device with address $deviceAddress not found")
+                                result.error("INVALID_DEVICE", "Device not found", null)
                             }
-                        } else {
-                            result.error("INVALID_DEVICE", "Device not found", null)
+                        } catch (e: IllegalArgumentException) {
+                            Log.e("Bluetooth", "Invalid device address: $deviceAddress", e)
+                            result.error("INVALID_ADDRESS", "Invalid device address", null)
                         }
                     } else {
+                        Log.e("Bluetooth", "Device address not provided")
                         result.error("INVALID_PARAMETER", "Device address not provided", null)
                     }
                 }
@@ -666,6 +247,259 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun handleLine(line: String, outputStream: OutputStream) {
+        when {
+            line.contains("#QRKODA#") -> handleQrCode(line, outputStream)
+            line.contains("#VELIKOST-START#") -> handleVelikostStart(outputStream)
+            line.contains("#VELIKOST-END#") -> handleVelikostEnd(outputStream)
+            else -> {
+                outputStream.write((line + "\r\n").toByteArray())
+            }
+        }
+    }
+
+    private fun handleQrCode(line: String, outputStream: OutputStream) {
+        var qrCodeData = line.replace("#QRKODA#", "").trim()
+        if (qrCodeData.endsWith("#")) {
+            qrCodeData = qrCodeData.substring(0, qrCodeData.length - 1)
+        }
+        // Remove newline characters
+        qrCodeData = qrCodeData.replace("\n", "").replace("\r", "")
+
+        if (qrCodeData.isNotEmpty() && qrCodeData.length <= 400) {
+            val toSend = mutableListOf<Byte>()
+            when (currentDevice?.name) {
+                "InnerPrinter" -> qrCodeInnerPrinter(toSend, qrCodeData)
+                "IPosPrinter" -> qrCodeIPosPrinter(toSend, qrCodeData)
+                "IPos2Printer" -> qrCodeIPos2Printer(toSend, qrCodeData)
+                "BlueTooth Printer" -> qrCodeBlueToothPrinter(toSend, qrCodeData)
+                "OM BP" -> qrCodeOmBp(toSend, qrCodeData)
+                "P58E" -> qrCodeP58E(toSend, qrCodeData)
+                "RPP-02", "RPP02N", "TIMPOS" -> qrCodeRpp(toSend)
+                else -> null
+            }?.let {
+                outputStream.write(toSend.toByteArray())
+                outputStream.write("\r\n".toByteArray())
+            }
+        } else if (qrCodeData.length > 400) {
+            val errorMessage =
+                    "QR Code data too long. Please check. Backend, ${qrCodeData.length}, $qrCodeData"
+            outputStream.write((errorMessage + "\n").toByteArray())
+        } else {
+            val invalidMessage = "QR Code data is empty or invalid."
+            outputStream.write((invalidMessage + "\n").toByteArray())
+        }
+    }
+
+    private fun handleVelikostStart(outputStream: OutputStream) {
+        val largeFontCommand =
+                when (currentDevice?.name) {
+                    "InnerPrinter", "IPosPrinter", "IPos2Printer", "OM BP" ->
+                            byteArrayOf(27, 33, 16)
+                    "BlueTooth Printer" -> byteArrayOf(27, 33, 16)
+                    "P58E", "RPP-02", "RPP02N", "TimPOS" -> byteArrayOf(27, 33, 88)
+                    else -> null
+                }
+        largeFontCommand?.let { outputStream.write(it) }
+    }
+
+    private fun handleVelikostEnd(outputStream: OutputStream) {
+        val defaultFontCommand =
+                when (currentDevice?.name) {
+                    "InnerPrinter", "OM BP" -> byteArrayOf(27, 33, 0)
+                    "IPosPrinter", "IPos2Printer", "P58E", "RPP-02", "RPP02N", "TimPOS" ->
+                            byteArrayOf(27, 33, 8)
+                    "BlueTooth Printer" -> byteArrayOf(27, 33, 8)
+                    else -> null
+                }
+        defaultFontCommand?.let { outputStream.write(it) }
+    }
+
+    private fun qrCodeInnerPrinter(
+            toSend: MutableList<Byte>,
+            qrCodeData: String
+    ): MutableList<Byte> {
+        // Model
+        toSend.addAll(byteArrayOf(29, 40, 107, 4, 0, 49, 65, 50, 0).toList())
+
+        // Size
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 67, 5).toList())
+
+        // Error correction
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 69, 49).toList())
+
+        // Store data
+        val qrDataBytes = qrCodeData.toByteArray()
+        toSend.addAll(
+                byteArrayOf(29, 40, 107, (qrDataBytes.size + 3).toByte(), 0, 49, 80, 48).toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // Print command
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 81, 48).toList())
+
+        return toSend
+    }
+
+    private fun qrCodeIPosPrinter(
+            toSend: MutableList<Byte>,
+            qrCodeData: String
+    ): MutableList<Byte> {
+        // Error correction
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 69, 49).toList())
+
+        // Store data
+        val qrDataBytes = qrCodeData.toByteArray()
+        toSend.addAll(
+                byteArrayOf(29, 40, 107, (qrDataBytes.size + 3).toByte(), 0, 49, 80, 48).toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // Print command
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 81, 48).toList())
+        return toSend
+    }
+
+    private fun qrCodeIPos2Printer(
+            toSend: MutableList<Byte>,
+            qrCodeData: String
+    ): MutableList<Byte> {
+        // Size
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 67, 8).toList())
+
+        // Error correction
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 69, 49).toList())
+
+        // Store data
+        val qrDataBytes = qrCodeData.toByteArray()
+        toSend.addAll(
+                byteArrayOf(29, 40, 107, (qrDataBytes.size + 3).toByte(), 0, 49, 80, 48).toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // Print command
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 81, 48).toList())
+
+        return toSend
+    }
+
+    private fun qrCodeBlueToothPrinter(
+            toSend: MutableList<Byte>,
+            qrCodeData: String
+    ): MutableList<Byte> {
+        Log.d("Bluetooth", "Generating QR code for BlueTooth Printer...")
+
+        // 1. Select the model: QR Code Model 2
+        toSend.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00).toList())
+
+        // 2. Set the size:  (value will make it larger or smaller)
+        toSend.addAll(
+                byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x05).toList()
+        ) // size of 5 is fine
+
+        // 3. Set error correction level: (76=H  - hight error correction)
+        toSend.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x4C).toList()) // low
+
+        // 4. Store the data
+        val qrDataBytes = qrCodeData.toByteArray(Charsets.UTF_8)
+        val dataLength = qrDataBytes.size + 3
+        toSend.addAll(
+                byteArrayOf(
+                                0x1D,
+                                0x28,
+                                0x6B,
+                                dataLength.toByte(),
+                                (dataLength shr 8).toByte(),
+                                0x31,
+                                0x50,
+                                0x30
+                        )
+                        .toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // 5. Print the QR code
+        toSend.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30).toList())
+
+        return toSend
+    }
+
+    private fun qrCodeOmBp(toSend: MutableList<Byte>, qrCodeData: String): MutableList<Byte> {
+        // Model
+        toSend.addAll(byteArrayOf(29, 40, 107, 4, 0, 49, 65, 50, 0).toList())
+
+        // Size
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 67, 5).toList())
+
+        // Error correction
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 69, 49).toList())
+
+        // Store data
+        val qrDataBytes = qrCodeData.toByteArray()
+        toSend.addAll(
+                byteArrayOf(29, 40, 107, (qrDataBytes.size + 3).toByte(), 0, 49, 80, 48).toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // Print command
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 81, 48).toList())
+        return toSend
+    }
+
+    private fun qrCodeP58E(toSend: MutableList<Byte>, qrCodeData: String): MutableList<Byte> {
+        // Model
+        toSend.addAll(byteArrayOf(29, 40, 107, 4, 0, 49, 65, 50, 0).toList())
+
+        // Size
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 67, 5).toList())
+
+        // Error correction
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 69, 49).toList())
+
+        // Store data
+        val qrDataBytes = qrCodeData.toByteArray()
+        toSend.addAll(
+                byteArrayOf(29, 40, 107, (qrDataBytes.size + 3).toByte(), 0, 49, 80, 48).toList()
+        )
+        toSend.addAll(qrDataBytes.toList())
+
+        // Print command
+        toSend.addAll(byteArrayOf(29, 40, 107, 3, 0, 49, 81, 48).toList())
+        return toSend
+    }
+
+    private fun qrCodeRpp(toSend: MutableList<Byte>): MutableList<Byte> {
+        val command =
+                byteArrayOf(
+                        29,
+                        40,
+                        107,
+                        3,
+                        0,
+                        49,
+                        67,
+                        5, // Size
+                        29,
+                        40,
+                        107,
+                        3,
+                        0,
+                        49,
+                        69,
+                        49, // Error correction
+                        29,
+                        40,
+                        107,
+                        3,
+                        0,
+                        49,
+                        80,
+                        48 // Print command
+                )
+        toSend.addAll(command.toList())
+        return toSend
     }
 
     private fun checkPermissions(): Boolean {
@@ -759,6 +593,6 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         // A predefined UUID for the Bluetooth RFCOMM socket
-        val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb")
+        val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     }
 }

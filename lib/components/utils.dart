@@ -14,7 +14,7 @@ class Utils {
         .toList();
   }
 
-  static Future<void> setFontSize(String printerName, bool start) async {
+  static Future<void> setFontSize(bool start) async {
     try {
       List<int> command;
       if (start) {
@@ -22,10 +22,7 @@ class Utils {
       } else {
         command = [27, 33, 0]; // ESC ! 0 (Default Font)
       }
-      if (printerName.contains('BlueTooth Printer') &&
-          printerName.contains('C')) {
-        command = start ? [27, 33, 19] : [27, 33, 5];
-      }
+
       await SunmiPrinter.printRawData(Uint8List.fromList(command));
       print('Font size set: ${start ? 'Large' : 'Default'}');
     } catch (e) {
@@ -33,8 +30,7 @@ class Utils {
     }
   }
 
-  static Future<void> printTextWithIntegratedSunmi(
-      String text, String printerName, ref) async {
+  static Future<void> printTextWithIntegratedSunmi(String text, ref) async {
     final cleanedText = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final lines = cleanedText.split('\n');
     final filteredLines = filterEmptyLines(lines);
@@ -62,9 +58,9 @@ class Utils {
             print('QR code data is empty or invalid.');
           }
         } else if (line.contains('#VELIKOST-START#')) {
-          await setFontSize(printerName, true);
+          await setFontSize(true);
         } else if (line.contains('#VELIKOST-END#')) {
-          await setFontSize(printerName, false);
+          await setFontSize(false);
         } else {
           await SunmiPrinter.printText(line, style: SunmiStyle());
         }
