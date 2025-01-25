@@ -317,7 +317,9 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                               : item['hhPrice']
                           : item['price'],
                       itemCategory: item['category'],
-                      cardBackground: assignedBackgroundColor,
+                      cardBackground: defaultColors == true
+                          ? assignedBackgroundColor
+                          : AppStyles.white,
                       itemNameColor: defaultColors == true
                           ? Colors.black
                           : itemColorMapping[itemColor] ?? Colors.black,
@@ -359,7 +361,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     'D': AppStyles.red,
     'E': AppStyles.pink,
     'F': AppStyles.yellow,
-    'G': AppStyles.silver,
+    'G': AppStyles.darkGrey,
     'H': AppStyles.darkBlue,
     'I': AppStyles.darkBlue,
     'J': AppStyles.darkPurple,

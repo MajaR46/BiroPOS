@@ -11,6 +11,7 @@ class AppStyles {
   static const Color yellow = Color(0xffFFEA4C);
   static const Color green = Color(0xff7DCE82);
   static const Color gold = Color(0xffffbf00);
+  static const Color darkGrey = Color(0xff696969);
 
   static const Color lightBrown = Color(0xffFEF8F1);
   static const Color darkBrown = Color(0xffA77B5B);
