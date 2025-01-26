@@ -5,6 +5,7 @@ import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:biro_pos/providers/totdal_sum_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -75,9 +76,14 @@ class ProcessPayment {
             SnackBar(
               content:
                   Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
-              duration: const Duration(seconds: 15), // Daljša prikaz napake
+              duration: const Duration(seconds: 5), // Daljša prikaz napake
             ),
           );
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        } finally {
+          // Set total to zero in case of error or success
+          ref.read(totalSumProvider.notifier).state =
+              ref.read(narociloNotifierProvider.notifier).totalSum();
         }
       } else {
         try {
@@ -91,9 +97,14 @@ class ProcessPayment {
             SnackBar(
               content: Text(
                   "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
-              duration: const Duration(seconds: 15), // Daljša prikaz napake
+              duration: const Duration(seconds: 5), // Daljša prikaz napake
             ),
           );
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        } finally {
+          // Set total to zero in case of error or success
+          ref.read(totalSumProvider.notifier).state =
+              ref.read(narociloNotifierProvider.notifier).totalSum();
         }
       }
     } catch (e) {
@@ -102,9 +113,14 @@ class ProcessPayment {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
-          duration: const Duration(seconds: 15), // Daljša prikaz napake
+          duration: const Duration(seconds: 5), // Daljša prikaz napake
         ),
       );
+      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+    } finally {
+      // Set total to zero in case of error or success
+      ref.read(totalSumProvider.notifier).state =
+          ref.read(narociloNotifierProvider.notifier).totalSum();
     }
   }
 

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,11 +27,16 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   final String body = '{"uid":"$uniqueUid","txt_data":"$txtData"}';
 
   try {
-    final response = await http.post(
+    final response = await http
+        .post(
       Uri.parse(url),
       headers: headers,
       body: body,
-    );
+    )
+        .timeout(Duration(seconds: 2), onTimeout: () {
+      throw TimeoutException(
+          "Connection timed out: napačni konfiguracijski podatki (ip, port)");
+    });
 
     var newHeader = response.headers
       ..["content-type"] = "application/json; text=plain; *=*";
@@ -61,6 +69,10 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
         'Request failed with status: ${response.statusCode} - Body: ${response.body}'
       ];
     }
+  } on SocketException catch (e) {
+    throw Exception('Network Error: Unable to reach server. ${e.message}');
+  } on TimeoutException catch (e) {
+    throw Exception('Timeout Error: ${e.message}');
   } catch (e) {
     rethrow;
   }

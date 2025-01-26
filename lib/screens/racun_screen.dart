@@ -6,6 +6,7 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/providers/totdal_sum_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
@@ -26,9 +27,7 @@ class RacunScreen extends ConsumerStatefulWidget {
 }
 
 class _RacunScreenState extends ConsumerState<RacunScreen> {
-  late double finalSum = 0.0;
   double _totalDiscount = 0.0;
-  late List<NarociloItem> chosenItems = [];
   final TextEditingController discountController = TextEditingController();
   List<NacinPlacila> naciniPlacila = [];
   String itemOpis = '';
@@ -48,10 +47,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _updateFinalSum();
+    _updateTotalDiscount();
   }
 
-  void _updateFinalSum() {
+  void _updateTotalDiscount() {
     final chosenItems = ref.watch(narociloNotifierProvider);
 
     double totalDiscount = 0;
@@ -68,7 +67,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       }
     }
     setState(() {
-      finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
       _totalDiscount = totalDiscount;
     });
   }
@@ -78,7 +76,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     ref
         .read(narociloNotifierProvider.notifier)
         .updateQuantity(productId, newQuantity);
-    _updateFinalSum();
+    _updateTotalDiscount();
   }
 
   void _removeItem(String productId) {
@@ -90,7 +88,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
     if (itemToRemove != null) {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
-      _updateFinalSum();
+      _updateTotalDiscount();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ne morem izbrisati izdelka")),
@@ -118,7 +116,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               .read(narociloNotifierProvider.notifier)
               .updateDiscount(item.product.id, discountedPrice, discount ?? 0);
         }
-        _updateFinalSum();
+        _updateTotalDiscount();
       });
       return;
     }
@@ -137,7 +135,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       ref
           .read(narociloNotifierProvider.notifier)
           .updateDiscount(item.product.id, discountedPirce, discount ?? 0);
-      _updateFinalSum();
+      _updateTotalDiscount();
     }
   }
 
@@ -239,7 +237,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
 
-        _updateFinalSum();
+        _updateTotalDiscount();
         _isSearchMode = false;
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -262,6 +260,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
+    final totalSum = ref.watch(totalSumProvider);
 
     return Scaffold(
       backgroundColor: AppStyles.white,
@@ -370,87 +369,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             color: AppStyles.silver.withOpacity(0.1),
             child: Column(
               children: [
-                /*  Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                  child: Row(
-                    children: [
-                      Text(
-                        "POPUST:",
-                        style: AppStyles.heading3
-                            .copyWith(fontWeight: FontWeight.normal),
-                      ),
-                      const Spacer(),
-                      ElevatedButton(
-                        onPressed: () {
-                          _submit(null, true, 5);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.white,
-                          elevation: 1,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(40, 40),
-                        ),
-                        child: Text("5%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _submit(null, true, 10);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.white,
-                          elevation: 1,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(40, 40),
-                        ),
-                        child: Text("10%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
-                      ),
-                      const SizedBox(
-                        width: 2,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _submit(null, true, 15);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.white,
-                          elevation: 1,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(40, 40),
-                        ),
-                        child: Text("15%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          openDialog(null, true);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.white,
-                          elevation: 1,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(40, 40),
-                        ),
-                        child: Text("?%",
-                            style: AppStyles.button1
-                                .copyWith(color: AppStyles.black)),
-                      ),
-                      IconButton.filled(
-                        iconSize: 24,
-                        style: IconButton.styleFrom(
-                            backgroundColor: AppStyles.red),
-                        onPressed: () {
-                          _submit(null, true, 0);
-                        },
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                ), */
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.only(
@@ -475,7 +393,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       const Text("SKUPAJ:", style: AppStyles.heading4),
                       const Spacer(),
                       Text(
-                        '${finalSum.toStringAsFixed(2)} €',
+                        '${totalSum.toStringAsFixed(2)} €',
                         style: AppStyles.cardItemName.copyWith(
                             color: AppStyles.black,
                             fontWeight: FontWeight.bold),
@@ -505,86 +423,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                           openDialog(null, true),
                       navigateToRacun: _navigateToBlagajnaScreen),
                 )
-                /* Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (paymentMethods.isNotEmpty) {
-                            await orderService.createOrder(
-                              context,
-                              "GOT",
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text("No payment methods available!")),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.darkOrange,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(100, 50),
-                        ),
-                        child: Text(
-                          "GOTOVINA",
-                          style: AppStyles.button2
-                              .copyWith(color: AppStyles.white),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (paymentMethods.isNotEmpty) {
-                            // Trigger rebuild-safe operation using ref.watch() and async handling
-                            final orderService = ref.watch(orderProvider);
-                            try {
-                              final response = await orderService.createOrder(
-                                context,
-                                "KAR",
-                              );
-                              _showResponseDialog(response);
-                            } catch (e) {
-                              print("Error in createOrder: $e");
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text("Failed to create order!")),
-                              );
-                            }
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text("No payment methods available!")),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.red,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(100, 50),
-                        ),
-                        child: Text("KARTICA",
-                            style: AppStyles.button2
-                                .copyWith(color: AppStyles.white)),
-                      ),
-                      ElevatedButton(
-                        onPressed: _navigateToNacinPlacilaScreen,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.blue,
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(100, 50),
-                        ),
-                        child: Text("OSTALO",
-                            style: AppStyles.button2
-                                .copyWith(color: AppStyles.white)),
-                      ),
-                    ],
-                  ),
-                ), */
               ],
             ),
           ),

@@ -104,9 +104,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleOKPressed() async {
     final inputPassword = _logininputcontroller.text;
-    DateTime currentDate = DateTime.now();
 
     // Format current date and time for default password
+    DateTime currentDate = DateTime.now();
+
     String formattedDate = DateFormat("dd").format(currentDate);
     String formattedTime = DateFormat("mm").format(currentDate);
 
@@ -184,9 +185,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _handleTestConnection() async {
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
-    List<String> responseList = await sendRequest(userId, "echo");
+    try {
+      List<String> responseList = await sendRequest(userId, "echo");
 
-    _showEchoDialog(responseList);
+      if (responseList.isEmpty) {
+        responseList = ["Povezava ni uspela", "N/A", "N/A"];
+      }
+
+      _showEchoDialog(responseList);
+    } catch (e) {
+      _showEchoDialog(["Napaka pri povezavi", "N/A", "N/A"]);
+    }
   }
 
   void _clearText() {
@@ -210,7 +219,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
     } catch (e) {
-      // Display an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Napaka pri osveževanju podatkov: $e')),
       );
@@ -220,6 +228,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
+    DateTime currentDate = DateTime.now();
+
+    String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
+    String formattedTime = DateFormat("hh:mm").format(currentDate);
 
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))
@@ -232,8 +244,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Row(
+              children: [
+                Expanded(
+                    child: Align(
+                  alignment: Alignment.topLeft,
+                  child: Text(formattedDate),
+                )),
+                Expanded(
+                    child: Align(
+                  alignment: Alignment.topRight,
+                  child: Text(formattedTime),
+                ))
+              ],
+            ),
             const SizedBox(
-              height: 48,
+              height: 40,
             ),
             Text('Prijava',
                 style: AppStyles.heading1.copyWith(color: AppStyles.black)),
