@@ -302,9 +302,9 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                       : null,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minWidth: (MediaQuery.of(context).size.width - 32) /
+                      minWidth: (MediaQuery.of(context).size.width - 8) /
                           widget.columnNum, // Prilagodi širino stolpca
-                      maxWidth: (MediaQuery.of(context).size.width - 32) /
+                      maxWidth: (MediaQuery.of(context).size.width - 8) /
                           widget.columnNum,
                     ),
                     child: ItemCard(

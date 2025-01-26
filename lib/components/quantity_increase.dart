@@ -21,6 +21,14 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
     _currentQuantity = widget.quantity;
   }
 
+  @override
+  void didUpdateWidget(covariant QuantityIncrease oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.quantity != _currentQuantity) {
+      _currentQuantity = widget.quantity;
+    }
+  }
+
   void _increase() {
     setState(() {
       _currentQuantity++;

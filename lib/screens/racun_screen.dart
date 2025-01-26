@@ -73,23 +73,22 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     });
   }
 
-  void _handleQuantityChange(double newQuantity, int index) {
-    final chosenItems = ref.read(narociloNotifierProvider);
-    if (index < chosenItems.length) {
-      final item = chosenItems[index];
-
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateQuantity(item.product.id, newQuantity);
-
-      _updateFinalSum();
-    }
+  void _handleQuantityChange(double newQuantity, String productId) {
+    //Change from int index to item ID
+    ref
+        .read(narociloNotifierProvider.notifier)
+        .updateQuantity(productId, newQuantity);
+    _updateFinalSum();
   }
 
-  void _removeItem(int index) {
+  void _removeItem(String productId) {
+    //Change from int index to item ID
     final currentItems = ref.read(narociloNotifierProvider);
-    if (index >= 0 && index < currentItems.length) {
-      NarociloItem itemToRemove = currentItems[index];
+
+    final itemToRemove =
+        currentItems.firstWhere((element) => element.product.id == productId);
+
+    if (itemToRemove != null) {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateFinalSum();
     } else {
@@ -103,7 +102,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     discountController.clear();
   }
 
-  void _submit(int? index, bool isFinalDiscount, [double? discount]) {
+  void _submit(String? productId, bool isFinalDiscount, [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
 
     if (isFinalDiscount) {
@@ -125,10 +124,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     }
 
     // Handle item-specific discount
-    if (index != null) {
+    if (productId != null) {
       double itemDiscount = (discount ?? 0) / 100;
 
-      var item = chosenItems[index];
+      var item = chosenItems.firstWhere((item) => item.product.id == productId);
       double itemPrice =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0;
@@ -142,13 +141,15 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     }
   }
 
-  Future openDialog(int? index, bool isFinalDiscount, [double? discount]) {
+  Future openDialog(String? productId, bool isFinalDiscount,
+      [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
     discountController.clear(); // Always start with a clear text field
 
     // If editing a discount for a specific item
-    if (index != null && !isFinalDiscount) {
-      var item = chosenItems[index];
+    if (productId != null && !isFinalDiscount) {
+      var item =
+          chosenItems.firstWhere((element) => element.product.id == productId);
 
       // Ensure a valid discounted price before calculating the discount percentage
       double originalPrice =
@@ -199,7 +200,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              _submit(index, isFinalDiscount,
+              _submit(productId, isFinalDiscount,
                   double.tryParse(discountController.text));
               SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
               Navigator.of(context).pop();
@@ -339,20 +340,21 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                             style: IconButton.styleFrom(
                                 backgroundColor: AppStyles.darkGreen),
                             onPressed: () {
-                              openDialog(index, false);
+                              openDialog(item.product.id, false);
                             },
                             icon: const Icon(Icons.percent),
                           ),
                           IconButton.filled(
                               style: IconButton.styleFrom(
                                   backgroundColor: AppStyles.red),
-                              onPressed: () => _removeItem(index),
+                              onPressed: () => _removeItem(item.product.id),
                               icon: const Icon(Icons.delete)),
                           const Spacer(),
                           QuantityIncrease(
                             quantity: item.quantity,
                             onQuantityChanged: (newQuantity) {
-                              _handleQuantityChange(newQuantity, index);
+                              _handleQuantityChange(
+                                  newQuantity, item.product.id);
                             },
                           ),
                         ],

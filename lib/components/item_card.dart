@@ -59,13 +59,12 @@ class ItemCard extends StatelessWidget {
                     fontSize: textSize,
                     color: itemNameColor),
               ),
-              if (stStolpcev < 3)
-                Text(
-                  '${itemPrice.toString()} €',
-                  style: TextStyle(fontSize: textSize - 2),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                '${itemPrice.toString()} €',
+                style: TextStyle(fontSize: textSize - 2),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               const SizedBox(height: 2),
               if (stStolpcev < 3)
                 Container(
