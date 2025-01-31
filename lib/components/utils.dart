@@ -1,9 +1,11 @@
 import 'dart:typed_data';
-
 import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:sunmi_printer_plus/enums.dart';
+import 'package:flutter/material.dart'; // Import Material package
+import 'package:sunmi_printer_plus/core/enums/enums.dart';
+import 'package:sunmi_printer_plus/core/styles/sunmi_qrcode_style.dart';
+import 'package:sunmi_printer_plus/core/styles/sunmi_text_style.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
-import 'package:sunmi_printer_plus/sunmi_style.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 
 class Utils {
   static List<String> filterEmptyLines(List<String> lines) {
@@ -15,6 +17,8 @@ class Utils {
   }
 
   static Future<void> setFontSize(bool start) async {
+    final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
+
     try {
       List<int> command;
       if (start) {
@@ -22,60 +26,117 @@ class Utils {
       } else {
         command = [27, 33, 0]; // ESC ! 0 (Default Font)
       }
-
-      await SunmiPrinter.printRawData(Uint8List.fromList(command));
+      await sunmiPrinterPlus.printEscPos(data: command);
       print('Font size set: ${start ? 'Large' : 'Default'}');
+      print("command: $command");
     } catch (e) {
       print('Failed to set font size: $e');
     }
   }
 
-  static Future<void> printTextWithIntegratedSunmi(String text, ref) async {
+  static Future<void> testPrinterCompatibility() async {
+    final SunmiPrinterPlus printer = SunmiPrinterPlus();
+
+    try {
+      // Send ESC/POS command to change font size (Large Font)
+      List<int> fontSizeCommand = [27, 33, 16]; // ESC ! 16 (Large Font)
+      await printer.printEscPos(data: fontSizeCommand);
+
+      // Send a text to test
+      await printer.printText(text: "This is a test with large font");
+
+      // Send ESC/POS command to reset font size (Default Font)
+      List<int> resetFontSizeCommand = [27, 33, 0]; // ESC ! 0 (Default Font)
+      await printer.printEscPos(data: resetFontSizeCommand);
+
+      // Send more text to test
+      await printer.printText(text: "This is a test with default font");
+
+      print("Printer responded to ESC/POS commands");
+    } catch (e) {
+      print("Error during printer test: $e");
+    }
+  }
+
+  static Future<void> printTextWithIntegratedSunmi(
+      BuildContext context, String text, WidgetRef ref) async {
+    final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
     final cleanedText = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final lines = cleanedText.split('\n');
     final filteredLines = filterEmptyLines(lines);
     print("Filtered lines before printing: ${filteredLines.join(', ')}");
 
     try {
-      await SunmiPrinter.initPrinter();
-      await SunmiPrinter.bindingPrinter();
-      await SunmiPrinter.startTransactionPrint(true);
+      // Store the printer status
+      final printerStatus = await sunmiPrinterPlus.getStatus();
+      print("sunmi printer test: $printerStatus");
+
+      if (printerStatus == PrinterStatus.COMM) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri uporabi vgrajenega tiskalnika")),
+        );
+        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+
+        return;
+      } else {
+        print("Printer is not in ERROR state.");
+      }
+      bool largeFontActive = false;
+
       for (final line in filteredLines) {
-        if (line.contains('#QRKODA#')) {
+        if (line.contains('#VELIKOST-START#')) {
+          await setFontSize(true);
+          largeFontActive = true;
+        } else if (line.contains('#VELIKOST-END#')) {
+          await setFontSize(false);
+          largeFontActive = false;
+        } else if (line.contains('#QRKODA#')) {
           String qrCodeData = line.replaceAll('#QRKODA#', '').trim();
           if (qrCodeData.endsWith('#')) {
             qrCodeData = qrCodeData.substring(0, qrCodeData.length - 1);
           }
           if (qrCodeData.isNotEmpty) {
             if (qrCodeData.length > 400) {
-              await SunmiPrinter.printText(
-                  'QR Code data too long. Please check. Frontend',
-                  style: SunmiStyle(align: SunmiPrintAlign.LEFT));
+              await sunmiPrinterPlus.printText(
+                  text: 'QR Code data too long. Please check. Frontend',
+                  style: SunmiTextStyle(align: SunmiPrintAlign.LEFT));
             } else {
-              await SunmiPrinter.printQRCode(qrCodeData, size: 4);
+              await sunmiPrinterPlus.printQrcode(
+                  text: qrCodeData, style: SunmiQrcodeStyle(qrcodeSize: 4));
             }
           } else {
             print('QR code data is empty or invalid.');
           }
-        } else if (line.contains('#VELIKOST-START#')) {
-          await setFontSize(true);
-        } else if (line.contains('#VELIKOST-END#')) {
-          await setFontSize(false);
         } else {
-          await SunmiPrinter.printText(line, style: SunmiStyle());
+          await sunmiPrinterPlus.printText(text: line);
         }
       }
 
-      // Add extra blank lines at the end
       const int extraBlankLines = 3;
       for (int i = 0; i < extraBlankLines; i++) {
-        await SunmiPrinter.printText(' ', style: SunmiStyle());
+        await sunmiPrinterPlus.printText(
+          text: ' ',
+        );
       }
       ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-
-      await SunmiPrinter.exitTransactionPrint(true);
     } catch (e) {
-      print('Error during printing: $e');
+      if (e
+          .toString()
+          .contains('kotlin.UninitializedPropertyAccessException')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Naprava ne podpira integriranega tiskalnika."),
+          ),
+        );
+        print('Sunmi Printer not available');
+        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+      } else {
+        print('Error during printing: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+      }
     }
   }
 }

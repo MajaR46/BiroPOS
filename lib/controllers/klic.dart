@@ -70,7 +70,8 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
       ];
     }
   } on SocketException catch (e) {
-    throw Exception('Network Error: Unable to reach server. ${e.message}');
+    throw Exception(
+        'Težava pri vzpostavljanju povezave s strežnikom. Ni vzpostavljene internetne povezave ${e.message}');
   } on TimeoutException catch (e) {
     throw Exception('Timeout Error: ${e.message}');
   } catch (e) {

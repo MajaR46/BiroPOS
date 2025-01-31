@@ -437,17 +437,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             Color textColor;
             Color backgroundColor;
 
-            if (defaultColors == false) {
-              backgroundColor = (selectedCategoryState == category)
-                  ? AppStyles.blue
-                  : AppStyles.silver.withOpacity(0.1);
-              textColor = (selectedCategoryState == category)
-                  ? Colors.white
-                  : AppStyles.darkGrey;
-            } else {
-              backgroundColor = assignedBackgroundColor;
-              textColor = assignedTextColor;
-            }
+            backgroundColor = assignedBackgroundColor;
+            textColor = assignedTextColor;
 
             return GestureDetector(
               onTap: () {

@@ -8,9 +8,9 @@ class AppStyles {
   static const Color silver = Color(0xFFBFBFBF);
   static const Color red = Color(0xffFC4A4A);
   static const Color pink = Color(0xffeD8ACF);
-  static const Color yellow = Color(0xffFFEA4C);
+  static const Color yellow = Color(0xffefcc00);
   static const Color green = Color(0xff7DCE82);
-  static const Color gold = Color(0xffffbf00);
+  static const Color gold = Color.fromARGB(255, 182, 143, 26);
   static const Color darkGrey = Color(0xff696969);
 
   static const Color lightBrown = Color(0xffFEF8F1);

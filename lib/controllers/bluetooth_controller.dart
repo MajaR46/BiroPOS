@@ -120,8 +120,12 @@ class BluetoothService {
         );
         print('BluetoothService: sendData success: $result');
       } on PlatformException catch (e) {
-        result = 'Failed to send data: ${e.message}';
-        print(result);
+        String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
+
+        if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
+          errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
+        }
+        result = errorMessage;
       }
 
       // Ensure the context is passed before attempting to display SnackBar

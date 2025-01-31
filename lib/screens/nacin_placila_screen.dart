@@ -87,7 +87,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                                 fontWeight: FontWeight.normal,
                                 color: AppStyles.blue)),
                       ),
-                      if (davcnaSt != null) // Only show if davcnaSt is not null
+                      if (davcnaSt.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Text(

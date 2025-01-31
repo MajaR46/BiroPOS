@@ -363,9 +363,10 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     'F': AppStyles.yellow,
     'G': AppStyles.darkGrey,
     'H': AppStyles.darkBlue,
-    'I': AppStyles.darkBlue,
+    'I': AppStyles.darkGreen,
     'J': AppStyles.darkPurple,
     'K': AppStyles.green,
+    'L': AppStyles.gold
 
     // Add more mappings as needed
   };

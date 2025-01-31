@@ -97,6 +97,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
                 SizedBox(
                   width: 250,
                   child: TextField(
+                    autofocus: true,
                     controller: _kopijaRacunController,
                     cursorColor: AppStyles.blue,
                     decoration: InputDecoration(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:biro_pos/controllers/bluetooth_controller.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/components/numpad.dart';
@@ -17,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 enum ResponseCategory { osebje }
 
@@ -47,12 +50,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
   String verzijaPrograma = '5.0';
+  String formattedDate = '';
+  String formattedTime = '';
+  late Timer _timer;
 
   @override
   void initState() {
     super.initState();
     _initializeBluetooth();
     _loadLastRefreshTime();
+
+    DateTime currentDate = DateTime.now();
+    formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
+    formattedTime = DateFormat("HH:mm").format(currentDate);
+
+    setState(() {});
+
+    _timer = Timer.periodic(const Duration(seconds: 30), (Timer timer) {
+      DateTime currentDate = DateTime.now();
+      setState(() {
+        formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
+        formattedTime = DateFormat("HH:mm").format(currentDate);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    _logininputcontroller.dispose();
+    super.dispose();
   }
 
   Future<void> _loadLastRefreshTime() async {
@@ -182,6 +209,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
   }
 
+  static Future<void> testPrinterCompatibility() async {
+    final SunmiPrinterPlus printer = SunmiPrinterPlus();
+
+    try {
+      // Nastavite višjo pisavo (ESC ! 16)
+      List<int> tallerFontCommand = [27, 33, 16]; // Samo višja pisava
+      await printer.printEscPos(data: tallerFontCommand);
+      await printer.printText(text: "To je višja pisava\n");
+
+      // Ponastavite na privzeto pisavo (ESC ! 0)
+      List<int> defaultFontCommand = [27, 33, 0]; // Privzeta pisava
+      await printer.printEscPos(data: defaultFontCommand);
+      await printer.printText(text: "To je privzeta pisava\n");
+
+      print("Test pisave je bil uspešno izveden.");
+    } catch (e) {
+      print("Napaka pri testiranju tiskalnika: $e");
+    }
+  }
+
   void _handleTestConnection() async {
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
@@ -228,10 +275,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
-    DateTime currentDate = DateTime.now();
-
-    String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
-    String formattedTime = DateFormat("hh:mm").format(currentDate);
 
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))

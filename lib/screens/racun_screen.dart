@@ -180,6 +180,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           style: AppStyles.heading2,
         ),
         content: TextField(
+          autofocus: true,
           controller: discountController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
@@ -260,7 +261,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
-    final totalSum = ref.watch(totalSumProvider);
+    final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     return Scaffold(
       backgroundColor: AppStyles.white,

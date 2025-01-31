@@ -175,6 +175,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                         child: SizedBox(
                           width: 250,
                           child: TextField(
+                            autofocus: true,
                             controller: _opisController,
                             cursorHeight: 20,
                             cursorColor: AppStyles.blue,

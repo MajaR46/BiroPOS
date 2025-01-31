@@ -79,6 +79,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               SizedBox(
                 width: 250,
                 child: TextField(
+                  autofocus: true,
                   controller: _newTableController,
                   cursorColor: AppStyles.blue,
                   decoration: InputDecoration(

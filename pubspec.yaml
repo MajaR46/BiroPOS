@@ -45,7 +45,7 @@ dependencies:
   cupertino_icons: ^1.0.6
   http: 1.3.0
   flutter_riverpod: ^2.6.1
-  sunmi_printer_plus: ^2.1.3   
+  sunmi_printer_plus: 4.0.2
   flutter_blue_plus: ^1.35.2
   esc_pos_utils: ^1.1.0
   hive_generator: ^1.1.0

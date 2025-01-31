@@ -19,6 +19,7 @@ class PorocilaScreen extends ConsumerStatefulWidget {
 class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   List<String> porocila = [];
   List<String> naslovPorocila = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -40,8 +41,11 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
         naslovPorocila = extractedTexts;
       });
     } catch (e) {
+      setState(() {
+        isLoading = true;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni izdelkov")),
+        const SnackBar(content: Text("Ni vzpostavljene povezave")),
       );
     }
   }
@@ -85,28 +89,30 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.separated(
-              itemCount: naslovPorocila.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: GestureDetector(
-                    onTap: () => _prikaziPorocila(naslovPorocila[index]),
-                    child: ListTile(
-                      title: Text(naslovPorocila[index]),
-                    ),
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.separated(
+                    itemCount: naslovPorocila.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: GestureDetector(
+                          onTap: () => _prikaziPorocila(naslovPorocila[index]),
+                          child: ListTile(
+                            title: Text(naslovPorocila[index]),
+                          ),
+                        ),
+                      );
+                    },
+                    separatorBuilder: (context, index) {
+                      return Divider(
+                        indent: 7,
+                        endIndent: 7,
+                        color: AppStyles.silver.withOpacity(0.6),
+                        thickness: 1,
+                      );
+                    },
                   ),
-                );
-              },
-              separatorBuilder: (context, index) {
-                return Divider(
-                  indent: 7,
-                  endIndent: 7,
-                  color: AppStyles.silver.withOpacity(0.6),
-                  thickness: 1,
-                );
-              },
-            ),
           ),
         ],
       ),

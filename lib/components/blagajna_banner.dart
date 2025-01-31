@@ -10,10 +10,8 @@ class BlagajnaBanner extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Access the list of items in the cart from the provider
     final cartItems = ref.watch(narociloNotifierProvider);
 
-    // Get the currently selected item, quantity, and total sum from the cartItems
     final selectedItem = cartItems.isNotEmpty ? cartItems.last : null;
     final itemQuantity = selectedItem?.quantity ?? 0.0;
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();

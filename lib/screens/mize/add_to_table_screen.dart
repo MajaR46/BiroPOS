@@ -38,7 +38,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
   Future<void> _fetchTables() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
     });
 
     try {
@@ -73,8 +73,11 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     } catch (e) {
       setState(() {
         _errorMessage = 'Error fetching tables: $e';
-        _isLoading = false;
+        _isLoading = true;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ni vzpostavljene povezave")),
+      );
     }
   }
 

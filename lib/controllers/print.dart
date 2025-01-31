@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:biro_pos/components/utils.dart';
@@ -8,9 +9,7 @@ import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sunmi_printer_plus/enums.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
-import 'package:sunmi_printer_plus/sunmi_style.dart';
 
 class Print {
   final WidgetRef ref;
@@ -27,7 +26,7 @@ class Print {
 
     if (bluetoothPrintanje == true) {
       try {
-        await ProcessPayment.checkBluetooth();
+        await ProcessPayment.isBluetoothConnected(context, text);
 
         print("Attempting to print via Bluetooth...");
 
@@ -45,7 +44,7 @@ class Print {
       }
     } else {
       try {
-        await Utils.printTextWithIntegratedSunmi(text.join('\n'), ref);
+        await Utils.printTextWithIntegratedSunmi(context, text.join('\n'), ref);
         print("PRINTANO Z INTEGRIRANIM");
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -33,12 +33,16 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
 
       String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
       List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
+      print('api response $apiResponse');
 
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
       final printableResponse = filteredResponse.join("\r\n");
-      await Print.printText(context, apiResponse, ref);
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-      Navigator.of(context).pop();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        FocusScope.of(context).unfocus();
+        await Print.printText(context, apiResponse, ref);
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        Navigator.of(context).pop();
+      });
     } catch (e) {
       setState(() {
         _apiResponse = 'Error fetching data';
@@ -80,6 +84,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
                 SizedBox(
                   width: 250,
                   child: TextField(
+                    autofocus: true,
                     controller: _stornoRacunController,
                     cursorColor: AppStyles.blue,
                     decoration: InputDecoration(
@@ -104,7 +109,9 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
               padding: const EdgeInsets.only(right: 16, bottom: 32),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: _handleData),
+                child: OKButton(
+                  onPressed: _handleData,
+                ),
               ),
             ),
           ],

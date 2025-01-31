@@ -63,23 +63,35 @@ void categorizeResponse(List<String> items) {
 }
 
 Future<void> getTables() async {
-  List<String> apiResponseList = await sendRequest(userId, "VrniSeznamMiz");
-  await box.put('table_data', apiResponseList);
+  try {
+    List<String> apiResponseList = await sendRequest(userId, "VrniSeznamMiz");
+    await box.put('table_data', apiResponseList);
+  } catch (e) {
+    throw Exception("Napaka pri vzpostavljanju povezave: $e");
+  }
 }
 
 Future<void> getOpenTables() async {
-  if (userId != null) {
-    List<String> apiResponseList =
-        await sendRequest(userId, "VrniOdprteMize\t$userId");
-    await box.put('open_table_data', apiResponseList);
-  } else {
-    print("Error: User ID not found in SharedPreferences.");
+  try {
+    if (userId != null) {
+      List<String> apiResponseList =
+          await sendRequest(userId, "VrniOdprteMize\t$userId");
+      await box.put('open_table_data', apiResponseList);
+    } else {
+      print("Error: User ID not found in SharedPreferences.");
+    }
+  } catch (e) {
+    throw Exception("Napaka pri vzpostavljanju povezave: $e");
   }
 }
 
 Future<void> getPorocila() async {
-  List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
-  await box.put('porocilo_data', apiResponseList);
+  try {
+    List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
+    await box.put('porocilo_data', apiResponseList);
+  } catch (e) {
+    throw Exception("Napaka pri vzpostavljanju povezave $e");
+  }
 }
 
 Future<void> savePodjetjeDavcnaToPrefs() async {

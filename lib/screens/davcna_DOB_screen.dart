@@ -102,6 +102,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
             SizedBox(
               width: 300,
               child: TextField(
+                autofocus: true,
                 showCursor: true,
                 readOnly: true,
                 controller: _dobController,

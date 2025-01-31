@@ -14,9 +14,10 @@ class OpenTablesScreen extends StatefulWidget {
 }
 
 class _OpenTablesScreenState extends State<OpenTablesScreen> {
-  bool _isLoading = true;
   List<Map<String, String>> odprteMize = [];
   int? _selectedCardIndex; // Track selected card index
+
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -26,21 +27,24 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
   Future<void> _fetchOpenTables() async {
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
     });
 
     String? userId = SessionManager().getLoggedInUserSifra();
 
     try {
       String txtData = 'VrniOdprteMize\t$userId';
+
       List<String> apiResponseList = await sendRequest(userId!, txtData);
 
       List<Map<String, String>> mize = [];
 
       for (String line in apiResponseList) {
-        String imeMize = line.split('|')[1];
-        String znesek = line.split('|')[2].replaceAll(',', '.');
-        String user = line.split('|')[3];
+        List<String> parts = line.split('|');
+        if (parts.length < 4) continue;
+        String imeMize = parts[1];
+        String znesek = parts[2].replaceAll(',', '.');
+        String user = parts[3];
 
         mize.add({
           'imeMize': imeMize,
@@ -55,8 +59,12 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
       }
     } catch (e) {
       setState(() {
-        _isLoading = false;
+        _isLoading = true;
       });
+      print("error $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ni vzpostavljene povezave")),
+      );
     }
   }
 
@@ -67,7 +75,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
   }
 
   void _ok() {
-    if (_selectedCardIndex != null) {
+    if (_selectedCardIndex != null && odprteMize.isNotEmpty) {
       final selectedCard = odprteMize[_selectedCardIndex!];
       final imeMize = selectedCard['imeMize'];
 

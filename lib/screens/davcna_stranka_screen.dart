@@ -42,6 +42,7 @@ class DavcnaStrankaScreen extends ConsumerWidget {
             SizedBox(
               width: 300,
               child: TextField(
+                autofocus: true,
                 showCursor: true,
                 readOnly: true,
                 controller: _strankaController,
