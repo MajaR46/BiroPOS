@@ -29,49 +29,22 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
     _dobController.clear();
   }
 
-  void _showResponseDialog(
-    List<String> response,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Server Response"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(response.join('\n')), // Display the response line by line
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: const Text("Close"),
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const BlagajnaScreen()));
-                clearDavcna(
-                    ref); // Execute the callback to clear items after dialog is closed
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     void createOrder(davcnaSt) async {
-      if (davcnaSt != null) {
-        final response = await orderService.createOrder(
-            context, "TipDokumenta.DOB", davcnaSt);
-        _showResponseDialog(response);
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Ni vnesene davčne")));
+      try {
+        int? davcnaNumber = int.tryParse(davcnaSt); // Convert to int
+
+        if (davcnaNumber != null && davcnaSt.length == 8) {
+          final response = await orderService.createOrder(
+              context, "TipDokumenta.DOB", davcnaSt);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text("Davčna številka mora biti dolga 8 znakov")));
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Napaka pri vnosu davčne številke: $e")));
       }
     }
 

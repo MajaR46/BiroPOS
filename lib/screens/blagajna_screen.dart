@@ -27,12 +27,6 @@ import 'package:hive/hive.dart';
 
 import 'package:flutter/material.dart';
 
-Map<String, Color> itemColorMapping = {
-  'D': Colors.red,
-  'G': const Color.fromARGB(255, 33, 100, 242),
-  // Add more mappings as needed
-};
-
 class BlagajnaScreen extends ConsumerStatefulWidget {
   const BlagajnaScreen({super.key});
 
@@ -57,6 +51,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   List<Item> izdelki = [];
   late OrderService orderService;
   late int stStolpcev = 1;
+  String numbers2String = '';
+  bool isSearching = false;
 
   @override
   void initState() {
@@ -64,7 +60,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     _handleData();
     searchController.addListener(() {
-      setState(() {});
+      setState(() {
+        _updateNumbersString();
+      });
     });
 
     Future.microtask(() {
@@ -76,7 +74,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Update the final sum and total discount when the dependencies change
     _updateFinalSum();
   }
 
@@ -261,6 +258,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       ref.read(selectedItemProvider.notifier).state = existingItem;
       itemQuantity = existingItem.quantity.toDouble(); // Synchronize quantity
       _updateFinalSum(); // Update the total sum
+      searchController.clear();
+      numbers2String = '';
+      isSearching = false;
     });
   }
 
@@ -307,7 +307,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   List<int> extractNumbers(String input) {
     // Use RegExp to find all numbers in the input string.
     final matches = RegExp(r'\d').allMatches(input);
-    return matches.map((match) => int.parse(match.group(0)!)).toList();
+    final searchInput =
+        matches.map((match) => int.parse(match.group(0)!)).toList();
+    print("searchInput $searchInput");
+    return searchInput;
   }
 
   Map<int, List<String>> numberToLetters = {
@@ -356,8 +359,19 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }
       result = newResult;
     }
-
     return result;
+  }
+
+  void _updateNumbersString() {
+    if (searchController.text.isNotEmpty) {
+      RegExp regExp = RegExp(r'\d+');
+      Iterable<Match> matches = regExp.allMatches(searchController.text);
+      List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
+      numbers2String = numbers2.join();
+      isSearching = true;
+    } else {
+      isSearching = false;
+    }
   }
 
 //filtriraj izdelke glede na kategorijo
@@ -388,8 +402,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     RegExp regExp = RegExp(r'\d+');
     Iterable<Match> matches = regExp.allMatches(searchText);
+
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
+    print("number2srting $numbers2String");
 
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
       final searchPattern = RegExp(searchQuery, caseSensitive: false);
@@ -557,18 +573,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: GestureDetector(
-                        onHorizontalDragEnd: selectedItem != null
-                            ? (details) {
-                                if (details.velocity.pixelsPerSecond.dx > 0) {
-                                  _decreaseQuantity();
-                                } else if (details.velocity.pixelsPerSecond.dx <
-                                    0) {
-                                  _increaseQuantity();
+                          onHorizontalDragEnd: selectedItem != null
+                              ? (details) {
+                                  if (details.velocity.pixelsPerSecond.dx > 0) {
+                                    _decreaseQuantity();
+                                  } else if (details
+                                          .velocity.pixelsPerSecond.dx <
+                                      0) {
+                                    _increaseQuantity();
+                                  }
                                 }
-                              }
-                            : null,
-                        child: const BlagajnaBanner(),
-                      ),
+                              : null,
+                          child: BlagajnaBanner(
+                              numbers2String:
+                                  isSearching ? numbers2String : null)),
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,

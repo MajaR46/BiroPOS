@@ -15,6 +15,19 @@ class DavcnaStrankaScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    void _setDavcna() {
+      final String davcnaSt = _strankaController.text;
+
+      if (davcnaSt.length == 8) {
+        ref.read(taxNumberProvider.notifier).state = davcnaSt;
+
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Davčna številka mora imeti 8 znakov!")));
+      }
+    }
+
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: AppBar(
@@ -64,17 +77,7 @@ class DavcnaStrankaScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 32),
-            Numpad(
-              controller: _strankaController,
-              onOKPressed: () {
-                // Set the tax number in the provider
-                final String davcnaSt = _strankaController.text;
-                ref.read(taxNumberProvider.notifier).state = davcnaSt;
-
-                // Optionally, navigate back or show a message
-                Navigator.of(context).pop();
-              },
-            ),
+            Numpad(controller: _strankaController, onOKPressed: _setDavcna),
           ],
         ),
       ),

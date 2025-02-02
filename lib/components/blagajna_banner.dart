@@ -4,9 +4,8 @@ import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 
 class BlagajnaBanner extends ConsumerWidget {
-  const BlagajnaBanner({
-    super.key,
-  });
+  final String? numbers2String;
+  const BlagajnaBanner({super.key, this.numbers2String});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -31,7 +30,9 @@ class BlagajnaBanner extends ConsumerWidget {
               children: [
                 const Text("Izbrano:", style: AppStyles.paragraph3),
                 Text(
-                  selectedItem != null ? selectedItem.product.name : '',
+                  numbers2String != null
+                      ? numbers2String!
+                      : (selectedItem != null ? selectedItem.product.name : ''),
                   style: AppStyles.paragraph2
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
