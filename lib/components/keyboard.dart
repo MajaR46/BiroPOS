@@ -118,9 +118,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
 
-  void _paymentKartica() {
+  void _paymentKartica() async {
+    final settings = ref.watch(settingsProvider);
+    final tiskajNarociloPriRacunu =
+        settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
     try {
       paymentService.processPayment(context, "KAR");
+      if (tiskajNarociloPriRacunu == true) {
+        await Narocilo.createNarocilo(ref, false, context);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));

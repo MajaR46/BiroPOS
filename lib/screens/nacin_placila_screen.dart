@@ -1,8 +1,10 @@
+import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
@@ -36,10 +38,16 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     final paymentMethods = ref.watch(paymentMethodProvider);
     final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
     orderService = ref.watch(orderProvider);
+    final settings = ref.watch(settingsProvider);
+    final tiskajNarociloPriRacunu =
+        settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
 
-    void paymentPrint(String paymentMethod, String davcnaSt) {
+    void paymentPrint(String paymentMethod, String davcnaSt) async {
       try {
         paymentService.processPayment(context, paymentMethod, davcnaSt);
+        if (tiskajNarociloPriRacunu == true) {
+          await Narocilo.createNarocilo(ref, false, context);
+        }
         clearDavcna(ref);
       } catch (e) {
         print("Težava z bluetooth");
