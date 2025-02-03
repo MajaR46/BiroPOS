@@ -1,9 +1,11 @@
 import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DavcnaDOBScreen extends ConsumerStatefulWidget {
@@ -29,6 +31,23 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
     _dobController.clear();
   }
 
+  void _processAndPrintResponse(List<String> apiResponse) async {
+    try {
+      await Print.printText(context, apiResponse, ref);
+      await Print.printText(context, apiResponse, ref);
+      if (mounted) {
+        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     void createOrder(davcnaSt) async {
@@ -38,13 +57,14 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
         if (davcnaNumber != null && davcnaSt.length == 8) {
           final response = await orderService.createOrder(
               context, "TipDokumenta.DOB", davcnaSt);
+          _processAndPrintResponse(response);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text("Davčna številka mora biti dolga 8 znakov")));
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka pri vnosu davčne številke: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Napaka: $e")));
       }
     }
 

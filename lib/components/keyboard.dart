@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
@@ -101,9 +102,16 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   }
  */
 
-  void _paymentGotovina() {
+  void _paymentGotovina() async {
+    final settings = ref.watch(settingsProvider);
+    final tiskajNarociloPriRacunu =
+        settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+
     try {
       paymentService.processPayment(context, "GOT");
+      if (tiskajNarociloPriRacunu == true) {
+        await Narocilo.createNarocilo(ref, false, context);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));

@@ -11,7 +11,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
           'isCheckedPregledNarocil': false,
           'isCheckedHHCene': false,
           'isCheckedPregledNarocilTiskalnik': false,
-          'isCheckedBarve': false
+          'isCheckedBarve': false,
+          'isCheckedTiskajNarociloPriRacunu': false
         }) {
     _loadSettings();
   }
@@ -30,6 +31,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
     final pregledNarocilTiskalnik =
         prefs.getBool('isCheckedPregledNarocilTiskalnik') ?? false;
     final itemBarve = prefs.getBool('isCheckedBarve') ?? false;
+    final tiskajNarociloPriRacunu =
+        prefs.getBool('isCheckedTiskajNarociloPriRacunu') ?? false;
 
     // Update the state with both values
     state = {
@@ -41,6 +44,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedHHCene': hhCene,
       'isCheckedPregledNarocilTiskalnik': pregledNarocilTiskalnik,
       'isCheckedBarve': itemBarve,
+      'isCheckedTiskajNarociloPriRacunu': tiskajNarociloPriRacunu
     };
   }
 
@@ -90,6 +94,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void toggleBarve(bool isEnabled) {
     state = {...state, 'isCheckedBarve': isEnabled};
     _saveSetting('isCheckedBarve', isEnabled);
+  }
+
+  void toggleTiskajNarociloPriRacunu(bool isEnabled) {
+    state = {...state, 'isCheckedTiskajNarociloPriRacunu': isEnabled};
+    _saveSetting('isCheckedTiskajNarociloPriRacunu', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.
