@@ -1,6 +1,8 @@
+import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/new_table_screen.dart';
@@ -83,13 +85,14 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
   void _addToExistingTable(String tableNumber) async {
     final tableNotifier = ref.read(tableNotifierProvider.notifier);
+    final settings = ref.watch(settingsProvider);
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
 
     List<String> serverResponse =
         await tableNotifier.addToExistingTable(context, tableNumber);
 
-    if (serverResponse.isNotEmpty) {
-      Navigator.push(context,
-          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
+    if (tiskajNarocilo == true) {
+      await Narocilo.createNarocilo(ref, true, context, tableNumber);
     }
 
     ref.read(narociloNotifierProvider.notifier).state = [];
@@ -136,6 +139,13 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                             child: GestureDetector(
                               onTap: () {
                                 _addToExistingTable(tableNumber);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const BlagajnaScreen()),
+                                );
+                                ;
                               },
                               child: Card(
                                 color: AppStyles.silver.withOpacity(0.1),

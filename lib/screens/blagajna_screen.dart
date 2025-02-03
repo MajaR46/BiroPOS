@@ -537,7 +537,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         backgroundColor: AppStyles.white,
         iconTheme: const IconThemeData(color: AppStyles.blue),
         title: Text(
-          user!,
+          user ?? '',
           style: AppStyles.paragraph3
               .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
         ),

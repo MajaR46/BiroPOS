@@ -18,7 +18,7 @@ class Narocilo {
     String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
     final narociloItems = ref.watch(narociloNotifierProvider);
-    int orderNumber = ref.read(orderNumberProvider.state).state;
+    int orderNumber = ref.watch(orderNumberProvider);
 
     narocilo.add("NAROCILO");
     narocilo.add("Datum: $formattedDate  $formattedTime");
@@ -45,7 +45,7 @@ class Narocilo {
 
     narocilo.add("--------------------------------");
 
-    ref.read(orderNumberProvider.state).state++;
+    ref.read(orderNumberProvider.notifier).setOrderNumber(orderNumber + 1);
 
     NarociloPrinter().printajNarocilo(narocilo, context, ref);
   }

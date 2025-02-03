@@ -115,3 +115,13 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
     print("No podjetje data found.");
   }
 }
+
+Future<void> saveOrderNumber(int orderNumber) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('orderNumber', orderNumber);
+}
+
+Future<int> loadOrderNumber() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt('orderNumber') ?? 1;
+}

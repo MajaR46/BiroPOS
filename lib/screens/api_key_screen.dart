@@ -334,6 +334,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                               setState(() {
                                 _isCheckedTiskajNarocilo = value ?? false;
                               });
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .toggleTiskajNarocilo(value ?? false);
                             },
                           ),
                         ],
