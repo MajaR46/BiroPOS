@@ -16,48 +16,6 @@ class Utils {
         .toList();
   }
 
-  static Future<void> setFontSize(bool start) async {
-    final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
-
-    try {
-      List<int> command;
-      if (start) {
-        command = [27, 33, 16]; // ESC ! 16 (Large Font)
-      } else {
-        command = [27, 33, 0]; // ESC ! 0 (Default Font)
-      }
-      await sunmiPrinterPlus.printEscPos(data: command);
-      print('Font size set: ${start ? 'Large' : 'Default'}');
-      print("command: $command");
-    } catch (e) {
-      print('Failed to set font size: $e');
-    }
-  }
-
-  static Future<void> testPrinterCompatibility() async {
-    final SunmiPrinterPlus printer = SunmiPrinterPlus();
-
-    try {
-      // Send ESC/POS command to change font size (Large Font)
-      List<int> fontSizeCommand = [27, 33, 16]; // ESC ! 16 (Large Font)
-      await printer.printEscPos(data: fontSizeCommand);
-
-      // Send a text to test
-      await printer.printText(text: "This is a test with large font");
-
-      // Send ESC/POS command to reset font size (Default Font)
-      List<int> resetFontSizeCommand = [27, 33, 0]; // ESC ! 0 (Default Font)
-      await printer.printEscPos(data: resetFontSizeCommand);
-
-      // Send more text to test
-      await printer.printText(text: "This is a test with default font");
-
-      print("Printer responded to ESC/POS commands");
-    } catch (e) {
-      print("Error during printer test: $e");
-    }
-  }
-
   static Future<void> printTextWithIntegratedSunmi(
       BuildContext context, String text, WidgetRef ref) async {
     final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
@@ -81,15 +39,13 @@ class Utils {
       } else {
         print("Printer is not in ERROR state.");
       }
-      bool largeFontActive = false;
+      bool isBold = false;
 
       for (final line in filteredLines) {
         if (line.contains('#VELIKOST-START#')) {
-          await setFontSize(true);
-          largeFontActive = true;
+          isBold = true;
         } else if (line.contains('#VELIKOST-END#')) {
-          await setFontSize(false);
-          largeFontActive = false;
+          isBold = false;
         } else if (line.contains('#QRKODA#')) {
           String qrCodeData = line.replaceAll('#QRKODA#', '').trim();
           if (qrCodeData.endsWith('#')) {
@@ -108,7 +64,8 @@ class Utils {
             print('QR code data is empty or invalid.');
           }
         } else {
-          await sunmiPrinterPlus.printText(text: line);
+          await sunmiPrinterPlus.printText(
+              text: line, style: SunmiTextStyle(bold: isBold));
         }
       }
 
