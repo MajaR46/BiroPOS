@@ -332,7 +332,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                     // Button 3
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: OKButton(onPressed: _ok),
+                      child: OKButton(onPressed: _ok, text: 'OK'),
                     ),
                   ],
                 ),

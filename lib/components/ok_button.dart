@@ -3,22 +3,21 @@ import 'package:biro_pos/app_styles.dart';
 
 class OKButton extends StatelessWidget {
   final VoidCallback onPressed;
-  const OKButton({super.key, required this.onPressed});
+  final String text;
+
+  const OKButton({super.key, required this.onPressed, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 50,
-      width: 80,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppStyles.blue,
-        ),
-        child: Text(
-          'OK',
-          style: AppStyles.button1.copyWith(color: AppStyles.white),
-        ),
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppStyles.blue,
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+      ),
+      child: Text(
+        text,
+        style: AppStyles.button1.copyWith(color: AppStyles.white),
       ),
     );
   }

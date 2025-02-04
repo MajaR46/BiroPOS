@@ -124,7 +124,10 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
               padding: const EdgeInsets.only(right: 16, bottom: 32),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: _prenosMize),
+                child: OKButton(
+                  onPressed: _prenosMize,
+                  text: 'OK',
+                ),
               ),
             ),
           ],

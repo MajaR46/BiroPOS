@@ -66,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     setState(() {});
 
-    _timer = Timer.periodic(const Duration(seconds: 30), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 15), (Timer timer) {
       DateTime currentDate = DateTime.now();
       setState(() {
         formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);

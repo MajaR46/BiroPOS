@@ -520,7 +520,10 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
               padding: const EdgeInsets.only(right: 16, bottom: 24, top: 8),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: _savePreferences),
+                child: OKButton(
+                  onPressed: _savePreferences,
+                  text: 'Shrani',
+                ),
               ),
             ),
           ],

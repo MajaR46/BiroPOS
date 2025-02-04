@@ -132,7 +132,10 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
               padding: const EdgeInsets.only(right: 16, bottom: 32),
               child: Align(
                 alignment: Alignment.bottomRight,
-                child: OKButton(onPressed: _handleData),
+                child: OKButton(
+                  onPressed: _handleData,
+                  text: 'OK',
+                ),
               ),
             ),
           ],

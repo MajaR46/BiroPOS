@@ -258,6 +258,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                     SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();
               },
+              text: 'OK',
             ),
           ),
         ),

@@ -111,6 +111,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
                 alignment: Alignment.bottomRight,
                 child: OKButton(
                   onPressed: _handleData,
+                  text: 'OK',
                 ),
               ),
             ),

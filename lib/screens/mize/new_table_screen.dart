@@ -105,15 +105,18 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
             padding: const EdgeInsets.only(right: 16, bottom: 32),
             child: Align(
               alignment: Alignment.bottomRight,
-              child: OKButton(onPressed: () {
-                _addToNewTable(_newTableController.text);
-                ref.read(narociloNotifierProvider.notifier).state = [];
+              child: OKButton(
+                onPressed: () {
+                  _addToNewTable(_newTableController.text);
+                  ref.read(narociloNotifierProvider.notifier).state = [];
 
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const BlagajnaScreen()));
-              }),
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BlagajnaScreen()));
+                },
+                text: 'OK',
+              ),
             ),
           ),
         ],

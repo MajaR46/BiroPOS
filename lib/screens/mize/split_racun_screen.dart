@@ -236,7 +236,10 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                     left: 16, bottom: 24, top: 8, right: 16),
                 child: Align(
                   alignment: Alignment.bottomRight,
-                  child: OKButton(onPressed: _ok),
+                  child: OKButton(
+                    onPressed: _ok,
+                    text: 'OK',
+                  ),
                 ),
               ),
             ],
