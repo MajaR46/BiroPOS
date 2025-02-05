@@ -291,10 +291,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
       ),
-      body: RawKeyboardListener(
+      body: KeyboardListener(
+        // Replaced RawKeyboardListener with KeyboardListener
         focusNode: _barcodeFocusNode,
-        onKey: (RawKeyEvent event) {
-          if (event is RawKeyDownEvent) {
+        onKeyEvent: (event) {
+          // Changed onKey to onKeyEvent
+          if (event.runtimeType == KeyDownEvent) {
+            // Changed RawKeyDownEvent to KeyDownEvent
             if (event.physicalKey == PhysicalKeyboardKey.enter) {
               print('ENTER');
               // Process the scanned barcode here
@@ -305,8 +308,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               }
             } else {
               print(
-                  '_handleKeyEvent Event data keyLabel ${event.data.keyLabel}');
-              _scannedBarcode += event.data.keyLabel;
+                  '_handleKeyEvent Event data keyLabel ${event.logicalKey.keyLabel}'); // Changed event.data.keyLabel to event.logicalKey.keyLabel
+              _scannedBarcode += event.logicalKey.keyLabel ??
+                  ""; //Add a null check as logicalKey.keyLabel can be null
             }
 
             print('scannedBarcode: $_scannedBarcode');
