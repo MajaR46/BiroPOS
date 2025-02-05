@@ -25,18 +25,30 @@ class BlagajnaBanner extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Item details
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Izbrano:", style: AppStyles.paragraph3),
-                Text(
-                  numbers2String != null
-                      ? numbers2String!
-                      : (selectedItem != null ? selectedItem.product.name : ''),
-                  style: AppStyles.paragraph2
-                      .copyWith(fontWeight: FontWeight.bold),
+            Flexible(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 2 / 3,
                 ),
-              ],
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text("Izbrano:", style: AppStyles.paragraph3),
+                    Text(
+                      numbers2String != null
+                          ? numbers2String!
+                          : (selectedItem != null
+                              ? selectedItem.product.name
+                              : ''),
+                      style: AppStyles.paragraph2
+                          .copyWith(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
             ),
             // Quantity details
             Column(

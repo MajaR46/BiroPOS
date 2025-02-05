@@ -1,6 +1,7 @@
 import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
+import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -502,7 +503,7 @@ class KeyboardBack extends ConsumerWidget {
                       BorderRadius.circular(borderRadius.toDouble()))),
           onPressed: chosenItems.isEmpty
               ? () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const MeniScreen()))
+                  MaterialPageRoute(builder: (context) => const LoginScreen()))
               : null,
           child: Center(
             child: Icon(

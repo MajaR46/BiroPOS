@@ -11,6 +11,7 @@ import 'package:biro_pos/hive_adaprters/podjetje.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/api_key_screen.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -118,7 +119,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             device.name == "P58E" ||
             device.name == "RPP-02" ||
             device.name == "RPP02N" ||
-            device.name == "TimPOS") {
+            device.name == "TimPOS" ||
+            device.name == "NT barcode scanner") {
           await _bluetoothService.connectToDevice(device.adress, context);
           print("Connected to ${device.adress}");
           break;
@@ -167,8 +169,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await box.put('userName', matchedUser.username);
       await box.put('userPassword', matchedUser.password);
 
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const MeniScreen()));
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     } else if (inputPassword == "999") {
       SystemNavigator.pop();
     } else {
@@ -279,7 +281,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))
         : "Ni podatka";
-    print(isLoggedIn);
     return Scaffold(
       backgroundColor: AppStyles.white,
       resizeToAvoidBottomInset: false,

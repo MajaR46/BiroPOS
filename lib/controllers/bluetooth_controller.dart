@@ -69,7 +69,8 @@ class BluetoothService {
             device.name == "P58E" ||
             device.name == "RPP-02" ||
             device.name == "RPP02N" ||
-            device.name == "TimPOS") {
+            device.name == "TimPOS" ||
+            device.name == "NT barcode scanner") {
           final String result = await platform.invokeMethod(
               'connectToDevice', {'deviceAddress': deviceAddress});
           print('BluetoothService: Connected to device: $result');

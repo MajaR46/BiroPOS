@@ -1,7 +1,12 @@
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:biro_pos/screens/kopija_screen.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:biro_pos/screens/meni_screen.dart';
+import 'package:biro_pos/screens/porocila_screen.dart';
+import 'package:biro_pos/screens/pregled_narocil_screen.dart';
+import 'package:biro_pos/screens/storno_screen.dart';
+import 'package:biro_pos/screens/testbluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
@@ -53,6 +58,13 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
   Widget build(BuildContext context) {
     final String? user = SessionManager().getLoggedInUserName();
     final chosenItems = ref.watch(narociloNotifierProvider);
+    final settings = ref.watch(settingsProvider);
+    final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
+    final prikazNarocil = settings['isCheckedPregledNarocil'] ?? false;
+
+    final String? pravicaStorno = SessionManager().pravicaStorno();
+    final String? pravicaPregledPorocil =
+        SessionManager().pravicaPregledPorocil();
 
     return Drawer(
       backgroundColor: AppStyles.white,
@@ -62,44 +74,20 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
           Padding(
             padding: const EdgeInsets.only(top: 64.0, left: 16.0),
             child: Text(
-              user!,
+              user ?? '',
               style: AppStyles.heading2.copyWith(color: AppStyles.black),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, top: 32.0),
-            child: SizedBox(
-              width: 160,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: chosenItems.isEmpty
-                    ? () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const MeniScreen()),
-                        )
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppStyles.blue,
-                  disabledBackgroundColor: AppStyles.grey,
-                ),
-                child: Text(
-                  "Meni",
-                  style: AppStyles.button1.copyWith(color: AppStyles.white),
-                ),
-              ),
             ),
           ),
           Row(children: [
             const Padding(
-              padding: EdgeInsets.only(left: 20, right: 8, top: 24),
+              padding: EdgeInsets.only(left: 20, right: 8, top: 48),
               child: Text(
                 "HH Cene",
                 style: AppStyles.boldanparagraph1,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 24),
+              padding: const EdgeInsets.only(top: 48),
               child: Switch(
                   activeColor: AppStyles.white,
                   activeTrackColor: AppStyles.blue,
@@ -113,6 +101,98 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                   }),
             ),
           ]),
+          const SizedBox(
+            height: 46,
+          ),
+          if (pravicaStorno == "1" && !prikazujSamoNarocila)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 24.0),
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const StornoScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                  child: Text(
+                    'Storno',
+                    style: AppStyles.button1.copyWith(color: AppStyles.white),
+                  ),
+                ),
+              ),
+            ),
+          if (!prikazujSamoNarocila)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 24.0),
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const KopijaScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                  child: Text(
+                    'Kopija',
+                    style: AppStyles.button1.copyWith(color: AppStyles.white),
+                  ),
+                ),
+              ),
+            ),
+          if (pravicaPregledPorocil == "1" && !prikazujSamoNarocila)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 24.0),
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const PorocilaScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                  child: Text(
+                    'Poročila',
+                    style: AppStyles.button1.copyWith(color: AppStyles.white),
+                  ),
+                ),
+              ),
+            ),
+          if (prikazNarocil)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 16.0),
+              child: SizedBox(
+                width: 160,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                const PregledNarocilScreen()));
+                  },
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+                  child: Text(
+                    'Pregled naročil',
+                    style: AppStyles.button1.copyWith(color: AppStyles.white),
+                  ),
+                ),
+              ),
+            ),
           const Spacer(),
           Padding(
             padding: const EdgeInsets.only(left: 16.0, bottom: 32.0),
