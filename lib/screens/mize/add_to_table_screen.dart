@@ -2,6 +2,7 @@ import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
@@ -95,8 +96,9 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
       await Narocilo.createNarocilo(ref, true, context, tableNumber);
     }
 
-    ref.read(narociloNotifierProvider.notifier).state = [];
+    ref.read(narociloNotifierProvider.notifier).clearChosenItems();
     ref.read(tableNotifierProvider.notifier).state = [];
+    clearSelectedItem(ref);
   }
 
   @override

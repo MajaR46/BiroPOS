@@ -6,6 +6,7 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/providers/totdal_sum_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
@@ -52,8 +53,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateTotalDiscount();
-    //Request focus for barcode scanner.  Moved from build to here.
-    FocusScope.of(context).requestFocus(_barcodeFocusNode);
   }
 
   @override
@@ -83,11 +82,12 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     });
   }
 
-  void _handleQuantityChange(double newQuantity, String productId) {
+  void _handleQuantityChange(
+      double newQuantity, String description, String productId) {
     //Change from int index to item ID
     ref
         .read(narociloNotifierProvider.notifier)
-        .updateQuantity(productId, newQuantity);
+        .updateQuantity(productId, description, newQuantity);
     _updateTotalDiscount();
   }
 
@@ -101,6 +101,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     if (itemToRemove != null) {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateTotalDiscount();
+      clearSelectedItem(ref);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ne morem izbrisati izdelka")),
@@ -155,7 +156,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
     discountController.clear(); // Always start with a clear text field
-
     // If editing a discount for a specific item
     if (productId != null && !isFinalDiscount) {
       var item =
@@ -228,19 +228,21 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     );
   }
 
-  void _searchByEan(String eanCode) {
+  List<Item> matchingItems = [];
+  void _searchByEan(String input) {
     // Take eanCode as an argument
     //String searchText = searchController.text.trim();  // No longer needed
 
     RegExp regExp = RegExp(r'\d+');
-    Iterable<Match> matches = regExp.allMatches(eanCode); // Use the argument
+    Iterable<Match> matches = regExp.allMatches(input); // Use the argument
     List<String> numbers = matches.map((match) => match.group(0)!).toList();
     String numbersToString = numbers.join();
-    if (numbersToString.length >= 6 && eanCode.isNotEmpty) {
-      // Use the argument
-      final items = ref.watch(itemsProvider);
+    final items = ref.watch(itemsProvider);
 
-      final matchingItems = items.where((item) {
+    if (numbersToString.length >= 6 && input.isNotEmpty) {
+      // Use the argument
+
+      matchingItems = items.where((item) {
         return item.eanCode == numbersToString;
       }).toList();
 
@@ -259,9 +261,28 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           const SnackBar(content: Text("Ne najdem izdelka s to EAN kodo")),
         );
       }
+    } else if (numbersToString.length <= 5 && input.isNotEmpty) {
+      matchingItems = items.where((item) {
+        return int.tryParse(item.id) == int.tryParse(numbersToString);
+      }).toList();
+
+      if (matchingItems.isNotEmpty) {
+        Item matchingItem = matchingItems.first;
+        NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
+
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false);
+
+        _updateTotalDiscount();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ne najdem izdelka s tem IDjem")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("EAN koda je neveljavna")),
+        const SnackBar(content: Text("Ne najdem izdelka")),
       );
     }
   }
@@ -291,158 +312,155 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
       ),
-      body: KeyboardListener(
-        // Replaced RawKeyboardListener with KeyboardListener
-        focusNode: _barcodeFocusNode,
-        onKeyEvent: (event) {
-          // Changed onKey to onKeyEvent
-          if (event.runtimeType == KeyDownEvent) {
-            // Changed RawKeyDownEvent to KeyDownEvent
-            if (event.physicalKey == PhysicalKeyboardKey.enter) {
-              print('ENTER');
-              // Process the scanned barcode here
-              if (_scannedBarcode.isNotEmpty) {
-                _searchByEan(
-                    _scannedBarcode); //Search using the scanned barcode
-                _scannedBarcode = ''; // Reset the scanned barcode
-              }
-            } else {
-              print(
-                  '_handleKeyEvent Event data keyLabel ${event.logicalKey.keyLabel}'); // Changed event.data.keyLabel to event.logicalKey.keyLabel
-              _scannedBarcode += event.logicalKey.keyLabel ??
-                  ""; //Add a null check as logicalKey.keyLabel can be null
-            }
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: chosenItems.length,
+              itemBuilder: (context, index) {
+                final item = chosenItems[index];
 
-            print('scannedBarcode: $_scannedBarcode');
-          }
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: chosenItems.length,
-                itemBuilder: (context, index) {
-                  final item = chosenItems[index];
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item.product.name,
-                                      style: AppStyles.boldanparagraph1),
-                                  Text(
-                                    item.description != null
-                                        ? item.description
-                                        : '',
-                                    style: AppStyles.paragraph4
-                                        .copyWith(fontStyle: FontStyle.italic),
-                                  ),
-                                ],
-                              ),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16.0,
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(item.product.name,
+                                    style: AppStyles.boldanparagraph1),
+                                Text(
+                                  item.description != null
+                                      ? item.description
+                                      : '',
+                                  style: AppStyles.paragraph4
+                                      .copyWith(fontStyle: FontStyle.italic),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Text('${item.product.price.toString()}€',
-                                  style: AppStyles.heading3),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            IconButton.filled(
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Text('${item.product.price.toString()}€',
+                                style: AppStyles.heading3),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                                backgroundColor: AppStyles.blue),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => EditItemScreen(
+                                            itemName: item.product.name,
+                                            itemCategory:
+                                                item.product.categoryID,
+                                          )));
+                            },
+                            icon: const Icon(Icons.edit),
+                          ),
+                          IconButton.filled(
+                            style: IconButton.styleFrom(
+                                backgroundColor: AppStyles.darkGreen),
+                            onPressed: () {
+                              openDialog(item.product.id, false);
+                            },
+                            icon: const Icon(Icons.percent),
+                          ),
+                          IconButton.filled(
                               style: IconButton.styleFrom(
-                                  backgroundColor: AppStyles.blue),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EditItemScreen(
-                                              itemName: item.product.name,
-                                              itemCategory:
-                                                  item.product.categoryID,
-                                            )));
-                              },
-                              icon: const Icon(Icons.edit),
-                            ),
-                            IconButton.filled(
-                              style: IconButton.styleFrom(
-                                  backgroundColor: AppStyles.darkGreen),
-                              onPressed: () {
-                                openDialog(item.product.id, false);
-                              },
-                              icon: const Icon(Icons.percent),
-                            ),
-                            IconButton.filled(
-                                style: IconButton.styleFrom(
-                                    backgroundColor: AppStyles.red),
-                                onPressed: () => _removeItem(item.product.id),
-                                icon: const Icon(Icons.delete)),
-                            const Spacer(),
-                            QuantityIncrease(
-                              quantity: item.quantity,
-                              onQuantityChanged: (newQuantity) {
-                                _handleQuantityChange(
-                                    newQuantity, item.product.id);
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
+                                  backgroundColor: AppStyles.red),
+                              onPressed: () => _removeItem(item.product.id),
+                              icon: const Icon(Icons.delete)),
+                          const Spacer(),
+                          QuantityIncrease(
+                            quantity: item.quantity,
+                            onQuantityChanged: (newQuantity) {
+                              _handleQuantityChange(newQuantity,
+                                  item.description, item.product.id);
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                );
+              },
             ),
-            Container(
-              width: double.infinity,
-              color: AppStyles.silver.withOpacity(0.1),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        const Text(
-                          "Vrednost popusta: ",
-                        ),
-                        const Spacer(),
-                        Text('${_totalDiscount.toStringAsFixed(2)} €')
-                      ],
-                    ),
+          ),
+          Container(
+            width: double.infinity,
+            color: AppStyles.silver.withOpacity(0.1),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
                   ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                    child: Row(
-                      children: [
-                        const Text("SKUPAJ:", style: AppStyles.heading4),
-                        const Spacer(),
-                        Text(
-                          '${totalSum.toStringAsFixed(2)} €',
-                          style: AppStyles.cardItemName.copyWith(
-                              color: AppStyles.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
+                  child: Row(
+                    children: [
+                      const Text(
+                        "Vrednost popusta: ",
+                      ),
+                      const Spacer(),
+                      Text('${_totalDiscount.toStringAsFixed(2)} €')
+                    ],
                   ),
-                  Align(
+                ),
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  child: Row(
+                    children: [
+                      const Text("SKUPAJ:", style: AppStyles.heading4),
+                      const Spacer(),
+                      Text(
+                        '${totalSum.toStringAsFixed(2)} €',
+                        style: AppStyles.cardItemName.copyWith(
+                            color: AppStyles.black,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                KeyboardListener(
+                  // **PREMEŠČEN KEYBOARD LISTENER**
+                  focusNode: _barcodeFocusNode,
+                  onKeyEvent: (event) {
+                    if (event.runtimeType == KeyDownEvent) {
+                      if (event.physicalKey == PhysicalKeyboardKey.enter) {
+                        print('ENTER');
+                        if (_scannedBarcode.isNotEmpty) {
+                          _searchByEan(
+                              _scannedBarcode); //Search using the scanned barcode
+                          _scannedBarcode = ''; // Reset the scanned barcode
+                        }
+                      } else {
+                        print(
+                            '_handleKeyEvent Event data keyLabel ${event.logicalKey.keyLabel}'); // Changed event.data.keyLabel to event.logicalKey.keyLabel
+                        _scannedBarcode += event.logicalKey.keyLabel ??
+                            ""; //Add a null check as logicalKey.keyLabel can be null
+                      }
+
+                      print('scannedBarcode: $_scannedBarcode');
+                    }
+                  },
+                  child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Keyboard(
                         opisDiscountButton: "%",
@@ -463,12 +481,12 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                         navigateToOpisDiscountScreen: () =>
                             openDialog(null, true),
                         navigateToRacun: _navigateToBlagajnaScreen),
-                  )
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

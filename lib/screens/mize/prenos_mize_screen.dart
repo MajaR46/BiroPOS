@@ -53,7 +53,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
       );
     }
 
-    ref.read(narociloNotifierProvider.notifier).state = [];
+    ref.read(narociloNotifierProvider.notifier).clearChosenItems();
     ref.read(tableNotifierProvider.notifier).state = [];
   }
 

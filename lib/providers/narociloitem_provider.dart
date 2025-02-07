@@ -10,8 +10,9 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
 
-    final existingItemIndex =
-        state.indexWhere((item) => item.product.id == narociloItem.product.id);
+    final existingItemIndex = state.indexWhere((item) =>
+        item.product.id == narociloItem.product.id &&
+        item.description == narociloItem.description);
 
     if (existingItemIndex != -1) {
       // Update existing item with new quantity and potentially new davcnaSt
@@ -47,14 +48,14 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     });
   }
 
-  void updateQuantity(String productId, double newQuantity) {
+  void updateQuantity(
+      String productId, String description, double newQuantity) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId) {
+      if (item.product.id == productId && item.description == description) {
         return item.copyWith(quantity: newQuantity);
       }
       return item;
     }).toList();
-
     state = updatedItems;
   }
 
@@ -75,7 +76,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void updateOpis(String productId, String newOpis) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId) {
+      if (item.product.id == productId && item.description.isEmpty) {
         return item.copyWith(description: newOpis);
       }
       return item;

@@ -2,11 +2,13 @@ import 'package:biro_pos/components/blagajna_banner.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/item_list_builder.dart';
 import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/components/search_items.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/selectedcategory_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
@@ -47,11 +49,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   double sum = 0;
   double finalSum = 0;
   double discount = 0;
-  late List<NarociloItem> chosenItems = [];
+  //Remove the chosenItems as the provider handles the order list
+  //late List<NarociloItem> chosenItems = [];
   List<Item> izdelki = [];
   late OrderService orderService;
   late int stStolpcev = 1;
-  String numbers2String = '';
   bool isSearching = false;
 
   @override
@@ -60,11 +62,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     _handleData();
     searchController.addListener(() {
-      setState(() {
-        _updateNumbersString();
-      });
+      //updateNumbersString(searchController);
+      ref.read(isSearchingProvider.notifier).state =
+          searchController.text.isNotEmpty;
+      updateNumbersString(searchController, ref);
     });
-
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
@@ -220,44 +222,37 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _ouputselectedItem(dynamic outputtedItem) {
     setState(() {
-      // Convert the outputted item to an Item object
-      Item newItem = Item.fromMap(outputtedItem);
-      NarociloItem? existingItem;
+      Item originalItem = Item.fromMap(outputtedItem); // Create from the map
+      Item newItem = originalItem.copyWith(); // <----  Create a copy here
 
+      NarociloItem newNarociloItem =
+          NarociloItem(product: newItem, quantity: 1); // Always create the item
       final currentItems = ref.watch(narociloNotifierProvider);
-      chosenItems.removeWhere((item) =>
-          !currentItems.any((ci) => ci.product.id == item.product.id));
 
-      // Check if the item already exists in chosenItems
-      for (var item in chosenItems) {
-        if (item.product.id == newItem.id) {
-          existingItem = item;
-          break;
-        }
-      }
+      final existingItemIndex = currentItems.indexWhere((item) =>
+          item.product.id == newNarociloItem.product.id &&
+          item.description == newNarociloItem.description);
 
-      if (existingItem != null) {
-        // If the item exists, update its quantity
-        existingItem.quantity++;
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .updateQuantity(existingItem.product.id, existingItem.quantity);
-      } else {
-        // If the item doesn't exist, add it with an initial quantity of 1
-        NarociloItem newNarociloItem =
-            NarociloItem(product: newItem, quantity: 1);
-        chosenItems.add(newNarociloItem);
+      if (existingItemIndex != -1) {
+        // Item already exists
+        // Update quantity
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
-        existingItem = newNarociloItem;
+
+        final existingItem = currentItems[existingItemIndex];
+        ref.read(selectedItemProvider.notifier).state = existingItem;
+      } else {
+        // Item doesn't exist yet
+        //Add item to cart
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false);
+
+        ref.read(selectedItemProvider.notifier).state = newNarociloItem;
       }
 
-      // Update selectedItem and synchronize states
-      selectedItem = existingItem;
-      ref.read(selectedItemProvider.notifier).state = existingItem;
-      itemQuantity = existingItem.quantity.toDouble(); // Synchronize quantity
-      _updateFinalSum(); // Update the total sum
+      _updateFinalSum();
       searchController.clear();
       numbers2String = '';
       isSearching = false;
@@ -300,80 +295,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     return categories;
   }
 
-  String searchQuery = "";
-  String joinedNumbers = "";
-  String numbers = "";
-
-  List<int> extractNumbers(String input) {
-    // Use RegExp to find all numbers in the input string.
-    final matches = RegExp(r'\d').allMatches(input);
-    final searchInput =
-        matches.map((match) => int.parse(match.group(0)!)).toList();
-    print("searchInput $searchInput");
-    return searchInput;
-  }
-
-  Map<int, List<String>> numberToLetters = {
-    2: ['a', 'b', 'c'],
-    3: ['d', 'e', 'f'],
-    4: ['g', 'h', 'i'],
-    5: ['j', 'k', 'l'],
-    6: ['m', 'n', 'o'],
-    7: ['p', 'q', 'r', 's'],
-    8: ['t', 'u', 'v'],
-    9: ['w', 'x', 'y', 'z'],
-  };
-
-  void generatePairs() {
-    String input = searchController.text;
-
-    List<int> numbers = extractNumbers(input)
-        .where((numb) => numberToLetters.containsKey(numb))
-        .toList();
-
-    joinedNumbers = numbers.join();
-
-    List<List<String>> letterGroups =
-        numbers.map((numb) => numberToLetters[numb]!).toList();
-
-    List<String> combinations = _combineLetters(letterGroups);
-
-    if (combinations.isNotEmpty) {
-      searchQuery = combinations.join('|');
-    } else {
-      searchQuery = '';
-    }
-  }
-
-  List<String> _combineLetters(List<List<String>> letterGroups) {
-    if (letterGroups.isEmpty) return [];
-
-    List<String> result = letterGroups[0];
-
-    for (int i = 1; i < letterGroups.length; i++) {
-      List<String> newResult = [];
-      for (String prefix in result) {
-        for (String letter in letterGroups[i]) {
-          newResult.add(prefix + letter);
-        }
-      }
-      result = newResult;
-    }
-    return result;
-  }
-
-  void _updateNumbersString() {
-    if (searchController.text.isNotEmpty) {
-      RegExp regExp = RegExp(r'\d+');
-      Iterable<Match> matches = regExp.allMatches(searchController.text);
-      List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
-      numbers2String = numbers2.join();
-      isSearching = true;
-    } else {
-      isSearching = false;
-    }
-  }
-
 //filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
@@ -385,7 +306,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }
     });
 
-    generatePairs();
+    generatePairs(searchController);
 
     List<dynamic> filteredItems = [];
 
@@ -417,8 +338,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }).toList();
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {
-        String itemId = item['itemId'];
-        return itemId.contains(numbers2String);
+        //int itemId = int.tryParse(item['itemId']) ?? 0;
+        return int.tryParse(item['itemId']) == int.tryParse(numbers2String);
       }).toList();
     }
 
@@ -487,33 +408,27 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _increaseQuantity() {
+    final selectedItem = ref.read(selectedItemProvider.notifier).state;
     if (selectedItem != null) {
-      setState(() {
-        itemQuantity++;
-        selectedItem.quantity = itemQuantity; // Sinhroniziraj
-      });
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateQuantity(selectedItem.product.id, itemQuantity);
+      //Use provider to update
+      ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.product.id,
+          selectedItem.description,
+          selectedItem.quantity + 1);
+
       _updateFinalSum();
     }
   }
 
   void _decreaseQuantity() {
     final selectedItem = ref.read(selectedItemProvider.notifier).state;
-
-    if (itemQuantity > 1) {
-      setState(() {
-        itemQuantity--;
-      });
-
-      // Update the quantity in the provider
-      if (selectedItem != null) {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .updateQuantity(selectedItem.product.id, itemQuantity);
-        _updateFinalSum(); // Update the final sum after changing quantity
-      }
+    if (selectedItem != null && selectedItem.quantity > 1) {
+      //Use provider to update
+      ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.product.id,
+          selectedItem.description,
+          selectedItem.quantity - 1);
+      _updateFinalSum(); // Update the final sum after changing quantity
     }
   }
 
@@ -527,7 +442,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     final settings = ref.watch(settingsProvider);
     final defaultBarve = settings['isCheckedBarve'] ?? false;
 
+    final numbers2String =
+        ref.watch(searchQueryProvider); // Get value from provider
+    final isSearching = ref.watch(isSearchingProvider);
+
     orderService = ref.read(orderProvider);
+
+    //Get the ordered items from the provider
+    final currentChosenItems = ref.watch(narociloNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppStyles.grey,
@@ -573,7 +495,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
                       child: GestureDetector(
-                          onHorizontalDragEnd: selectedItem != null
+                          onHorizontalDragEnd: currentChosenItems.isNotEmpty
                               ? (details) {
                                   if (details.velocity.pixelsPerSecond.dx > 0) {
                                     _decreaseQuantity();
@@ -584,9 +506,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                   }
                                 }
                               : null,
-                          child: BlagajnaBanner(
-                              numbers2String:
-                                  isSearching ? numbers2String : null)),
+                          child: BlagajnaBanner()),
                     ),
                     Align(
                       alignment: Alignment.bottomCenter,

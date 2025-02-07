@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/searchquery_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/components/utils.dart';
@@ -69,8 +71,7 @@ class BluetoothService {
             device.name == "P58E" ||
             device.name == "RPP-02" ||
             device.name == "RPP02N" ||
-            device.name == "TimPOS" ||
-            device.name == "NT barcode scanner") {
+            device.name == "TimPOS") {
           final String result = await platform.invokeMethod(
               'connectToDevice', {'deviceAddress': deviceAddress});
           print('BluetoothService: Connected to device: $result');
@@ -138,6 +139,8 @@ class BluetoothService {
       }
 
       ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+      clearSelectedItem(ref);
+      clearSearchQuery(ref);
 
       return result; // Return success or error message
     } catch (e) {

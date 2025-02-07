@@ -3,6 +3,7 @@ import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -108,7 +109,10 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               child: OKButton(
                 onPressed: () {
                   _addToNewTable(_newTableController.text);
-                  ref.read(narociloNotifierProvider.notifier).state = [];
+                  ref
+                      .read(narociloNotifierProvider.notifier)
+                      .clearChosenItems();
+                  clearSelectedItem(ref);
 
                   Navigator.push(
                       context,

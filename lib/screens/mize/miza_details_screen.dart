@@ -6,6 +6,7 @@ import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/models/tableItem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/prenos_mize_screen.dart';
@@ -123,6 +124,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   void _ok() {
     final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
     _dodajNaRacun(itemsToProcess);
+    clearSelectedItem(ref);
 
     // Navigate to BlagajnaScreen after adding items to the bill
     Navigator.push(

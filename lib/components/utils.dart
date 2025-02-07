@@ -1,5 +1,7 @@
 import 'dart:typed_data';
+import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:flutter/material.dart'; // Import Material package
 import 'package:sunmi_printer_plus/core/enums/enums.dart';
 import 'package:sunmi_printer_plus/core/styles/sunmi_qrcode_style.dart';
@@ -34,6 +36,7 @@ class Utils {
           SnackBar(content: Text("Napaka pri uporabi vgrajenega tiskalnika")),
         );
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        clearSelectedItem(ref);
 
         return;
       } else {
@@ -76,10 +79,12 @@ class Utils {
         );
       }
       ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+      clearSelectedItem(ref);
     } catch (e) {
       if (e
           .toString()
           .contains('kotlin.UninitializedPropertyAccessException')) {
+        await ErrorDialogs.showBluetoothErrorDialog(context, filteredLines);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Naprava ne podpira integriranega tiskalnika."),
@@ -87,12 +92,14 @@ class Utils {
         );
         print('Sunmi Printer not available');
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        clearSelectedItem(ref);
       } else {
         print('Error during printing: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka pri tiskanju: $e")),
         );
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        clearSelectedItem(ref);
       }
     }
   }

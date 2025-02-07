@@ -41,6 +41,9 @@ class Narocilo {
 
       String vrstica = imeIzdelka.padRight(24) + kolicina.padLeft(8);
       narocilo.add(vrstica);
+      String opis = item.description;
+      if (opis.isNotEmpty) narocilo.add(">> $opis");
+      {}
     }
 
     narocilo.add("--------------------------------");

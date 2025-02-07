@@ -1,8 +1,9 @@
 import 'package:biro_pos/components/narocilo.dart';
+import 'package:biro_pos/components/vracilo_denarja.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
+import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/login.dart';
-import 'package:biro_pos/screens/meni_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:biro_pos/models/narociloitem.dart';
@@ -60,9 +61,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         itemQuantity--;
       });
       if (selectedItem != null) {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .updateQuantity(selectedItem.product.id, itemQuantity);
+        ref.read(narociloNotifierProvider.notifier).updateQuantity(
+            selectedItem.product.id, selectedItem.description, itemQuantity);
         _updateFinalSum();
       }
     }
@@ -107,10 +107,25 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
         settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+    double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
     try {
+      // Get the entered amount from the controller
+      final vnesenZnesek = double.tryParse(ref.watch(searchQueryProvider));
+      print("vnesen znesek $vnesenZnesek");
+
+      // Calculate the change
+      double vracilo = Vracilo.izracunVracila(ref, vnesenZnesek ?? 0.0);
+
+      if (vnesenZnesek != null && vnesenZnesek > 0.0) {
+        await Vracilo.showReturnDialog(
+            context, vnesenZnesek ?? 0.0, finalSum, vracilo);
+      }
+
+      // Process the payment
       paymentService.processPayment(context, "GOT");
-      if (tiskajNarociloPriRacunu == true) {
+
+      if (tiskajNarociloPriRacunu) {
         await Narocilo.createNarocilo(ref, false, context);
       }
     } catch (e) {
@@ -145,9 +160,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       double newQuantity = currentQuantity * factor;
 
       // Update the quantity in the provider
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateQuantity(selectedItem.product.id, newQuantity);
+      ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.product.id, selectedItem.description, newQuantity);
 
       // Update the local state
       setState(() {
