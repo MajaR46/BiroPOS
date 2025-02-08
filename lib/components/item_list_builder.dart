@@ -133,18 +133,18 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
     String itemID = item['itemId'] ?? '';
 
     if (itemPrice == '0,00' && nastaviCeno) {
-      openDialog(itemID, itemPrice, itemName);
-      widget.onSelectItem({
-        'name': item['name'],
-        'price': hhCene == true
-            ? (item['hhPrice']?.isEmpty ?? true)
-                ? item['price']
-                : item['hhPrice']
-            : item['price'],
-        'category': item['category'],
-        'itemId': item['itemId'],
-        'categoryID': item['categoryID'],
-        'itemColor': item['itemColor']
+      openDialog(itemID, itemPrice, itemName).then((_) {
+        double enteredPrice = double.tryParse(priceController.text) ?? 0.0;
+        if (enteredPrice > 0) {
+          widget.onSelectItem({
+            'name': item['name'],
+            'price': enteredPrice, // Shrani unikatno ceno za ta izdelek
+            'category': item['category'],
+            'itemId': item['itemId'], // ID ostane isti
+            'categoryID': item['categoryID'],
+            'itemColor': item['itemColor']
+          });
+        }
       });
     } else {
       widget.onSelectItem({

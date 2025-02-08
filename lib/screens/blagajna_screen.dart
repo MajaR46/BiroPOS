@@ -231,7 +231,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
       final existingItemIndex = currentItems.indexWhere((item) =>
           item.product.id == newNarociloItem.product.id &&
-          item.description == newNarociloItem.description);
+          item.description == newNarociloItem.description &&
+          item.product.price == newNarociloItem.product.price);
 
       if (existingItemIndex != -1) {
         // Item already exists
@@ -414,7 +415,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
           selectedItem.product.id,
           selectedItem.description,
-          selectedItem.quantity + 1);
+          selectedItem.quantity + 1,
+          selectedItem.product.price);
 
       _updateFinalSum();
     }
@@ -427,7 +429,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
           selectedItem.product.id,
           selectedItem.description,
-          selectedItem.quantity - 1);
+          selectedItem.quantity - 1,
+          selectedItem.product.price);
       _updateFinalSum(); // Update the final sum after changing quantity
     }
   }

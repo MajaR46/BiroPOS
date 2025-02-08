@@ -84,7 +84,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     }
   }
 
-  void _addToExistingTable(String tableNumber) async {
+  void addToExistingTable(String tableNumber) async {
     final tableNotifier = ref.read(tableNotifierProvider.notifier);
     final settings = ref.watch(settingsProvider);
     final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
@@ -140,7 +140,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                 horizontal: 16, vertical: 2),
                             child: GestureDetector(
                               onTap: () {
-                                _addToExistingTable(tableNumber);
+                                addToExistingTable(tableNumber);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -201,7 +201,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
                         if (newTableNumber != null &&
                             newTableNumber.isNotEmpty) {
-                          _addToExistingTable(newTableNumber);
+                          addToExistingTable(newTableNumber);
                         }
                       },
                       style: ElevatedButton.styleFrom(

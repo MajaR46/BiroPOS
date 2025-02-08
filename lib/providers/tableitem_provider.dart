@@ -62,11 +62,16 @@ class TableNotifier extends Notifier<List<TableItem>> {
 
       return '$userId\t$tableNumber\t$productCode\t$quantitiy\t$price\t$discount\t$opis\t$artikelSkupina';
     }).toList();
+    print(tableItems);
 
     List<String> serverResponse =
         await sendRequest(userId, tableItems.join('\r\n'));
 
     return serverResponse;
+  }
+
+  void clearTable() {
+    state = [];
   }
 
   Future<List<String>> transferFromTable(

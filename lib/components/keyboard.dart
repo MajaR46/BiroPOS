@@ -62,7 +62,10 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       });
       if (selectedItem != null) {
         ref.read(narociloNotifierProvider.notifier).updateQuantity(
-            selectedItem.product.id, selectedItem.description, itemQuantity);
+            selectedItem.product.id,
+            selectedItem.description,
+            itemQuantity,
+            selectedItem.product.price);
         _updateFinalSum();
       }
     }
@@ -161,7 +164,10 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 
       // Update the quantity in the provider
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
-          selectedItem.product.id, selectedItem.description, newQuantity);
+          selectedItem.product.id,
+          selectedItem.description,
+          newQuantity,
+          selectedItem.product.price);
 
       // Update the local state
       setState(() {

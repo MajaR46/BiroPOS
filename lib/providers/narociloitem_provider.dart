@@ -10,25 +10,29 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
 
+    // Preveri, če obstaja isti artikel z ENAKO ceno in opisom
     final existingItemIndex = state.indexWhere((item) =>
         item.product.id == narociloItem.product.id &&
+        item.product.price == narociloItem.product.price && // Preverimo ceno!
         item.description == narociloItem.description);
 
     if (existingItemIndex != -1) {
-      // Update existing item with new quantity and potentially new davcnaSt
+      // Nadgradi količino, če je cena enaka
       state[existingItemIndex] = state[existingItemIndex].copyWith(
-          quantity: state[existingItemIndex].quantity + narociloItem.quantity,
-          discount: state[existingItemIndex].discount,
-          davcnaSt: davcnaSt ?? state[existingItemIndex].davcnaSt,
-          isFromTable: fromTable);
+        quantity: state[existingItemIndex].quantity + narociloItem.quantity,
+        discount: state[existingItemIndex].discount,
+        davcnaSt: davcnaSt ?? state[existingItemIndex].davcnaSt,
+        isFromTable: fromTable,
+      );
     } else {
-      // Add new item with specified davcnaSt
+      // Dodaj kot nov artikel, če ima drugačno ceno
       state = [
         ...state,
         narociloItem.copyWith(
-            discount: narociloItem.discount,
-            davcnaSt: davcnaSt,
-            isFromTable: fromTable),
+          discount: narociloItem.discount,
+          davcnaSt: davcnaSt,
+          isFromTable: fromTable,
+        ),
       ];
     }
   }
@@ -48,10 +52,12 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     });
   }
 
-  void updateQuantity(
-      String productId, String description, double newQuantity) {
+  void updateQuantity(String productId, String description, double newQuantity,
+      double itemPrice) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId && item.description == description) {
+      if (item.product.id == productId &&
+          item.description == description &&
+          item.product.price == itemPrice) {
         return item.copyWith(quantity: newQuantity);
       }
       return item;
@@ -86,14 +92,11 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   void updatePrice(String productId, double newPrice) {
-    print(
-        'updatePrice() called for productId: $productId, newPrice: $newPrice');
-
     final updatedItems = state.map((item) {
-      if (item.product.id == productId) {
-        final updatedProduct = item.product.copyWith(price: newPrice);
-        print('Updated product: $productId with price: $newPrice');
-        return item.copyWith(product: updatedProduct);
+      if (item.product.id == productId && item.product.price == 0.0) {
+        return item.copyWith(
+          product: item.product.copyWith(price: newPrice),
+        );
       }
       return item;
     }).toList();

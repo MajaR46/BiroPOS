@@ -20,22 +20,25 @@ class NarociloItem {
   });
 
   // The updated copyWith method
-  NarociloItem copyWith(
-      {Item? product, // Add product as a nullable parameter
-      double? quantity,
-      double? discount,
-      String? description,
-      String? davcnaSt,
-      bool? isFromTable,
-      String? tableNumber}) {
+  NarociloItem copyWith({
+    Item? product,
+    double? quantity,
+    double? discount,
+    String? description,
+    String? davcnaSt,
+    bool? isFromTable,
+    String? tableNumber,
+    double? price, // Adding the price parameter here
+  }) {
     return NarociloItem(
-        product: product ??
-            this.product, // Use provided product or fallback to current product
-        quantity: quantity ?? this.quantity,
-        discount: discount ?? this.discount,
-        description: description ?? this.description,
-        davcnaSt: davcnaSt ?? this.davcnaSt,
-        isFromTable: isFromTable ?? this.isFromTable,
-        tableNumber: tableNumber ?? this.tableNumber);
+      product: product?.copyWith(price: price) ??
+          this.product, // Update product's price if passed
+      quantity: quantity ?? this.quantity,
+      discount: discount ?? this.discount,
+      description: description ?? this.description,
+      davcnaSt: davcnaSt ?? this.davcnaSt,
+      isFromTable: isFromTable ?? this.isFromTable,
+      tableNumber: tableNumber ?? this.tableNumber,
+    );
   }
 }

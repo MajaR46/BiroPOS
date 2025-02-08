@@ -82,12 +82,12 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     });
   }
 
-  void _handleQuantityChange(
-      double newQuantity, String description, String productId) {
+  void _handleQuantityChange(double newQuantity, String description,
+      String productId, double itemPrice) {
     //Change from int index to item ID
     ref
         .read(narociloNotifierProvider.notifier)
-        .updateQuantity(productId, description, newQuantity);
+        .updateQuantity(productId, description, newQuantity, itemPrice);
     _updateTotalDiscount();
   }
 
@@ -134,7 +134,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       return;
     }
 
-    // Handle item-specific discount
     if (productId != null) {
       double itemDiscount = (discount ?? 0) / 100;
 
@@ -231,10 +230,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   List<Item> matchingItems = [];
   void _searchByEan(String input) {
     // Take eanCode as an argument
-    //String searchText = searchController.text.trim();  // No longer needed
+    //String searchText = searchController.text.trim();
 
     RegExp regExp = RegExp(r'\d+');
-    Iterable<Match> matches = regExp.allMatches(input); // Use the argument
+    Iterable<Match> matches = regExp.allMatches(input);
     List<String> numbers = matches.map((match) => match.group(0)!).toList();
     String numbersToString = numbers.join();
     final items = ref.watch(itemsProvider);
@@ -389,8 +388,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                           QuantityIncrease(
                             quantity: item.quantity,
                             onQuantityChanged: (newQuantity) {
-                              _handleQuantityChange(newQuantity,
-                                  item.description, item.product.id);
+                              _handleQuantityChange(
+                                  newQuantity,
+                                  item.description,
+                                  item.product.id,
+                                  item.product.price);
                             },
                           ),
                         ],
