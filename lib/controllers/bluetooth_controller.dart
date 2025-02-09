@@ -72,7 +72,6 @@ class BluetoothService {
           "RPP-02",
           "RPP02N",
           "TimPOS",
-          "NT barcode scanner"
         ].contains(device.name)) {
           final String result = await platform.invokeMethod(
               'connectToDevice', {'deviceAddress': device.adress});

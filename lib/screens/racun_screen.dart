@@ -241,19 +241,21 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     });
   }
 
-  void _searchByEan(String eanCode) {
+  List<Item> matchingItems = [];
+
+  void _searchByEan(String input) {
     // Take eanCode as an argument
     //String searchText = searchController.text.trim();  // No longer needed
 
     RegExp regExp = RegExp(r'\d+');
-    Iterable<Match> matches = regExp.allMatches(eanCode); // Use the argument
+    Iterable<Match> matches = regExp.allMatches(input); // Use the argument
     List<String> numbers = matches.map((match) => match.group(0)!).toList();
     String numbersToString = numbers.join();
-    if (numbersToString.length >= 6 && eanCode.isNotEmpty) {
-      // Use the argument
-      final items = ref.watch(itemsProvider);
+    final items = ref.watch(itemsProvider);
 
-      final matchingItems = items.where((item) {
+    if (numbersToString.length >= 6 && input.isNotEmpty) {
+      // Use the argument
+      matchingItems = items.where((item) {
         return item.eanCode == numbersToString;
       }).toList();
 
@@ -272,9 +274,27 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           const SnackBar(content: Text("Ne najdem izdelka s to EAN kodo")),
         );
       }
+    } else if (numbersToString.length <= 5 && input.isNotEmpty) {
+      matchingItems = items.where((item) {
+        return int.tryParse(item.id) == int.tryParse(numbersToString);
+      }).toList();
+
+      if (matchingItems.isNotEmpty) {
+        Item matchingItem = matchingItems.first;
+        NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
+
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false);
+        _updateTotalDiscount();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ne najdem izdelka s tem IDjem")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("EAN koda je neveljavna")),
+        const SnackBar(content: Text("Ne najdem izdelka")),
       );
     }
   }
