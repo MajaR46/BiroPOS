@@ -119,8 +119,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             device.name == "P58E" ||
             device.name == "RPP-02" ||
             device.name == "RPP02N" ||
-            device.name == "TimPOS") {
-          await _bluetoothService.connectToDevice(device.adress, context);
+            device.name == "TimPOS" ||
+            device.name == "NT barcode scanner") {
+          await _bluetoothService.connectToDevice(context);
           print("Connected to ${device.adress}");
           break;
         }

@@ -55,35 +55,34 @@ class BluetoothService {
     return true;
   }
 
-  Future<void> connectToDevice(
-      String deviceAddress, BuildContext context) async {
+  Future<void> connectToDevice(BuildContext context) async {
     final hasPermissions = await _checkBluetoothPermissions();
     if (!hasPermissions) {
       return;
     }
     try {
       for (final device in bondedDevices) {
-        if (device.name == "InnerPrinter" ||
-            device.name == "BlueTooth Printer" ||
-            device.name == "IPosPrinter" ||
-            device.name == "IPos2Printer" ||
-            device.name == "OM BP" ||
-            device.name == "P58E" ||
-            device.name == "RPP-02" ||
-            device.name == "RPP02N" ||
-            device.name == "TimPOS") {
+        if ([
+          "InnerPrinter",
+          "BlueTooth Printer",
+          "IPosPrinter",
+          "IPos2Printer",
+          "OM BP",
+          "P58E",
+          "RPP-02",
+          "RPP02N",
+          "TimPOS",
+          "NT barcode scanner"
+        ].contains(device.name)) {
           final String result = await platform.invokeMethod(
-              'connectToDevice', {'deviceAddress': deviceAddress});
-          print('BluetoothService: Connected to device: $result');
-          return; // Successfully connected
+              'connectToDevice', {'deviceAddress': device.adress});
+          print('BluetoothService: Connected to ${device.name}: $result');
         }
       }
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Device not found!")));
     } on PlatformException catch (e) {
-      print('Failed to connect to device: ${e.message}');
+      print('Failed to connect: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to connect to device: ${e.message}")));
+          SnackBar(content: Text("Failed to connect: ${e.message}")));
     }
   }
 
