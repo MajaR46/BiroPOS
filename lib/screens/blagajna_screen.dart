@@ -581,6 +581,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           builder: (context) => EditItemScreen(
             itemName: selectedItem.product.name,
             itemCategory: selectedItem.product.categoryID,
+            itemPrice: selectedItem.product.price,
           ),
         ),
       );

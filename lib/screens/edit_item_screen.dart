@@ -14,8 +14,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 class EditItemScreen extends ConsumerStatefulWidget {
   final String itemName;
   final String itemCategory;
+  final double itemPrice;
   const EditItemScreen(
-      {super.key, required this.itemName, required this.itemCategory});
+      {super.key,
+      required this.itemName,
+      required this.itemCategory,
+      required this.itemPrice});
 
   @override
   ConsumerState<EditItemScreen> createState() => _EditItemScreenState();
@@ -116,7 +120,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
     final currentItem = narociloItems.firstWhere(
       (item) =>
           item.product.name == widget.itemName &&
-          item.product.categoryID == widget.itemCategory,
+          item.product.categoryID == widget.itemCategory &&
+          item.product.price == widget.itemPrice,
       orElse: () => NarociloItem(
         product: Item(name: '', price: 0.0),
       ),
@@ -253,7 +258,11 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
               onPressed: () {
                 final resultOpis = _opisController.text.trim();
 
-                narociloNotifier.updateOpis(currentItem.product.id, resultOpis);
+                narociloNotifier.updateOpis(
+                  currentItem.product.id,
+                  currentItem.product.price,
+                  resultOpis,
+                );
                 SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();

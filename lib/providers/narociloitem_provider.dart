@@ -39,7 +39,9 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void removeFromRacun(NarociloItem narociloItem) {
     state = state
-        .where((item) => item.product.id != narociloItem.product.id)
+        .where((item) => !(item.product.id == narociloItem.product.id &&
+            item.description == narociloItem.description &&
+            item.product.price == narociloItem.product.price))
         .toList();
   }
 
@@ -65,10 +67,12 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
-  void updateDiscount(
-      String productId, double discountedPrice, double discountPercentage) {
+  void updateDiscount(String productId, String description, double itemPrice,
+      double discountedPrice, double discountPercentage) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId) {
+      if (item.product.id == productId &&
+          item.description == description &&
+          item.product.price == itemPrice) {
         return item.copyWith(
           product: item.product.copyWith(discountedPrice: discountedPrice),
           discount: discountPercentage,
@@ -80,9 +84,9 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
-  void updateOpis(String productId, String newOpis) {
+  void updateOpis(String productId, double productPrice, String newOpis) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId && item.description.isEmpty) {
+      if (item.product.id == productId && item.product.price == productPrice) {
         return item.copyWith(description: newOpis);
       }
       return item;

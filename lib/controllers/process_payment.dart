@@ -166,7 +166,9 @@ class ProcessPayment {
     final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
 
     if (!bluetoothConnected || !bluetoothEnabled) {
-      await ErrorDialogs.showBluetoothErrorDialog(context, response);
+      //await ErrorDialogs.showBluetoothErrorDialog(context, response);
+      //await ErrorDialogs.showResponseDialog(response, context!);
+      print("PRINT 11");
     }
   }
 

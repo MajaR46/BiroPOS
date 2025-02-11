@@ -35,6 +35,9 @@ class Utils {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka pri uporabi vgrajenega tiskalnika")),
         );
+        await ErrorDialogs.showResponseDialog(filteredLines, context!);
+        print("PRINT 5");
+
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);
 
@@ -69,7 +72,9 @@ class Utils {
         } else {
           await sunmiPrinterPlus.printText(
               text: line, style: SunmiTextStyle(bold: isBold));
+          await ErrorDialogs.showResponseDialog(filteredLines, context!);
         }
+        print("PRINT 6");
       }
 
       const int extraBlankLines = 3;
@@ -84,7 +89,10 @@ class Utils {
       if (e
           .toString()
           .contains('kotlin.UninitializedPropertyAccessException')) {
-        await ErrorDialogs.showBluetoothErrorDialog(context, filteredLines);
+        //await ErrorDialogs.showBluetoothErrorDialog(context, filteredLines);
+        await ErrorDialogs.showResponseDialog(filteredLines, context!);
+        print("PRINT 7");
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Naprava ne podpira integriranega tiskalnika."),
@@ -98,6 +106,9 @@ class Utils {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka pri tiskanju: $e")),
         );
+        await ErrorDialogs.showResponseDialog(filteredLines, context!);
+        print("PRINT 8");
+
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);
       }

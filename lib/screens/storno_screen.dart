@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
@@ -40,6 +41,8 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         FocusScope.of(context).unfocus();
         await Print.printText(context, apiResponse, ref);
+        // await ErrorDialogs.showResponseDialog(apiResponse, context!);
+
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
         Navigator.of(context).pop();
       });

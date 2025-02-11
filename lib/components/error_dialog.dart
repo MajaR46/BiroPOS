@@ -10,7 +10,7 @@ class ErrorDialogs {
           content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Naprava ne podpira integriranega tiskalnika.'),
+                Text(''),
                 Text(
                     'Prosimo, uporabite drug način tiskanja ali preverite nastavitve.'),
               ],
@@ -19,6 +19,39 @@ class ErrorDialogs {
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Zapre dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<void> showResponseDialog(
+      List<String> response, BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Račun"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(
+                  response.join('\n'),
+                  style: TextStyle(
+                      fontFamily: 'Courier',
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.of(context).pop(); // Zapre dialog
               },

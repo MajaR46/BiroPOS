@@ -33,6 +33,7 @@ class Print {
         // Add new line before every item
         await BluetoothService.sendData(text, ref,
             context: context, addEmptyLines: true);
+
         print("Data sent to Bluetooth printer.");
 
         print("PRINTANO Z BLUETOOTH");

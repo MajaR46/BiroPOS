@@ -122,7 +122,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 2),
+                                    horizontal: 8, vertical: 2),
                                 child: GestureDetector(
                                   onTap: () {
                                     setState(() {
@@ -137,21 +137,57 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 24),
                                       child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            'Miza $oznakaMize',
-                                            style: AppStyles.heading3,
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                'Miza $oznakaMize',
+                                                style: AppStyles.heading3,
+                                              ),
+                                            ],
                                           ),
-                                          const Spacer(),
-                                          Text(
-                                            '${znesek.toStringAsFixed(2)}€',
-                                            style: AppStyles.heading3.copyWith(
-                                                fontWeight: FontWeight.normal),
+                                          Flexible(
+                                            child: ConstrainedBox(
+                                              constraints: BoxConstraints(
+                                                  maxWidth:
+                                                      MediaQuery.of(context)
+                                                              .size
+                                                              .width *
+                                                          1 /
+                                                          3),
+                                              child: Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    '${znesek.toStringAsFixed(2)}€',
+                                                    style: AppStyles.heading3
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .normal),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                          const Spacer(),
-                                          Text(
-                                            user,
-                                            style: AppStyles.paragraph3,
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                user,
+                                                style: AppStyles.paragraph3,
+                                              ),
+                                            ],
                                           )
                                         ],
                                       ),

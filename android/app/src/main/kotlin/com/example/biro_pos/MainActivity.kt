@@ -105,72 +105,63 @@ class MainActivity : FlutterActivity() {
                     val dataLines = call.argument<List<String>>("dataLines")
                     if (currentDevice != null && dataLines != null) {
                         val device = currentDevice
+
+                        // Directly execute on the main thread to show the error immediately
+                        // Execute the Bluetooth communication on a separate thread
                         Thread {
                                     var socket: BluetoothSocket? = null
                                     var outputStream: OutputStream? = null
-                                    var exceptionMessage: String? = null
-                                    var connected = false
-                                    val maxRetries = 3
-                                    var retries = 0
 
                                     try {
                                         socket = device?.createRfcommSocketToServiceRecord(MY_UUID)
                                         Log.d(
                                                 "Bluetooth",
-                                                "Sending data to device: ${device?.name} (${device?.address})"
+                                                "Connecting to device: ${device?.name} (${device?.address})"
                                         )
 
-                                        // Retry connection logic
-                                        while (!connected && retries < maxRetries) {
+                                        val connectThread = Thread {
                                             try {
-                                                socket?.connect() // Blocking call
-                                                connected = true
-                                                outputStream = socket?.outputStream
+                                                socket?.connect() // This can block for several
+                                                // seconds!
                                             } catch (e: IOException) {
-                                                retries++
                                                 Log.e(
                                                         "Bluetooth",
-                                                        "Connection attempt failed, retrying... ($retries/$maxRetries)",
+                                                        "Connection failed immediately",
                                                         e
                                                 )
-                                                if (retries >= maxRetries) {
-                                                    exceptionMessage =
-                                                            "Failed to connect after $maxRetries attempts."
-                                                    break
-                                                }
-                                                Thread.sleep(1000) // Wait before retrying
                                             }
                                         }
 
-                                        if (connected && outputStream != null) {
-                                            outputStream.write(" ".toByteArray(Charsets.UTF_8))
+                                        connectThread.start()
+                                        connectThread.join(
+                                                2000
+                                        ) // Wait max 3 seconds for connection
 
-                                            for (line in dataLines) {
+                                        if (!socket!!.isConnected
+                                        ) { // If still not connected, force fail
+                                            connectThread.interrupt()
+                                            throw IOException("Bluetooth connection timeout")
+                                        }
 
-                                                handleLine(line, outputStream)
-                                            }
-                                            outputStream.flush()
-                                            outputStream.write(
-                                                    byteArrayOf(0x1D, 0x56, 0x41, 0x10)
-                                            ) // Paper cut command
-                                            outputStream.flush()
+                                        outputStream = socket?.outputStream
+                                        if (outputStream == null)
+                                                throw IOException("Output stream is null")
 
-                                            activity.runOnUiThread {
-                                                result.success("Data sent successfully")
-                                            }
-                                            Thread.sleep(1000) // Wait for the printer to process
-                                        } else {
-                                            activity.runOnUiThread {
-                                                result.error(
-                                                        "SEND_FAILED",
-                                                        exceptionMessage ?: "Output stream is null",
-                                                        null
-                                                )
-                                            }
+                                        outputStream.write(" ".toByteArray(Charsets.UTF_8))
+                                        for (line in dataLines) {
+                                            handleLine(line, outputStream)
+                                        }
+                                        outputStream.flush()
+                                        outputStream.write(
+                                                byteArrayOf(0x1D, 0x56, 0x41, 0x10)
+                                        ) // Paper cut command
+                                        outputStream.flush()
+
+                                        activity.runOnUiThread {
+                                            result.success("Data sent successfully")
                                         }
                                     } catch (e: IOException) {
                                         Log.e("Bluetooth", "Error while sending data", e)
-                                        exceptionMessage = e.message
                                         activity.runOnUiThread {
                                             result.error(
                                                     "SEND_FAILED",
@@ -180,6 +171,7 @@ class MainActivity : FlutterActivity() {
                                         }
                                     } finally {
                                         try {
+                                            outputStream?.flush()
                                             outputStream?.close()
                                             socket?.takeIf { it.isConnected }?.close()
                                         } catch (closeException: IOException) {

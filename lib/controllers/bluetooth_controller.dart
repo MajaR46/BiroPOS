@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
@@ -119,8 +120,13 @@ class BluetoothService {
           {'dataLines': dataLines},
         );
         print('BluetoothService: sendData success: $result');
+        // await ErrorDialogs.showResponseDialog(response, context!);
+        print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
+        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        //await ErrorDialogs.showResponseDialog(response, context!);
+        print("PRINT 1");
 
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
           errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
@@ -146,9 +152,21 @@ class BluetoothService {
       if (context != null) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(errorMessage)));
+        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        // await ErrorDialogs.showResponseDialog(response, context!);
+        print("PRINT 2");
       } else {
+        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        //await ErrorDialogs.showResponseDialog(response, context!);
+
+        print("PRINT 3");
+
         print(errorMessage); // Print error if no context available
       }
+      await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+      //await ErrorDialogs.showResponseDialog(response, context!);
+      print("PRINT 4");
+
       return errorMessage; // Return error message
     }
   }

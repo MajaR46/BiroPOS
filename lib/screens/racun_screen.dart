@@ -31,9 +31,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   final TextEditingController discountController = TextEditingController();
   List<NacinPlacila> naciniPlacila = [];
   String itemOpis = '';
+  double itemPrice = 0.0;
   late OrderService orderService;
   final TextEditingController searchController = TextEditingController();
   bool _isSearchMode = false;
+  bool _isKeyboardListenerEnabled = false;
 
   // NEW: Barcode scanner implementation
   final FocusNode _barcodeFocusNode = FocusNode();
@@ -55,7 +57,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     super.didChangeDependencies();
     _updateTotalDiscount();
 
-    if (!_isDiscountDialogOpen) {
+    if (!_isDiscountDialogOpen && ModalRoute.of(context)?.isCurrent == true) {
       FocusScope.of(context).requestFocus(_barcodeFocusNode);
     }
   }
@@ -118,7 +120,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     discountController.clear();
   }
 
-  void _submit(String? productId, bool isFinalDiscount, [double? discount]) {
+  void _submit(String? productId, String itemDescription, double itemPrice,
+      bool isFinalDiscount,
+      [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
 
     if (isFinalDiscount) {
@@ -130,34 +134,50 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   item.product.price.toString().replaceAll(',', '.')) ??
               0;
           double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
-          ref
-              .read(narociloNotifierProvider.notifier)
-              .updateDiscount(item.product.id, discountedPrice, discount ?? 0);
+
+          ref.read(narociloNotifierProvider.notifier).updateDiscount(
+              item.product.id,
+              item.description,
+              item.product.price,
+              discountedPrice,
+              discount ?? 0);
         }
         _updateTotalDiscount();
       });
       return;
     }
 
-    // Handle item-specific discount
+    // Popravljen del: iteracija čez vse izdelke, ne le prvi
     if (productId != null) {
       double itemDiscount = (discount ?? 0) / 100;
 
-      var item = chosenItems.firstWhere((item) => item.product.id == productId);
-      double itemPrice =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0;
+      var itemsToUpdate = chosenItems
+          .where((item) =>
+              item.product.id == productId &&
+              item.description == itemDescription &&
+              item.product.price == itemPrice)
+          .toList();
 
-      double discountedPirce = itemPrice * (1 - itemDiscount);
+      for (var item in itemsToUpdate) {
+        double itemPrice = double.tryParse(
+                item.product.price.toString().replaceAll(',', '.')) ??
+            0;
+        double discountedPrice = itemPrice * (1 - itemDiscount);
 
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .updateDiscount(item.product.id, discountedPirce, discount ?? 0);
+        ref.read(narociloNotifierProvider.notifier).updateDiscount(
+            item.product.id,
+            item.description,
+            item.product.price,
+            discountedPrice,
+            discount ?? 0);
+      }
+
       _updateTotalDiscount();
     }
   }
 
-  Future openDialog(String? productId, bool isFinalDiscount,
+  Future openDialog(String? productId, String itemDescription, double itemPrice,
+      bool isFinalDiscount,
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
     discountController.clear();
@@ -167,8 +187,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     FocusScope.of(context).unfocus();
 
     if (productId != null && !isFinalDiscount) {
-      var item =
-          chosenItems.firstWhere((element) => element.product.id == productId);
+      var item = chosenItems.firstWhere((element) =>
+          element.product.id == productId &&
+          element.description == itemDescription &&
+          element.product.price == itemPrice);
       double originalPrice =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0;
@@ -217,7 +239,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                _submit(productId, isFinalDiscount,
+                _submit(productId, itemDescription, itemPrice, isFinalDiscount,
                     double.tryParse(discountController.text));
                 SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky);
@@ -311,7 +333,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: AppStyles.white,
       appBar: AppBar(
         backgroundColor: AppStyles.white,
@@ -398,6 +420,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                               style: IconButton.styleFrom(
                                   backgroundColor: AppStyles.blue),
                               onPressed: () {
+                                FocusScope.of(context)
+                                    .unfocus(); // Unfocus everything before navigation
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -405,6 +429,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                                               itemName: item.product.name,
                                               itemCategory:
                                                   item.product.categoryID,
+                                              itemPrice: item.product.price,
                                             )));
                               },
                               icon: const Icon(Icons.edit),
@@ -413,7 +438,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                               style: IconButton.styleFrom(
                                   backgroundColor: AppStyles.darkGreen),
                               onPressed: () {
-                                openDialog(item.product.id, false);
+                                openDialog(item.product.id, item.description,
+                                    item.product.price, false);
                               },
                               icon: const Icon(Icons.percent),
                             ),
@@ -497,7 +523,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                           }
                         },
                         navigateToOpisDiscountScreen: () =>
-                            openDialog(null, true),
+                            openDialog(null, itemOpis, itemPrice, true),
                         navigateToRacun: _navigateToBlagajnaScreen),
                   )
                 ],

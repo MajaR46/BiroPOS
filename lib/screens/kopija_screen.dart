@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
@@ -42,6 +43,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
       await Print.printText(context, apiResponse, ref);
+      //await ErrorDialogs.showResponseDialog(apiResponse, context!);
 
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
