@@ -110,6 +110,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
         settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+    print("tiskaj : $tiskajNarociloPriRacunu");
     double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
     try {
@@ -180,7 +181,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     } else {
       // Handle the case where no item is selected
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an item to multiply')),
+        const SnackBar(content: Text('Izberi izdelek')),
       );
     }
   }

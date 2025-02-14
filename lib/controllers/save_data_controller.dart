@@ -1,24 +1,29 @@
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/hive_adaprters/blagajna.dart';
 import 'package:biro_pos/hive_adaprters/osebje.dart';
 import 'package:biro_pos/hive_adaprters/podjetje.dart';
+import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final box = Hive.box('biroposData');
 String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
-Future<bool> handleData() async {
+Future<bool> handleData(WidgetRef ref) async {
   final box = Hive.box('biroposData');
   String? userId = box.get('userId', defaultValue: "");
 
   try {
     List<String> apiResponseList = await sendRequest(userId!, "BiroPOS.txt");
 
+    print("API Response: $apiResponseList");
+
     await _saveBiroPosData(apiResponseList, box);
 
     // Categorize and store responses
-    categorizeResponse(apiResponseList);
+    categorizeResponse(apiResponseList, ref);
 
     // Save company tax data for offline use
     await savePodjetjeDavcnaToPrefs();
@@ -34,9 +39,12 @@ Future<void> _saveBiroPosData(List<String> data, Box box) async {
   await box.put('biroPosData', data);
 }
 
-void categorizeResponse(List<String> items) {
+void categorizeResponse(List<String> items, WidgetRef ref) async {
   List<Osebje> osebje2 = [];
   List<Podjetje> podatkiPodjetje2 = [];
+  List<Blagajna> podatkiBlagajna2 = [];
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  final box = Hive.box('biroposData');
 
   for (String item in items) {
     if (item.startsWith('4')) {
@@ -54,12 +62,41 @@ void categorizeResponse(List<String> items) {
       String imePodjetja = item.split('|')[2];
 
       podatkiPodjetje2.add(Podjetje(podjetjeDavcna, imePodjetja));
+    } else if (item.startsWith('N')) {
+      String vprasajZaCeno = item.split('|')[1];
+      String zakljuciRacunPriEnemRacunu = item.split('|')[2];
+      String izbirajNacinePlacil = item.split('|')[3];
+      String tiskajNarocilo = item.split('|')[4];
+
+      podatkiBlagajna2.add(Blagajna(vprasajZaCeno, zakljuciRacunPriEnemRacunu,
+          izbirajNacinePlacil, tiskajNarocilo));
+
+      box.put('blagajna_vprasajZaCeno', vprasajZaCeno);
+      box.put('blagajna_zakljuciRacun', zakljuciRacunPriEnemRacunu);
+      box.put('blagajna_izbirajNacinePlacil', izbirajNacinePlacil);
+      box.put('blagajna_tiskajNarocilo', tiskajNarocilo);
+
+      // Set _isCheckedMoney based on vprasajZaCeno
+      bool isCheckedMoney = vprasajZaCeno ==
+          '1'; // If vprasajZaCeno is '1', set true, otherwise false
+      prefs.setBool('isCheckedMoney', isCheckedMoney);
+
+      // Set _isCheckedTiskajNarociloPriRacunu based on tiskajNarocilo
+      bool isCheckedTiskajNarocilo = tiskajNarocilo ==
+          '1'; // If tiskajNarocilo is '1', set true, otherwise false
+      prefs.setBool(
+          'isCheckedTiskajNarociloPriRacunu', isCheckedTiskajNarocilo);
+
+      // Also update the provider
+      ref
+          .read(settingsProvider.notifier)
+          .toggleTiskajNarociloPriRacunu(isCheckedTiskajNarocilo);
     }
   }
 
-  final box = Hive.box('biroposData');
   box.put('osebje', osebje2);
   box.put('podjetje', podatkiPodjetje2);
+  box.put('blagajna', podatkiBlagajna2);
 }
 
 Future<void> getTables() async {
@@ -100,7 +137,8 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
 
   // Retrieve the list of 'Podjetje' objects stored under the key 'podjetje'
   List<Podjetje> podjetjeList =
-      box.get('podjetje', defaultValue: []) as List<Podjetje>;
+      (box.get('podjetje', defaultValue: <Podjetje>[]) as List)
+          .cast<Podjetje>();
 
   if (podjetjeList.isNotEmpty) {
     // Access the 'podjetjeDavcna' field of the first 'Podjetje' object

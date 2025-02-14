@@ -5,6 +5,7 @@ import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final paymentMethodProvider = StateProvider<List<NacinPlacila>>((ref) => []);
@@ -71,6 +72,7 @@ class OrderService {
     }
 
     final chosenItems = ref.watch(narociloNotifierProvider);
+    final numberFormat = NumberFormat("#,##0.00", "sl_SI");
 
     List<String> tableOrderItems = [];
     List<String> directOrderItems = [];
@@ -78,17 +80,20 @@ class OrderService {
 
     for (var item in chosenItems) {
       String productCode = item.product.id.toString();
-      double quantity = item.quantity.toDouble();
+      String quantity = numberFormat.format(item.quantity);
       String categoryCode = item.product.categoryID.toString();
-      double price =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0.0;
+      String price = numberFormat.format(item.product.price);
+
       double discountedPrice = item.product.discountedPrice;
 
-      double discount = (discountedPrice > 0 && price > 0)
-          ? 100 - ((discountedPrice / price) * 100)
+      num discountRaw = (discountedPrice != 0)
+          ? ((1 -
+                  (discountedPrice /
+                      double.parse(item.product.price.toString()))) *
+              100)
           : 0;
 
+      String discount = numberFormat.format(discountRaw);
       String paymentCode = '';
       String taxNumber = davcnaSt ?? '';
 

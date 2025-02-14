@@ -72,7 +72,6 @@ class Utils {
         } else {
           await sunmiPrinterPlus.printText(
               text: line, style: SunmiTextStyle(bold: isBold));
-          await ErrorDialogs.showResponseDialog(filteredLines, context!);
         }
         print("PRINT 6");
       }
@@ -104,7 +103,9 @@ class Utils {
       } else {
         print('Error during printing: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+          SnackBar(
+              content:
+                  Text("Napaka pri tiskanju z integriranim tiskalnikom: $e")),
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
         print("PRINT 8");

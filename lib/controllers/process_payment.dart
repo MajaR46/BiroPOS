@@ -159,16 +159,24 @@ class ProcessPayment {
     }
   }
 
-  static Future<void> isBluetoothConnected(
+  static Future<bool> isBluetoothConnected(
       BuildContext context, List<String> response) async {
     // Added BuildContext
-    final bluetoothConnected = await BluetoothService.isBluetoothConnected();
-    final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
+    try {
+      final bluetoothConnected = await BluetoothService.isBluetoothConnected();
+      final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
 
-    if (!bluetoothConnected || !bluetoothEnabled) {
-      //await ErrorDialogs.showBluetoothErrorDialog(context, response);
-      //await ErrorDialogs.showResponseDialog(response, context!);
-      print("PRINT 11");
+      if (!bluetoothConnected || !bluetoothEnabled) {
+        // await ErrorDialogs.showBluetoothErrorDialog(context, response);
+        // await ErrorDialogs.showResponseDialog(response, context!);
+        print("PRINT 11");
+        return false; // Bluetooth is not connected or enabled
+      }
+      return true; // Bluetooth is connected and enabled
+    } catch (e) {
+      // Handle any errors during the Bluetooth check
+      print("Error checking Bluetooth status: $e");
+      return false; // Consider Bluetooth not connected in case of an error
     }
   }
 

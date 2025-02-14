@@ -1,7 +1,9 @@
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/hive_adaprters/blagajna.dart';
 import 'package:biro_pos/hive_adaprters/osebje.dart';
 import 'package:biro_pos/hive_adaprters/podjetje.dart';
 import 'package:biro_pos/screens/login.dart';
+import 'package:biro_pos/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +16,7 @@ void main() async {
 
   Hive.registerAdapter(OsebjeAdapter());
   Hive.registerAdapter(PodjetjeAdapter());
+  Hive.registerAdapter(BlagajnaAdapter());
   await Hive.openBox('sessionBox');
   await Hive.openBox('biroposData');
 

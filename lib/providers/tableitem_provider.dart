@@ -4,6 +4,7 @@ import 'package:biro_pos/models/tableItem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 class TableNotifier extends Notifier<List<TableItem>> {
   @override
@@ -34,6 +35,8 @@ class TableNotifier extends Notifier<List<TableItem>> {
       BuildContext context, String tableNumber) async {
     String? userId = SessionManager().getLoggedInUserSifra();
 
+    final numberFormat = NumberFormat("#,##0.00", "sl_SI"); // Slovenian locale
+
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("No user logged in!")),
@@ -45,22 +48,29 @@ class TableNotifier extends Notifier<List<TableItem>> {
 
     List<String> tableItems = chosenItems.map((item) {
       String productCode = item.product.id.toString();
-      double quantitiy = item.quantity.toDouble();
-      double price =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0.0;
+      String quantity = numberFormat.format(item.quantity); // Use formatter
+
+      String price = numberFormat.format(item.product.price); // Use formatter
 
       double itemDiscountedPrice = item.product.discountedPrice > 0
           ? item.product.discountedPrice
-          : price;
+          : double.tryParse(item.product.price.toString()) ?? 0.0;
 
-      num discount =
-          (price != 0) ? ((1 - (itemDiscountedPrice / price)) * 100) : 0;
+      num discountRaw = (itemDiscountedPrice != 0)
+          ? ((1 -
+                  (itemDiscountedPrice /
+                      double.parse(item.product.price.toString()))) *
+              100)
+          : 0;
+
+      String discount = numberFormat.format(discountRaw);
 
       String opis = item.description;
       String artikelSkupina = item.product.categoryID.toString();
+      print(
+          '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\t$opis\t$artikelSkupina');
 
-      return '$userId\t$tableNumber\t$productCode\t$quantitiy\t$price\t$discount\t$opis\t$artikelSkupina';
+      return '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\t$opis\t$artikelSkupina';
     }).toList();
     print(tableItems);
 
@@ -84,22 +94,27 @@ class TableNotifier extends Notifier<List<TableItem>> {
       );
       return [];
     }
+    final numberFormat = NumberFormat("#,##0.00", "sl_SI"); // Slovenian locale
 
     final chosenItems = ref.watch(narociloNotifierProvider);
 
     List<String> tableItems = chosenItems.map((item) {
       String productCode = item.product.id.toString();
       double quantitiy = item.quantity.toDouble();
-      double price =
-          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
-              0.0;
+      String price = numberFormat.format(item.product.price); // Use formatter
 
       double itemDiscountedPrice = item.product.discountedPrice > 0
           ? item.product.discountedPrice
-          : price;
+          : double.tryParse(item.product.price.toString()) ?? 0.0;
 
-      num discount =
-          (price != 0) ? ((1 - (itemDiscountedPrice / price)) * 100) : 0;
+      num discountRaw = (itemDiscountedPrice != 0)
+          ? ((1 -
+                  (itemDiscountedPrice /
+                      double.parse(item.product.price.toString()))) *
+              100)
+          : 0;
+
+      String discount = numberFormat.format(discountRaw);
 
       String opis = item.description;
       String artikelSkupina = item.product.categoryID.toString();

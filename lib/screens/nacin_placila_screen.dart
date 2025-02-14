@@ -5,6 +5,7 @@ import 'package:biro_pos/controllers/process_payment.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
           await Narocilo.createNarocilo(ref, false, context);
         }
         clearDavcna(ref);
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
       } catch (e) {
         print("Težava z bluetooth");
         ScaffoldMessenger.of(context)

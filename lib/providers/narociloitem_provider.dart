@@ -86,7 +86,9 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void updateOpis(String productId, double productPrice, String newOpis) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId && item.product.price == productPrice) {
+      if (item.product.id == productId &&
+          item.product.price == productPrice &&
+          item.description.isEmpty) {
         return item.copyWith(description: newOpis);
       }
       return item;

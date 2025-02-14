@@ -30,24 +30,35 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
 
-    List<String> narociloItems = [];
+    if (_newTableController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Oznaka mize ne sme biti prazna")));
+    } else {
+      List<String> narociloItems = [];
 
-    for (var item in chosenItems) {
-      String artikelSifra = item.product.id;
-      double kolicina = item.quantity;
-      double originalPrice = item.product.price;
-      num popust = item.discount;
-      String opis = item.description;
-      String artikelSkupina = item.product.categoryID;
+      for (var item in chosenItems) {
+        String artikelSifra = item.product.id;
+        double kolicina = item.quantity;
+        double originalPrice = item.product.price;
+        num popust = item.discount;
+        String opis = item.description;
+        String artikelSkupina = item.product.categoryID;
 
-      String narociloItem =
-          '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
+        String narociloItem =
+            '$userId\t$tableNumber\t$artikelSifra\t$kolicina\t$originalPrice\t$popust\t$opis\t$artikelSkupina';
 
-      narociloItems.add(narociloItem);
+        narociloItems.add(narociloItem);
+      }
+
+      List<String> posljiNaStreznik =
+          await sendRequest(userId, narociloItems.join('\r\n'));
+
+      ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+      clearSelectedItem(ref);
+
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     }
-
-    List<String> posljiNaStreznik =
-        await sendRequest(userId, narociloItems.join('\r\n'));
   }
 
   @override
@@ -109,15 +120,6 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               child: OKButton(
                 onPressed: () {
                   _addToNewTable(_newTableController.text);
-                  ref
-                      .read(narociloNotifierProvider.notifier)
-                      .clearChosenItems();
-                  clearSelectedItem(ref);
-
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const BlagajnaScreen()));
                 },
                 text: 'OK',
               ),

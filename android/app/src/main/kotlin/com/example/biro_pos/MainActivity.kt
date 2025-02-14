@@ -24,6 +24,8 @@ class MainActivity : FlutterActivity() {
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val discoveredDevices = mutableListOf<String>()
     private var currentDevice: BluetoothDevice? = null
+    private var bluetoothSocket: BluetoothSocket? = null
+    private var outputStream: OutputStream? = null
 
     private val discoveryReceiver =
             object : BroadcastReceiver() {
@@ -85,6 +87,9 @@ class MainActivity : FlutterActivity() {
                 "getDiscoveredDevices" -> {
                     result.success(discoveredDevices)
                 }
+                "initializeBluetooth" -> {
+                    initializeBluetooth(result)
+                }
                 "getBondedDevices" -> {
                     if (checkPermissions()) {
                         val pairedDevices = bluetoothAdapter?.bondedDevices
@@ -103,130 +108,60 @@ class MainActivity : FlutterActivity() {
                 }
                 "sendData" -> {
                     val dataLines = call.argument<List<String>>("dataLines")
-                    if (currentDevice != null && dataLines != null) {
-                        val device = currentDevice
+                    if (bluetoothSocket?.isConnected == true &&
+                                    outputStream != null &&
+                                    dataLines != null
+                    ) {
+                        try {
+                            outputStream?.write(" ".toByteArray(Charsets.UTF_8))
+                            for (line in dataLines) {
+                                handleLine(line, outputStream!!)
+                            }
+                            outputStream?.flush()
+                            outputStream?.write(byteArrayOf(0x1D, 0x56, 0x41, 0x10))
+                            outputStream?.flush()
 
-                        // Directly execute on the main thread to show the error immediately
-                        // Execute the Bluetooth communication on a separate thread
-                        Thread {
-                                    var socket: BluetoothSocket? = null
-                                    var outputStream: OutputStream? = null
-
-                                    try {
-                                        socket = device?.createRfcommSocketToServiceRecord(MY_UUID)
-                                        Log.d(
-                                                "Bluetooth",
-                                                "Connecting to device: ${device?.name} (${device?.address})"
-                                        )
-
-                                        val connectThread = Thread {
-                                            try {
-                                                socket?.connect() // This can block for several
-                                                // seconds!
-                                            } catch (e: IOException) {
-                                                Log.e(
-                                                        "Bluetooth",
-                                                        "Connection failed immediately",
-                                                        e
-                                                )
-                                            }
-                                        }
-
-                                        connectThread.start()
-                                        connectThread.join(
-                                                2000
-                                        ) // Wait max 3 seconds for connection
-
-                                        if (!socket!!.isConnected
-                                        ) { // If still not connected, force fail
-                                            connectThread.interrupt()
-                                            throw IOException("Bluetooth connection timeout")
-                                        }
-
-                                        outputStream = socket?.outputStream
-                                        if (outputStream == null)
-                                                throw IOException("Output stream is null")
-
-                                        outputStream.write(" ".toByteArray(Charsets.UTF_8))
-                                        for (line in dataLines) {
-                                            handleLine(line, outputStream)
-                                        }
-                                        outputStream.flush()
-                                        outputStream.write(
-                                                byteArrayOf(0x1D, 0x56, 0x41, 0x10)
-                                        ) // Paper cut command
-                                        outputStream.flush()
-
-                                        activity.runOnUiThread {
-                                            result.success("Data sent successfully")
-                                        }
-                                    } catch (e: IOException) {
-                                        Log.e("Bluetooth", "Error while sending data", e)
-                                        activity.runOnUiThread {
-                                            result.error(
-                                                    "SEND_FAILED",
-                                                    "Error while sending data: ${e.message}",
-                                                    e.message
-                                            )
-                                        }
-                                    } finally {
-                                        try {
-                                            outputStream?.flush()
-                                            outputStream?.close()
-                                            socket?.takeIf { it.isConnected }?.close()
-                                        } catch (closeException: IOException) {
-                                            Log.e(
-                                                    "Bluetooth",
-                                                    "Error closing socket",
-                                                    closeException
-                                            )
-                                        }
-                                    }
-                                }
-                                .start()
+                            activity.runOnUiThread { result.success("Data sent successfully") }
+                        } catch (e: IOException) {
+                            Log.e("Bluetooth", "Error while sending data", e)
+                            activity.runOnUiThread {
+                                result.error(
+                                        "SEND_FAILED",
+                                        "Error while sending data: ${e.message}",
+                                        e.message
+                                )
+                            }
+                        }
                     } else {
                         result.error("SEND_FAILED", "No device connected or invalid data", null)
+
+                        bluetoothSocket?.connect()
+                        outputStream = bluetoothSocket?.outputStream
+                        startKeepAlive()
                     }
                 }
                 "connectToDevice" -> {
                     val deviceAddress = call.argument<String>("deviceAddress")
                     if (deviceAddress != null) {
                         try {
-                            Log.d(
-                                    "Bluetooth",
-                                    "Attempting to connect to device with address: $deviceAddress"
-                            )
+                            Log.d("Bluetooth", "Connecting to device: $deviceAddress")
                             val device = bluetoothAdapter?.getRemoteDevice(deviceAddress)
                             if (device != null) {
-                                Log.d(
-                                        "Bluetooth",
-                                        "Device object retrieved: ${device.name} (${device.address})"
-                                )
                                 currentDevice = device
-                                try {
-                                    Log.d(
-                                            "Bluetooth",
-                                            "Successfully connected to ${device.name} (${device.address})"
-                                    )
-                                    result.success("Connected to device")
-                                } catch (e: IOException) {
-                                    Log.e("Bluetooth", "Socket connection failed", e)
-                                    result.error(
-                                            "CONNECTION_FAILED",
-                                            "Failed to connect to ${device.name}",
-                                            e.message
-                                    )
-                                }
+                                bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
+                                bluetoothSocket?.connect()
+                                outputStream = bluetoothSocket?.outputStream
+                                startKeepAlive()
+
+                                Log.d("Bluetooth", "Connected to ${device.name}")
+                                result.success("Connected to device")
                             } else {
-                                Log.e("Bluetooth", "Device with address $deviceAddress not found")
                                 result.error("INVALID_DEVICE", "Device not found", null)
                             }
-                        } catch (e: IllegalArgumentException) {
-                            Log.e("Bluetooth", "Invalid device address: $deviceAddress", e)
-                            result.error("INVALID_ADDRESS", "Invalid device address", null)
+                        } catch (e: IOException) {
+                            result.error("CONNECTION_FAILED", "Connection failed", e.message)
                         }
                     } else {
-                        Log.e("Bluetooth", "Device address not provided")
                         result.error("INVALID_PARAMETER", "Device address not provided", null)
                     }
                 }
@@ -242,6 +177,8 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun handleLine(line: String, outputStream: OutputStream) {
+        Log.d("Bluetooth", "Handling line: $line")
+
         when {
             line.contains("#QRKODA#") -> handleQrCode(line, outputStream)
             line.contains("#VELIKOST-START#") -> handleVelikostStart(outputStream)
@@ -513,8 +450,7 @@ class MainActivity : FlutterActivity() {
             )
 
             if (!scanGranted || !connectGranted) {
-                requestBluetoothPermissions()
-                return false
+                return false // Return false if permissions are not granted
             }
             return true
         }
@@ -577,10 +513,114 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun initializeBluetooth(result: MethodChannel.Result) {
+        if (currentDevice != null) {
+            val deviceName = currentDevice?.name ?: ""
+            Log.d("Bluetooth", "Initializing printer: $deviceName")
+            Thread {
+                        var socket: BluetoothSocket? = null
+                        var outputStream: OutputStream? = null
+
+                        try {
+                            socket = currentDevice?.createRfcommSocketToServiceRecord(MY_UUID)
+                            socket?.connect()
+                            outputStream = socket?.outputStream
+
+                            val toSend = mutableListOf<Byte>()
+
+                            when {
+                                deviceName.contains("IPosPrinter", ignoreCase = true) -> {
+                                    toSend.addAll(byteArrayOf(27, 64).toList())
+                                }
+                                deviceName.contains("IPos2Printer", ignoreCase = true) -> {
+                                    toSend.addAll(byteArrayOf(27, 64).toList()) // ESC @
+                                }
+                                deviceName.contains("BlueTooth Printer", ignoreCase = true) -> {
+
+                                    toSend.addAll(byteArrayOf(27, 33, 5).toList()) // ESC ! 0x05
+                                    // }
+                                }
+                                deviceName.contains("OM BP", ignoreCase = true) -> {
+                                    toSend.addAll(byteArrayOf(27, 64).toList()) // ESC @
+                                }
+                                deviceName.contains("RPP-02", ignoreCase = true) ||
+                                        deviceName.contains("RPP02N", ignoreCase = true) ||
+                                        deviceName.contains("TimPOS", ignoreCase = true) -> {
+                                    toSend.addAll(byteArrayOf(27, 33, 8).toList()) // ESC ! 0x08
+                                }
+                                deviceName.contains("InnerPrinter", ignoreCase = true) -> {
+                                    // No initialization needed as per Delphi code
+                                }
+                                deviceName.contains("P58E", ignoreCase = true) -> {
+                                    // No initialization needed as per Delphi code
+                                }
+                                else -> {
+                                    Log.d(
+                                            "Bluetooth",
+                                            "Neznan printer: $deviceName. Inicializacija prekinjena"
+                                    )
+                                }
+                            }
+
+                            if (toSend.isNotEmpty()) {
+                                outputStream?.write(toSend.toByteArray())
+                                outputStream?.flush()
+                                Log.d("Bluetooth", "inicializacija poslana na printer")
+                            } else {
+                                Log.d("Bluetooth", "Naprava ne potrebuje inicializacije")
+                            }
+
+                            activity.runOnUiThread { result.success("Inicializacija uspešna.") }
+                        } catch (e: IOException) {
+                            Log.d("Bluetooth", "Napaka pri inicializaciji $e", e)
+                            activity.runOnUiThread {
+                                result.error(
+                                        "INIT_FAILED",
+                                        "Bluetooth initialization failed: ${e.message}",
+                                        e.message
+                                )
+                            }
+                        } finally {
+                            try {
+                                outputStream?.close()
+                                socket?.close()
+                            } catch (closeException: IOException) {
+                                Log.d("Bluetooth", "Napaka pri zapiranju socketa", closeException)
+                            }
+                        }
+                    }
+                    .start()
+        } else {
+            Log.w("Bluetooth", "No device connected. Cannot initialize Bluetooth.")
+            result.error("NO_DEVICE", "No device connected.", null)
+        }
+    }
+
+    private fun startKeepAlive() {
+        Thread {
+                    while (bluetoothSocket?.isConnected == true) {
+                        try {
+                            outputStream?.write(byteArrayOf(0x00)) // Pošlje prazen bajt
+                            outputStream?.flush()
+                            Thread.sleep(60000) // Počaka 2 minuti
+                        } catch (e: IOException) {
+                            Log.e("Bluetooth", "KeepAlive error", e)
+                            break
+                        }
+                    }
+                }
+                .start()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        // Unregister the receiver when the activity is destroyed
         unregisterReceiver(discoveryReceiver)
+        try {
+            outputStream?.close()
+            bluetoothSocket?.close()
+        } catch (e: IOException) {
+            Log.e("Bluetooth", "Error closing socket", e)
+        }
     }
 
     companion object {

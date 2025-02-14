@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class Item {
   final String id;
   final String name;
@@ -7,7 +9,9 @@ class Item {
   final String categoryID;
   final String eanCode;
 
-  // Constructor with optional named parameters and default values
+  static final numberFormat =
+      NumberFormat("#,##0.00", "sl_SI"); // Slovenian format
+
   Item({
     this.id = '',
     this.name = 'Unknown Item',
@@ -18,23 +22,26 @@ class Item {
     this.eanCode = '',
   });
 
-  // Factory constructor to create an Item from a map
   factory Item.fromMap(Map<String, dynamic> map) {
+    double parseDouble(dynamic value) {
+      return double.tryParse(value.toString().replaceAll(',', '.')) ?? 0.0;
+    }
+
     return Item(
       id: map['itemId'] as String? ?? '',
       name: map['name'] as String? ?? 'Unknown Item',
-      price: double.tryParse(map['price'].toString().replaceAll(',', '.')) ?? 0,
-      discountedPrice: double.tryParse(
-              map['discountedPrice'].toString().replaceAll(',', '.')) ??
-          0,
-      hhPrice:
-          double.tryParse(map['HHprice'].toString().replaceAll(',', '.')) ?? 0,
+      price: parseDouble(map['price']),
+      discountedPrice: parseDouble(map['discountedPrice']),
+      hhPrice: parseDouble(map['HHprice']),
       categoryID: map['categoryID'] as String? ?? '',
       eanCode: map['eanCode'] as String? ?? '',
     );
   }
 
-  // CopyWith method for creating a modified copy of an Item
+  String formattedPrice() => numberFormat.format(price);
+  String formattedDiscountedPrice() => numberFormat.format(discountedPrice);
+  String formattedHhPrice() => numberFormat.format(hhPrice);
+
   Item copyWith({
     String? id,
     String? name,

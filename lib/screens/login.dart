@@ -6,6 +6,7 @@ import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/save_data_controller.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/hive_adaprters/blagajna.dart';
 import 'package:biro_pos/hive_adaprters/osebje.dart';
 import 'package:biro_pos/hive_adaprters/podjetje.dart';
 import 'package:biro_pos/models/bondedBlutetoothDevice.dart';
@@ -48,9 +49,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final bool _isHidden = true;
   List<Osebje> osebje = [];
   List<Podjetje> podjetje = [];
+  List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.3.1';
+  String verzijaPrograma = '5.4.0';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -58,14 +60,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+
     _initializeBluetooth();
+    print("Initialized bluetooth izvedeno");
     _loadLastRefreshTime();
-
-    DateTime currentDate = DateTime.now();
-    formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
-    formattedTime = DateFormat("HH:mm").format(currentDate);
-
-    setState(() {});
 
     _timer = Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       DateTime currentDate = DateTime.now();
@@ -90,21 +88,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
   }
 
-  Future<void> _initializeLoginScreen() async {
-    bool dataHandled = await handleData();
-    if (dataHandled) {
-      // Load the categorized data from Hive
-      final box = Hive.box('biroposData');
-      osebje = List<Osebje>.from(box.get('osebje', defaultValue: []));
-      podjetje = List<Podjetje>.from(box.get('podjetje', defaultValue: []));
-      setState(() {});
-    }
-
-    await _initializeBluetooth();
-  }
-
   Future<void> _initializeBluetooth() async {
     try {
+      await _bluetoothService.initializeBluetooth();
+      print("inicializacija uspešna");
+      await _bluetoothService.checkBluetoothPermissions();
+      print("check bluetooth permissions uspešno");
+
       // Fetch bonded devices
       List<BondedDevice> devices = await _bluetoothService.getBondedDevices();
       final settings = ref.watch(settingsProvider);
@@ -154,6 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     Osebje? matchedUser;
     final box = Hive.box('biroposData');
     osebje = List<Osebje>.from(box.get('osebje', defaultValue: []));
+    blagajna = List<Blagajna>.from(box.get('blagajna', defaultValue: []));
 
     for (var user in osebje) {
       if (user.password == inputPassword) {
@@ -163,8 +154,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     if (matchedUser != null) {
-      SessionManager().saveSession(matchedUser.username, matchedUser.sifra,
-          matchedUser.pravicaStornoProdaja, matchedUser.pravicaPregledPorocil);
+      SessionManager().saveSession(
+        matchedUser.username,
+        matchedUser.sifra,
+        matchedUser.pravicaStornoProdaja,
+        matchedUser.pravicaPregledPorocil,
+      );
       await box.put('userId', matchedUser.sifra);
       await box.put('userName', matchedUser.username);
       await box.put('userPassword', matchedUser.password);
@@ -253,7 +248,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _refresh() async {
     try {
-      bool isDataHandled = await handleData();
+      bool isDataHandled = await handleData(ref);
       if (isDataHandled) {
         setState(() {
           DateTime currentDate = DateTime.now();

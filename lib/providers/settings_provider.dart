@@ -6,7 +6,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       : super({
           'isCheckedPrikazujNarocila': false,
           'isCheckedPrikazujRacune': false,
-          'isCheckedBluetoothPrintanje': false,
+          'isCheckedBluetoothPrintanje': true,
           'isCheckedEnojniKlik': false,
           'isCheckedPregledNarocil': false,
           'isCheckedHHCene': false,
@@ -25,7 +25,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
         prefs.getBool('isCheckedPrikazujNarocila') ?? false;
     final prikazujRacune = prefs.getBool('isCheckedPrikazujRacune') ?? false;
     final bluetoothprintanje =
-        prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
+        prefs.getBool('isCheckedBluetoothPrintanje') ?? true;
     final enojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
     final pregledNarocil = prefs.getBool('isCheckedPregledNarocil') ?? false;
     final hhCene = prefs.getBool('isCheckedHHCene') ?? false;

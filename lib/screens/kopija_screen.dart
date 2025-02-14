@@ -4,6 +4,7 @@ import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +44,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
       await Print.printText(context, apiResponse, ref);
-      //await ErrorDialogs.showResponseDialog(apiResponse, context!);
+      await ErrorDialogs.showResponseDialog(apiResponse, context!);
 
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

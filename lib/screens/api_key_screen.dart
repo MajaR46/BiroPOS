@@ -38,7 +38,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedTiskajNarociloPriRacunu = false;
   bool _isCheckedPregledNarocil = false;
   bool _isCheckedPrintService = false;
-  bool _isCheckedBluetoothPrintanje = false;
+  bool _isCheckedBluetoothPrintanje = true;
   bool _isCheckedEnojniKlik = false;
   bool _isCheckedBarve = false;
 
@@ -87,6 +87,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
         _isCheckedEnojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
         _isCheckedBarve = prefs.getBool('isCheckedBarve') ?? false;
+        print(
+            "Value of _isCheckedTiskajNarociloPriRacunu on screen load: $_isCheckedTiskajNarociloPriRacunu");
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -477,12 +479,16 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                           ApiKeyCheckbox(
-                            value: _isCheckedTiskajNarociloPriRacunu,
+                            value: ref.watch(settingsProvider)[
+                                    'isCheckedTiskajNarociloPriRacunu'] ??
+                                false,
                             onChanged: (bool? value) {
                               setState(() {
                                 _isCheckedTiskajNarociloPriRacunu =
                                     value ?? false;
                               });
+
+                              // Update provider state
                               ref
                                   .read(settingsProvider.notifier)
                                   .toggleTiskajNarociloPriRacunu(

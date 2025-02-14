@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
@@ -35,11 +36,14 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
     try {
       await Print.printText(context, apiResponse, ref);
       await Print.printText(context, apiResponse, ref);
+
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-        Navigator.of(context).pop();
+        Navigator.push(
+            context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
       }
     } catch (e) {
+      // Show only one error message, even if both fail
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka pri tiskanju: $e")),

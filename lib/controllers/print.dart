@@ -19,14 +19,19 @@ class Print {
   static Future<void> printText(
       BuildContext context, List<String> text, WidgetRef ref) async {
     final settings = ref.watch(settingsProvider);
-    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? false;
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
     final paymentMethods = ref.watch(paymentMethodProvider);
     print(
         "Bluetooth printanje: $bluetoothPrintanje"); // <- DODANO ZA PREVERJANJE
+    BluetoothService bluetoothService = BluetoothService();
 
     if (bluetoothPrintanje == true) {
       try {
-        await ProcessPayment.isBluetoothConnected(context, text);
+        bool isConnected =
+            await ProcessPayment.isBluetoothConnected(context, text);
+        if (isConnected == false) {
+          await bluetoothService.connectToDevice(context);
+        }
 
         print("Attempting to print via Bluetooth...");
 

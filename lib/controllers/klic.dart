@@ -10,6 +10,7 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   String apiKey = prefs.getString('apiKey') ?? '';
   String ip = prefs.getString('IP') ?? '';
   String port = prefs.getString('Port') ?? '';
+  String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
 
   String url = 'http://$ip:$port/api/biropos';
 
@@ -17,7 +18,8 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
     'api-key': apiKey,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'User-Agent': 'BiroPOS URI Client/2.0'
+    'User-Agent': 'BiroPOS URI Client/2.0',
+    'company-tax': podjetjeDavcna
   };
 
   final String formattedDate =
@@ -25,6 +27,7 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   final String uniqueUid = 'android_${userSifra}_abcdef_$formattedDate';
 
   final String body = '{"uid":"$uniqueUid","txt_data":"$txtData"}';
+  print("body $body");
 
   try {
     final response = await http
@@ -34,10 +37,10 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
       body: body,
     )
         .timeout(Duration(seconds: 2), onTimeout: () {
-      throw TimeoutException(
-          "Connection timed out: napačni konfiguracijski podatki (ip, port)");
+      throw TimeoutException("Connection timed out: ni povezave");
     });
 
+    print("response $response");
     var newHeader = response.headers
       ..["content-type"] = "application/json; text=plain; *=*";
 
@@ -51,7 +54,11 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
 
       if (match != null) {
         String result = match.group(1) ?? "";
-        result = result.replaceAll('\t', '|').replaceAll('\n', '_');
+        result = result
+            .replaceAll('\t', '|')
+            .replaceAll('\n', '_')
+            .replaceAll('#tb#', '|')
+            .replaceAll('#nl#', '_');
         var splittedResult = result.split('_');
 
         // Save the result in SharedPreferences based on txtData

@@ -33,7 +33,17 @@ class BluetoothService {
     }
   }
 
-  Future<bool> _checkBluetoothPermissions() async {
+  Future<void> initializeBluetooth() async {
+    try {
+      final String result = await platform.invokeMethod('initializeBluetooth');
+      print('BluetoothService: Bluetooth initialization result: $result');
+    } on PlatformException catch (e) {
+      print(
+          'BluetoothService: Error during Bluetooth initialization: ${e.message}');
+    }
+  }
+
+  Future<bool> checkBluetoothPermissions() async {
     if (Platform.isAndroid) {
       final status = await Permission.bluetoothConnect.status;
       if (status != PermissionStatus.granted) {
@@ -57,7 +67,7 @@ class BluetoothService {
   }
 
   Future<void> connectToDevice(BuildContext context) async {
-    final hasPermissions = await _checkBluetoothPermissions();
+    final hasPermissions = await checkBluetoothPermissions();
     if (!hasPermissions) {
       return;
     }
@@ -105,7 +115,7 @@ class BluetoothService {
       // Conditionally add two empty lines at the end of dataLines
       if (addEmptyLines) {
         dataLines.addAll(
-          ['', '', ''],
+          ['', ''],
         );
       }
 
@@ -120,12 +130,12 @@ class BluetoothService {
           {'dataLines': dataLines},
         );
         print('BluetoothService: sendData success: $result');
-        // await ErrorDialogs.showResponseDialog(response, context!);
+        await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
-        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-        //await ErrorDialogs.showResponseDialog(response, context!);
+        // await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 1");
 
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
@@ -152,19 +162,19 @@ class BluetoothService {
       if (context != null) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(errorMessage)));
-        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-        // await ErrorDialogs.showResponseDialog(response, context!);
+        //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 2");
       } else {
-        await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-        //await ErrorDialogs.showResponseDialog(response, context!);
+        //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+        await ErrorDialogs.showResponseDialog(response, context!);
 
         print("PRINT 3");
 
         print(errorMessage); // Print error if no context available
       }
-      await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-      //await ErrorDialogs.showResponseDialog(response, context!);
+      //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+      await ErrorDialogs.showResponseDialog(response, context!);
       print("PRINT 4");
 
       return errorMessage; // Return error message

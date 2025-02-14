@@ -31,11 +31,10 @@ class ErrorDialogs {
 
   static Future<void> showResponseDialog(
       List<String> response, BuildContext context) async {
-    showDialog(
+    return await showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Račun"),
           content: SingleChildScrollView(
             child: ListBody(
               children: [
@@ -44,7 +43,7 @@ class ErrorDialogs {
                   style: TextStyle(
                       fontFamily: 'Courier',
                       fontSize: 10,
-                      fontWeight: FontWeight.bold),
+                      fontWeight: FontWeight.w700),
                 ),
               ],
             ),
