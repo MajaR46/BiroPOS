@@ -97,7 +97,9 @@ class BluetoothService {
   }
 
   static Future<String> sendData(List<String> response, WidgetRef ref,
-      {bool addEmptyLines = true, BuildContext? context}) async {
+      {bool addEmptyLines = true,
+      BuildContext? context,
+      bool? showDialog = true}) async {
     try {
       final filteredResponse =
           Utils.filterEmptyLines(response); // Filter empty lines
@@ -130,7 +132,9 @@ class BluetoothService {
           {'dataLines': dataLines},
         );
         print('BluetoothService: sendData success: $result');
-        await ErrorDialogs.showResponseDialog(response, context!);
+        if (showDialog == true) {
+          await ErrorDialogs.showResponseDialog(response, context!);
+        }
         print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';

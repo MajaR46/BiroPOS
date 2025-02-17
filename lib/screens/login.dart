@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.4.0';
+  String verzijaPrograma = '5.4.1';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -60,10 +60,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    _loadLastRefreshTime();
 
     _initializeBluetooth();
-    print("Initialized bluetooth izvedeno");
-    _loadLastRefreshTime();
+
+    // Tukaj takoj nastavimo datum in uro, da se prikažeta ob nalaganju
+    DateTime currentDate = DateTime.now();
+    formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
+    formattedTime = DateFormat("HH:mm").format(currentDate);
 
     _timer = Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       DateTime currentDate = DateTime.now();
@@ -248,6 +252,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _refresh() async {
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // Check if apiKey, IP, and Port are empty
+      String apiKey = prefs.getString('apiKey') ?? '';
+      String ip = prefs.getString('IP') ?? '';
+      String port = prefs.getString('Port') ?? '';
+
+      // Set default values if any of them are empty
+      if (apiKey.isEmpty || ip.isEmpty || port.isEmpty) {
+        await prefs.setString('apiKey', 'test');
+        await prefs.setString('IP', '194.247.162.115');
+        await prefs.setString('Port', '11111');
+      }
       bool isDataHandled = await handleData(ref);
       if (isDataHandled) {
         setState(() {

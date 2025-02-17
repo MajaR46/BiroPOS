@@ -82,8 +82,6 @@ class Utils {
           text: ' ',
         );
       }
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
     } catch (e) {
       if (e
           .toString()

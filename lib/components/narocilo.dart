@@ -17,6 +17,7 @@ class Narocilo {
     DateTime currentDate = DateTime.now();
     String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+    String orderNumberTime = DateFormat("mmss").format(currentDate);
     final narociloItems = ref.watch(narociloNotifierProvider);
     int orderNumber = ref.watch(orderNumberProvider);
 
@@ -26,7 +27,7 @@ class Narocilo {
     if (isFromTable == true) {
       narocilo.add("Miza: $tableNumber");
     } else {
-      narocilo.add("Številka: $orderNumber");
+      narocilo.add("Številka: $orderNumberTime");
     }
 
     narocilo.add("Streze vas: $user");

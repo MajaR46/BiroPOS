@@ -51,6 +51,15 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      if (_controllerApiKey.text.isEmpty) {
+        await prefs.setString('apiKey', 'test');
+      }
+      if (_controllerIP.text.isEmpty) {
+        await prefs.setString('IP', '194.247.162.115');
+      }
+      if (_controllerPort.text.isEmpty) {
+        await prefs.setString('Port', '11111');
+      }
       setState(() {
         _controllerApiKey.text = prefs.getString('apiKey') ?? '';
         _controllerIP.text = prefs.getString('IP') ?? '';

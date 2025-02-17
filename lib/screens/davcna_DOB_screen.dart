@@ -34,16 +34,17 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
-      await Print.printText(context, apiResponse, ref);
-      await Print.printText(context, apiResponse, ref);
+      await Future.wait([
+        Print.printText(context, apiResponse, ref),
+        Print.printText(context, apiResponse, ref)
+      ]);
 
-      if (mounted) {
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
-      }
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BlagajnaScreen()),
+      );
     } catch (e) {
-      // Show only one error message, even if both fail
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Napaka pri tiskanju: $e")),

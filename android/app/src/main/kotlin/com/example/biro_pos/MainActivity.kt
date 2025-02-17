@@ -108,11 +108,19 @@ class MainActivity : FlutterActivity() {
                 }
                 "sendData" -> {
                     val dataLines = call.argument<List<String>>("dataLines")
-                    if (bluetoothSocket?.isConnected == true &&
-                                    outputStream != null &&
-                                    dataLines != null
-                    ) {
-                        try {
+
+                    try {
+                        // Zapri staro povezavo, če obstaja
+                        bluetoothSocket?.close()
+                        bluetoothSocket = null
+                        outputStream = null
+
+                        // Ponovno se poveži
+                        bluetoothSocket = currentDevice?.createRfcommSocketToServiceRecord(MY_UUID)
+                        bluetoothSocket?.connect()
+                        outputStream = bluetoothSocket?.outputStream
+
+                        if (outputStream != null && dataLines != null) {
                             outputStream?.write(" ".toByteArray(Charsets.UTF_8))
                             for (line in dataLines) {
                                 handleLine(line, outputStream!!)
@@ -120,24 +128,19 @@ class MainActivity : FlutterActivity() {
                             outputStream?.flush()
                             outputStream?.write(byteArrayOf(0x1D, 0x56, 0x41, 0x10))
                             outputStream?.flush()
-
                             activity.runOnUiThread { result.success("Data sent successfully") }
-                        } catch (e: IOException) {
-                            Log.e("Bluetooth", "Error while sending data", e)
-                            activity.runOnUiThread {
-                                result.error(
-                                        "SEND_FAILED",
-                                        "Error while sending data: ${e.message}",
-                                        e.message
-                                )
-                            }
+                        } else {
+                            result.error("SEND_FAILED", "No device connected or invalid data", null)
                         }
-                    } else {
-                        result.error("SEND_FAILED", "No device connected or invalid data", null)
-
-                        bluetoothSocket?.connect()
-                        outputStream = bluetoothSocket?.outputStream
-                        startKeepAlive()
+                    } catch (e: IOException) {
+                        Log.e("Bluetooth", "Error while sending data", e)
+                        activity.runOnUiThread {
+                            result.error(
+                                    "SEND_FAILED",
+                                    "Error while sending data: ${e.message}",
+                                    e.message
+                            )
+                        }
                     }
                 }
                 "connectToDevice" -> {
@@ -177,7 +180,6 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun handleLine(line: String, outputStream: OutputStream) {
-        Log.d("Bluetooth", "Handling line: $line")
 
         when {
             line.contains("#QRKODA#") -> handleQrCode(line, outputStream)
