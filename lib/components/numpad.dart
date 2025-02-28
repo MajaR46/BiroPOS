@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 
 class Numpad extends StatelessWidget {
   final TextEditingController controller;
@@ -74,6 +75,7 @@ class NumpadNumber extends StatelessWidget {
             elevation: 0,
           ),
           onPressed: () {
+            HapticFeedback.vibrate();
             controller.text += number.toString();
           },
           child: Center(
@@ -114,6 +116,8 @@ class NumpadDelete extends StatelessWidget {
                   borderRadius:
                       BorderRadius.circular(borderRadius.toDouble()))),
           onPressed: () {
+            HapticFeedback.vibrate();
+
             if (controller.text.isNotEmpty) {
               controller.text =
                   controller.text.substring(0, controller.text.length - 1);
@@ -145,7 +149,11 @@ class NumpadOK extends StatelessWidget {
           backgroundColor: AppStyles.blue,
           elevation: 0,
         ),
-        onPressed: onOKPressed,
+        onPressed: () {
+          HapticFeedback.vibrate();
+
+          onOKPressed();
+        },
         child: Center(
           child: Text(
             "OK",

@@ -9,6 +9,7 @@ import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/new_table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -147,6 +148,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                       builder: (context) =>
                                           const BlagajnaScreen()),
                                 );
+                                HapticFeedback.vibrate();
+
                                 ;
                               },
                               child: Card(

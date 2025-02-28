@@ -91,20 +91,24 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _handleQuantityChange(double newQuantity, String productId,
-      String description, double itemPrice) {
+      String description, double itemPrice, double oldQuantity) {
     //Change from int index to item ID
-    ref
-        .read(narociloNotifierProvider.notifier)
-        .updateQuantity(productId, description, newQuantity, itemPrice);
+    ref.read(narociloNotifierProvider.notifier).updateQuantity(
+        productId, description, newQuantity, itemPrice, oldQuantity);
     _updateTotalDiscount();
+    print("TUKI PROBLEM 1");
   }
 
-  void _removeItem(String productId) {
+  void _removeItem(
+      String productId, double price, String description, double quantity) {
     //Change from int index to item ID
     final currentItems = ref.read(narociloNotifierProvider);
 
-    final itemToRemove =
-        currentItems.firstWhere((element) => element.product.id == productId);
+    final itemToRemove = currentItems.firstWhere((element) =>
+        element.product.id == productId &&
+        element.product.price == price &&
+        element.description == description &&
+        element.quantity == quantity);
 
     if (itemToRemove != null) {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
@@ -239,6 +243,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           actions: [
             TextButton(
               onPressed: () {
+                HapticFeedback.vibrate();
+
                 _submit(productId, itemDescription, itemPrice, isFinalDiscount,
                     double.tryParse(discountController.text));
                 SystemChrome.setEnabledSystemUIMode(
@@ -340,7 +346,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            HapticFeedback.vibrate();
+            Navigator.of(context).pop();
+          },
         ),
         title: Text("Račun",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
@@ -420,6 +429,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                               style: IconButton.styleFrom(
                                   backgroundColor: AppStyles.blue),
                               onPressed: () {
+                                HapticFeedback.vibrate();
+
                                 FocusScope.of(context)
                                     .unfocus(); // Unfocus everything before navigation
                                 Navigator.push(
@@ -438,6 +449,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                               style: IconButton.styleFrom(
                                   backgroundColor: AppStyles.darkGreen),
                               onPressed: () {
+                                HapticFeedback.vibrate();
+
                                 openDialog(item.product.id, item.description,
                                     item.product.price, false);
                               },
@@ -446,7 +459,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                             IconButton.filled(
                                 style: IconButton.styleFrom(
                                     backgroundColor: AppStyles.red),
-                                onPressed: () => _removeItem(item.product.id),
+                                onPressed: () {
+                                  HapticFeedback.vibrate();
+                                  _removeItem(
+                                      item.product.id,
+                                      item.product.price,
+                                      item.description,
+                                      item.quantity);
+                                },
                                 icon: const Icon(Icons.delete)),
                             const Spacer(),
                             QuantityIncrease(
@@ -456,7 +476,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                                     newQuantity,
                                     item.product.id,
                                     item.description,
-                                    item.product.price);
+                                    item.product.price,
+                                    item.quantity);
                               },
                             ),
                           ],

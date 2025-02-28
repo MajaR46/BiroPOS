@@ -109,8 +109,6 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
       }
     }
 
-    print("Receipt: $receipt");
-
     return {
       "result": result,
       "receipt": receipt,

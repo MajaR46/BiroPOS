@@ -10,6 +10,7 @@ import 'package:biro_pos/screens/testbluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -93,6 +94,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                   activeTrackColor: AppStyles.blue,
                   value: toggleHHCene,
                   onChanged: (value) {
+                    HapticFeedback.vibrate();
+
                     setState(() {
                       toggleHHCene = value;
                     });
@@ -112,6 +115,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -134,6 +139,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -156,6 +163,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -178,6 +187,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -200,7 +211,12 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
               width: 160,
               height: 50,
               child: ElevatedButton(
-                onPressed: chosenItems.isEmpty ? () => _logout() : null,
+                onPressed: chosenItems.isEmpty
+                    ? () {
+                        HapticFeedback.vibrate();
+                        _logout();
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppStyles.red,
                 ),

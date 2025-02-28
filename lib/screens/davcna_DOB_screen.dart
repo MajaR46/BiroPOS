@@ -3,6 +3,7 @@ import 'package:biro_pos/components/numpad.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -34,10 +35,8 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
-      await Future.wait([
-        Print.printText(context, apiResponse, ref),
-        Print.printText(context, apiResponse, ref)
-      ]);
+      await Print.printText(context, apiResponse, ref);
+      await Print.printText(context, apiResponse, ref);
 
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       Navigator.pushReplacement(

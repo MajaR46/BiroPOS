@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 
 class OKButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -10,7 +11,10 @@ class OKButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: onPressed,
+      onPressed: () {
+        HapticFeedback.vibrate();
+        onPressed();
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: AppStyles.blue,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),

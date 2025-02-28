@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.4.1';
+  String verzijaPrograma = '5.7.1';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -202,6 +202,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               TextButton(
                   style: TextButton.styleFrom(foregroundColor: AppStyles.blue),
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.of(context).pop();
                   },
                   child: const Text("OK"))
@@ -315,12 +317,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ],
             ),
             const SizedBox(
-              height: 40,
+              height: 36,
             ),
             Text('Prijava',
                 style: AppStyles.heading1.copyWith(color: AppStyles.black)),
             const SizedBox(
-              height: 20,
+              height: 16,
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -336,7 +338,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       suffixIconColor: AppStyles.blue,
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.clear),
-                        onPressed: _clearText,
+                        onPressed: () {
+                          _clearText();
+                          HapticFeedback.vibrate();
+                        },
                         focusColor: AppStyles.blue,
                       ),
                       border: OutlineInputBorder(
@@ -360,7 +365,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               width: 150,
               height: 50,
               child: ElevatedButton(
-                onPressed: _refresh,
+                onPressed: () {
+                  _refresh();
+                  HapticFeedback.vibrate();
+                },
                 style:
                     ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
                 child: Text(
@@ -371,13 +379,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
             ),
             const SizedBox(
-              height: 50,
+              height: 24,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: _handleTestConnection,
+                  onPressed: () {
+                    _handleTestConnection();
+                    HapticFeedback.vibrate();
+                  },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
                   ),
@@ -393,6 +404,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -415,6 +428,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () {
+                    HapticFeedback.vibrate();
+
                     Print.printText(
                         context, ["Programska oprema BiroPOS"], ref);
                   },

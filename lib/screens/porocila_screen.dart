@@ -83,7 +83,10 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            HapticFeedback.vibrate();
+            Navigator.of(context).pop();
+          },
         ),
       ),
       body: Column(
@@ -97,7 +100,11 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4.0),
                         child: GestureDetector(
-                          onTap: () => _prikaziPorocila(naslovPorocila[index]),
+                          onTap: () {
+                            HapticFeedback.vibrate();
+
+                            _prikaziPorocila(naslovPorocila[index]);
+                          },
                           child: ListTile(
                             title: Text(naslovPorocila[index]),
                           ),

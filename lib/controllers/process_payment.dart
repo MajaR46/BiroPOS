@@ -27,6 +27,10 @@ class ProcessPayment {
     final settings = ref.watch(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? false;
     final paymentMethods = ref.watch(paymentMethodProvider);
+    final prefs = await SharedPreferences.getInstance();
+
+    String? posUrlNastavitve = prefs.getString('POS') ?? "";
+    String? tid = prefs.getString('TID');
 
     if (paymentMethods.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -35,45 +39,73 @@ class ProcessPayment {
       return;
     }
 
+    if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
+      try {
+        final besteronResponse = await callBesteron(finalSum);
+        String result = besteronResponse['result'];
+        String besteronRacun = besteronResponse['receipt'];
+
+        // Natisni Besteron odgovor ne glede na uspešnost transakcije
+        if (bluetoothPrintanje) {
+          await BluetoothService.sendData([besteronRacun], ref,
+              addEmptyLines: false, context: context, showDialog: false);
+        } else {
+          await Utils.printTextWithIntegratedSunmi(context, besteronRacun, ref);
+        }
+
+        if (result != "Success") {
+          print("Transakcija ni uspela, naročilo ne bo ustvarjeno.");
+          return; // Prepreči ustvarjanje naročila
+        }
+      } catch (e) {
+        print("Napaka pri komunikaciji z Besteronom: ${e.toString()}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+        return; // Prepreči ustvarjanje naročila v primeru napake
+      }
+    }
+
+    // Če smo prišli do sem, pomeni, da je Besteron transakcija uspela ali pa ni bila potrebna
     try {
       final response = await ref
           .read(orderProvider)
           .createOrder(context, paymentType, davcnaSt);
 
-      // Proceed with printing and other processes if no errors occur
+      if (response.any((line) => line.contains("#NAPAKA#"))) {
+        print("response contains napaka");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.toString())),
+        );
+        return;
+      }
+
       if (bluetoothPrintanje) {
-        try {
-          await _processBluetoothPrinting(
-              context, response, paymentType, finalSum);
-        } catch (e) {
-          print("Bluetooth data send failed: $e");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Bluetooth error: $e")),
-          );
-        }
+        await _processBluetoothPrinting(
+            context, response, paymentType, finalSum);
       } else {
         await _processInnerPrinting(context, response, paymentType, finalSum);
       }
       _updateFinalSum();
     } catch (e) {
-      // Catch the exception thrown from sendRequest (NetworkError, TimeoutError)
       String errorMessage = 'An unknown error occurred';
-
-      // Determine if it's a network-related error or a timeout
       if (e is SocketException) {
         errorMessage = 'Network Error: Unable to reach server. ${e.message}';
       } else if (e is TimeoutException) {
         errorMessage =
             'Timeout Error: The request timed out. Please try again.';
-      } else if (e is Exception) {
+      } else {
         errorMessage = e.toString();
       }
 
-      // Show the SnackBar with the error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          duration: const Duration(seconds: 5), // Adjust duration if needed
+          duration: const Duration(seconds: 5),
         ),
       );
     }
@@ -81,74 +113,30 @@ class ProcessPayment {
 
   Future<void> _processBluetoothPrinting(BuildContext context,
       List<String> response, String paymentType, double finalSum) async {
-    final prefs = await SharedPreferences.getInstance();
-    String? posUrlNastavitve = prefs.getString('POS') ?? "";
-    String? tid = prefs.getString('TID');
-
     try {
-      if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
-        try {
-          final besteronResponse = await callBesteron(finalSum);
-
-          String result = besteronResponse['result'];
-          String besteronRacun = besteronResponse['receipt'];
-
-          if (result != "Success") {
-            print("Transaction was declined, skipping printing...");
-            await BluetoothService.sendData([besteronRacun], ref,
-                addEmptyLines: false, context: context);
-
-            return; // Stop execution to prevent printing
-          }
-
-          await isBluetoothConnected(context, response);
-          print("PRINT TUKAJ");
-
-          await BluetoothService.sendData([besteronRacun], ref,
-              addEmptyLines: false, context: context, showDialog: false);
-          await BluetoothService.sendData(response, ref,
-              showDialog: true, context: context);
-        } catch (e) {
-          print("problem je tuki");
-          print("Napaka pri komunikaciji z Besteronom: ${e.toString()}");
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
-              duration: const Duration(seconds: 5),
-            ),
-          );
-        } finally {
-          // Set total to zero in case of error or success
-          ref.read(totalSumProvider.notifier).state =
-              ref.read(narociloNotifierProvider.notifier).totalSum();
-        }
-      } else {
-        try {
-          await isBluetoothConnected(
-              context, response); // Preverimo povezavo z Bluetoothom
-          await BluetoothService.sendData(response, ref,
-              context: context, addEmptyLines: true);
-          print("PRINT TUKAJ TUKAJ TUKAJ");
-        } catch (e) {
-          // Napaka pri pošiljanju podatkov preko Bluetootha
-          print("Bluetooth data send failed: ${e.toString()}");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
-              duration: const Duration(seconds: 5), // Daljša prikaz napake
-            ),
-          );
-          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-          clearSelectedItem(ref);
-          clearSearchQuery(ref);
-        } finally {
-          // Set total to zero in case of error or success
-          ref.read(totalSumProvider.notifier).state =
-              ref.read(narociloNotifierProvider.notifier).totalSum();
-        }
+      try {
+        await isBluetoothConnected(
+            context, response); // Preverimo povezavo z Bluetoothom
+        await BluetoothService.sendData(response, ref,
+            context: context, addEmptyLines: true);
+        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+        clearSelectedItem(ref);
+        clearSearchQuery(ref);
+        print("PRINT TUKAJ TUKAJ TUKAJ");
+      } catch (e) {
+        // Napaka pri pošiljanju podatkov preko Bluetootha
+        print("Bluetooth data send failed: ${e.toString()}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
+            duration: const Duration(seconds: 5), // Daljša prikaz napake
+          ),
+        );
+      } finally {
+        // Set total to zero in case of error or success
+        ref.read(totalSumProvider.notifier).state =
+            ref.read(narociloNotifierProvider.notifier).totalSum();
       }
     } catch (e) {
       // Splošna napaka pri obdelavi plačila
@@ -159,9 +147,6 @@ class ProcessPayment {
           duration: const Duration(seconds: 5), // Daljša prikaz napake
         ),
       );
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
-      clearSearchQuery(ref);
     } finally {
       // Set total to zero in case of error or success
       ref.read(totalSumProvider.notifier).state =
@@ -199,44 +184,12 @@ class ProcessPayment {
     String? posUrlNastavitve = prefs.getString('POS') ?? "";
 
     final printableResponse = filteredResponse.join("\r\n");
-    if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
-      try {
-        final besteronResponse = await callBesteron(finalSum);
-        String result = besteronResponse['result'];
-        String besteronRacun = besteronResponse['receipt'];
 
-        if (result != "Success") {
-          await Utils.printTextWithIntegratedSunmi(context, besteronRacun, ref);
-          return;
-        }
-        await Utils.printTextWithIntegratedSunmi(
-            context, besteronRacun.toString(), ref);
-        await Utils.printTextWithIntegratedSunmi(
-            context, printableResponse, ref);
-
-        print("PRINT TUKAJ SUNMI");
-      } catch (e) {
-        print("problem je tuki");
-        print("Napaka pri komunikaciji z Besteronom: ${e.toString()}");
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
-            duration: const Duration(seconds: 5), // Daljša prikaz napake
-          ),
-        );
-        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-        clearSelectedItem(ref);
-        clearSearchQuery(ref);
-      }
-    } else {
-      await Utils.printTextWithIntegratedSunmi(context, printableResponse, ref);
-      print("PRINT TUKAJ TUKAJ SUNMI");
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
-      clearSearchQuery(ref);
-    }
+    await Utils.printTextWithIntegratedSunmi(context, printableResponse, ref);
+    ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+    clearSelectedItem(ref);
+    clearSearchQuery(ref);
+    print("PRINT TUKAJ TUKAJ SUNMI");
   }
 
   void _updateFinalSum() {

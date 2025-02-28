@@ -236,6 +236,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       if (existingItemIndex != -1) {
         // Item already exists
         // Update quantity
+
+        if (itemQuantity % 1 != 0) {
+          print("PROBLEM");
+        }
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
@@ -245,6 +249,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       } else {
         // Item doesn't exist yet
         //Add item to cart
+        print("PROBLEM EEPR PROE PREO ");
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
@@ -267,19 +272,19 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<Color> backgroundColors = [
-    AppStyles.lightBrown,
-    AppStyles.lightOrange,
-    AppStyles.lightGreen,
-    AppStyles.lightBlue,
-    AppStyles.lightPurple
+    Color(0xffbad4fb),
+    Color(0xffCDE7B2),
+    Color(0xffF1D899),
+    Color(0xffF4BA8A),
+    Color(0xffE79986)
   ];
 
   List<Color> textColors = [
-    AppStyles.darkBrown,
-    AppStyles.darkOrange,
-    AppStyles.darkGreen,
     AppStyles.darkBlue,
-    AppStyles.darkPurple
+    AppStyles.green,
+    AppStyles.yellow,
+    Color(0xfff4a261),
+    Color(0xffe76f51),
   ];
 
   Map<String, List<dynamic>> _categorizeItems(List<dynamic> items) {
@@ -326,7 +331,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
-    print("number2srting $numbers2String");
 
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
       final searchPattern = RegExp(searchQuery, caseSensitive: false);
@@ -367,7 +371,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                 categorizedItems.keys.toList().indexOf(category);
 
             Color assignedBackgroundColor =
-                backgroundColors[categoryIndex % backgroundColors.length];
+                textColors[categoryIndex % backgroundColors.length];
             Color assignedTextColor =
                 textColors[categoryIndex % textColors.length];
 
@@ -383,7 +387,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
+                  horizontal: 4.0,
                 ),
                 child: Container(
                   decoration: BoxDecoration(
@@ -394,7 +398,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     child: Center(
                       child: Text(
                         category,
-                        style: AppStyles.button2.copyWith(color: textColor),
+                        style:
+                            AppStyles.button2.copyWith(color: AppStyles.white),
                       ),
                     ),
                   ),
@@ -415,7 +420,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           selectedItem.product.id,
           selectedItem.description,
           selectedItem.quantity + 1,
-          selectedItem.product.price);
+          selectedItem.product.price,
+          selectedItem.quantity);
 
       _updateFinalSum();
     }
@@ -424,13 +430,22 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void _decreaseQuantity() {
     final selectedItem = ref.read(selectedItemProvider.notifier).state;
     if (selectedItem != null && selectedItem.quantity > 1) {
+      final double newQuantity =
+          selectedItem.quantity - 1.0; // Keep double precision
+
       //Use provider to update
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
           selectedItem.product.id,
           selectedItem.description,
           selectedItem.quantity - 1,
-          selectedItem.product.price);
-      _updateFinalSum(); // Update the final sum after changing quantity
+          selectedItem.product.price,
+          selectedItem.quantity);
+      ref.read(selectedItemProvider.notifier).state =
+          selectedItem.copyWith(quantity: newQuantity);
+
+      _updateFinalSum();
+
+      // Update the final sum after changing quantity
     }
   }
 

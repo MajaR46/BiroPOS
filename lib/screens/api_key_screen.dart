@@ -51,15 +51,17 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      if (_controllerApiKey.text.isEmpty) {
+      String apiKey = prefs.getString('apiKey') ?? '';
+      String ip = prefs.getString('IP') ?? '';
+      String port = prefs.getString('Port') ?? '';
+
+      // Set default values if any of them are empty
+      if (apiKey.isEmpty || ip.isEmpty || port.isEmpty) {
         await prefs.setString('apiKey', 'test');
-      }
-      if (_controllerIP.text.isEmpty) {
         await prefs.setString('IP', '194.247.162.115');
-      }
-      if (_controllerPort.text.isEmpty) {
         await prefs.setString('Port', '11111');
       }
+
       setState(() {
         _controllerApiKey.text = prefs.getString('apiKey') ?? '';
         _controllerIP.text = prefs.getString('IP') ?? '';
@@ -152,11 +154,13 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       appBar: AppBar(
         backgroundColor: AppStyles.white,
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black),
-          onPressed: () => Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const LoginScreen())),
-        ),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                color: Colors.black),
+            onPressed: () {
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()));
+              HapticFeedback.vibrate();
+            }),
         title: const Text("Nastavitve",
             style: TextStyle(fontSize: 20, color: Colors.black)),
         centerTitle: true,
@@ -536,7 +540,13 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
               child: Align(
                 alignment: Alignment.bottomRight,
                 child: OKButton(
-                  onPressed: _savePreferences,
+                  onPressed: () {
+                    HapticFeedback.vibrate();
+
+                    _savePreferences();
+                    SystemChrome.setEnabledSystemUIMode(
+                        SystemUiMode.immersiveSticky);
+                  },
                   text: 'Shrani',
                 ),
               ),
@@ -595,7 +605,10 @@ class ApiKeyCheckbox extends StatelessWidget {
       children: [
         Checkbox(
           value: value,
-          onChanged: onChanged,
+          onChanged: (_) {
+            onChanged(_);
+            HapticFeedback.vibrate();
+          },
           activeColor: AppStyles.blue,
         ),
       ],

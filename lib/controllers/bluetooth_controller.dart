@@ -156,10 +156,6 @@ class BluetoothService {
         print("No context available for SnackBar");
       }
 
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
-      clearSearchQuery(ref);
-
       return result; // Return success or error message
     } catch (e) {
       final errorMessage = 'An unexpected error occurred: ${e.toString()}';

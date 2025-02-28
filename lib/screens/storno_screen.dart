@@ -69,7 +69,10 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppStyles.black),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              HapticFeedback.vibrate();
+              Navigator.of(context).pop();
+            },
           ),
         ),
         body: Stack(

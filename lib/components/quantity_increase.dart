@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 
 class QuantityIncrease extends StatefulWidget {
   final double quantity;
@@ -37,12 +38,13 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
   }
 
   void _decrease() {
-    setState(() {
-      if (widget.quantity > 1) {
-        _currentQuantity--;
+    if (_currentQuantity > 1) {
+      setState(() {
+        _currentQuantity =
+            double.parse((_currentQuantity - 1).toStringAsFixed(2));
         widget.onQuantityChanged(_currentQuantity);
-      }
-    });
+      });
+    }
   }
 
   @override
@@ -62,7 +64,10 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
               child: IconButton.filled(
                 style: IconButton.styleFrom(backgroundColor: AppStyles.white),
                 iconSize: 16,
-                onPressed: _decrease,
+                onPressed: () {
+                  _decrease();
+                  HapticFeedback.vibrate();
+                },
                 icon: const Icon(
                   Icons.remove,
                   color: AppStyles.black,
@@ -71,7 +76,7 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
             ),
           ),
           Text(
-            '$_currentQuantity',
+            '${_currentQuantity.toStringAsFixed(1)}',
             style: AppStyles.heading4.copyWith(fontWeight: FontWeight.normal),
           ),
           Padding(
@@ -82,7 +87,10 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
               child: IconButton.filled(
                 style: IconButton.styleFrom(backgroundColor: AppStyles.white),
                 iconSize: 16,
-                onPressed: _increase,
+                onPressed: () {
+                  _increase();
+                  HapticFeedback.vibrate();
+                },
                 icon: const Icon(
                   Icons.add,
                   color: AppStyles.black,

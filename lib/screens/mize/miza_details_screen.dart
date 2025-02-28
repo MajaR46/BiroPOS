@@ -11,8 +11,10 @@ import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/prenos_mize_screen.dart';
 import 'package:biro_pos/screens/mize/split_racun_screen.dart';
+import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -130,7 +132,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BlagajnaScreen(),
+        builder: (context) => const RacunScreen(),
       ),
     );
   }
@@ -197,6 +199,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                                 setState(() {
                                   izbraniIzdelki.add(item);
                                 });
+                                HapticFeedback.vibrate();
                               },
                               child: Column(
                                 children: [
@@ -228,14 +231,17 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
                                               backgroundColor: AppStyles.red),
-                                          onPressed: () =>
-                                              _deleteFromRacun(index),
+                                          onPressed: () {
+                                            _deleteFromRacun(index);
+                                            HapticFeedback.vibrate();
+                                          },
                                           icon: const Icon(Icons.delete)),
                                       const Spacer(),
                                       QuantityIncrease(
                                         quantity: item.quantity,
                                         onQuantityChanged: (newQuantity) {
                                           onQuantityChanged(newQuantity, index);
+                                          HapticFeedback.vibrate();
                                         },
                                       ),
                                     ],
@@ -293,7 +299,10 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                     SizedBox(
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _prenosMize,
+                        onPressed: () {
+                          _prenosMize();
+                          HapticFeedback.vibrate();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.silver.withOpacity(0.1),
                           elevation: 0,
@@ -311,6 +320,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
+                          HapticFeedback.vibrate();
+
                           Navigator.push(
                             context,
                             MaterialPageRoute(

@@ -10,6 +10,7 @@ import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -178,6 +179,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                               onTap: () {
                                 setState(() {
                                   izbraniIzdelki.add(item);
+                                  HapticFeedback.vibrate();
                                 });
                               },
                               child: Column(
@@ -212,8 +214,10 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
                                               backgroundColor: AppStyles.red),
-                                          onPressed: () =>
-                                              _deleteFromRacun(index),
+                                          onPressed: () {
+                                            _deleteFromRacun(index);
+                                            HapticFeedback.vibrate();
+                                          },
                                           icon: const Icon(Icons.delete)),
                                       const Spacer(),
                                       QuantityIncrease(

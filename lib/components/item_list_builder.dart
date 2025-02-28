@@ -10,22 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 
-List<Color> backgroundColors = [
-  AppStyles.lightBrown,
-  AppStyles.lightOrange,
-  AppStyles.lightGreen,
-  AppStyles.lightBlue,
-  AppStyles.lightPurple
-];
-
-List<Color> textColors = [
-  AppStyles.darkBrown,
-  AppStyles.darkOrange,
-  AppStyles.darkGreen,
-  AppStyles.darkBlue,
-  AppStyles.darkPurple
-];
-
 class ItemListBuilder extends StatefulWidget {
   final Map<String, List<dynamic>> categorizedItems;
   final List<dynamic> Function() getFilteredItems;
@@ -226,10 +210,16 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
 
                         return GestureDetector(
                           onTap: enojniKlik
-                              ? () => _handleItemSelectItem(item, hhCene)
+                              ? () {
+                                  _handleItemSelectItem(item, hhCene);
+                                  HapticFeedback.vibrate();
+                                }
                               : null,
                           onDoubleTap: !enojniKlik
-                              ? () => _handleItemSelectItem(item, hhCene)
+                              ? () {
+                                  _handleItemSelectItem(item, hhCene);
+                                  HapticFeedback.vibrate();
+                                }
                               : null,
                           child: ItemCard(
                             isAllLayout: true,
@@ -295,10 +285,16 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
 
                 return GestureDetector(
                   onTap: enojniKlik
-                      ? () => _handleItemSelectItem(item, hhCene)
+                      ? () {
+                          HapticFeedback.vibrate();
+                          _handleItemSelectItem(item, hhCene);
+                        }
                       : null,
                   onDoubleTap: !enojniKlik
-                      ? () => _handleItemSelectItem(item, hhCene)
+                      ? () {
+                          _handleItemSelectItem(item, hhCene);
+                          HapticFeedback.vibrate();
+                        }
                       : null,
                   child: ConstrainedBox(
                     constraints: BoxConstraints(

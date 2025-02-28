@@ -1,10 +1,12 @@
 import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/components/vracilo_denarja.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
+import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
@@ -65,7 +67,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
             selectedItem.product.id,
             selectedItem.description,
             itemQuantity,
-            selectedItem.product.price);
+            selectedItem.product.price,
+            itemQuantity);
         _updateFinalSum();
       }
     }
@@ -105,7 +108,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
  */
-
   void _paymentGotovina() async {
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
@@ -167,12 +169,18 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
           selectedItem.product.id,
           selectedItem.description,
-          newQuantity,
-          selectedItem.product.price);
+          factor,
+          selectedItem.product.price,
+          selectedItem.quantity);
+
+      print("tuki problem");
+
+      ref.read(selectedItemProvider.notifier).state =
+          selectedItem.copyWith(quantity: factor);
 
       // Update the local state
       setState(() {
-        itemQuantity = newQuantity;
+        itemQuantity = factor;
       });
 
       // Update the final sum
@@ -191,6 +199,11 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     final settings = ref.watch(settingsProvider);
     final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
     final prikazujSamoRacune = settings['isCheckedPrikazujRacune'] ?? false;
+    final paymentMethods = ref.watch(paymentMethodProvider);
+    bool obstajaKarPlacilo =
+        paymentMethods.any((method) => method.kodaNacinaPlacila == "02");
+
+    print(paymentMethods);
 
     return Container(
       padding: const EdgeInsets.only(top: 8),
@@ -301,12 +314,14 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 ),
               if (!prikazujSamoNarocila)
                 Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: KeyboardRedirect(
+                    padding: const EdgeInsets.all(2.0),
+                    child: KeyboardRedirect(
                       backgroundColor: AppStyles.red,
                       text: "KAR",
-                      onPressed: _paymentKartica),
-                ),
+                      onPressed: obstajaKarPlacilo
+                          ? _paymentKartica
+                          : () {}, // Posredujemo prazno funkcijo namesto null
+                    )),
               if (!prikazujSamoRacune)
                 Padding(
                   padding: const EdgeInsets.all(2.0),
@@ -360,6 +375,8 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20))),
         onPressed: () {
+          HapticFeedback.vibrate();
+
           // If the number is `,`, replace it with `.` (decimal point).
           String newText = widget.number == ',' ? '.' : widget.number;
 
@@ -404,7 +421,10 @@ class KeyboardC extends StatelessWidget {
               elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15))),
-          onPressed: _clearText,
+          onPressed: () {
+            HapticFeedback.vibrate();
+            _clearText();
+          },
           child: Center(
             child: Text(
               "C",
@@ -443,6 +463,8 @@ class KeyboardMultiply extends StatelessWidget {
           ),
         ),
         onPressed: () {
+          HapticFeedback.vibrate();
+
           String sanitizedText =
               controller.text.replaceAll(RegExp(r'[^\d.]'), '');
           double? number = double.tryParse(sanitizedText);
@@ -485,7 +507,10 @@ class KeyboardRedirect extends StatelessWidget {
               elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15))),
-          onPressed: onPressed,
+          onPressed: () {
+            HapticFeedback.vibrate();
+            onPressed();
+          },
           child: Center(
             child: Text(
               text,
@@ -523,8 +548,14 @@ class KeyboardBack extends ConsumerWidget {
                   borderRadius:
                       BorderRadius.circular(borderRadius.toDouble()))),
           onPressed: chosenItems.isEmpty
-              ? () => Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()))
+              ? () {
+                  HapticFeedback.vibrate();
+
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()));
+                }
               : null,
           child: Center(
             child: Icon(

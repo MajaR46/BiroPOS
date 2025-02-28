@@ -13,7 +13,6 @@ List<int> extractNumbers(String input) {
   final matches = RegExp(r'\d').allMatches(input);
   final searchInput =
       matches.map((match) => int.parse(match.group(0)!)).toList();
-  print("searchInput $searchInput");
   return searchInput;
 }
 

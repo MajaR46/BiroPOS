@@ -4,6 +4,7 @@ import 'package:biro_pos/controllers/sessionmanager.dart';
 import 'package:biro_pos/screens/mize/miza_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenTablesScreen extends StatefulWidget {
@@ -128,6 +129,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                                     setState(() {
                                       _selectedCardIndex = index;
                                       _ok();
+                                      HapticFeedback.vibrate();
                                     });
                                   },
                                   child: Card(

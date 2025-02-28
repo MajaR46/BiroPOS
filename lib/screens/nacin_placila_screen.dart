@@ -10,6 +10,7 @@ import 'package:biro_pos/screens/davcna_dob_screen.dart';
 import 'package:biro_pos/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NacinPlacilaScreen extends ConsumerStatefulWidget {
@@ -100,12 +101,31 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                       ),
                       if (davcnaSt.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            "Davčna: $davcnaSt",
-                            style: AppStyles.paragraph1,
-                          ),
-                        ),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  "Davčna: $davcnaSt",
+                                  style: AppStyles.paragraph1,
+                                ),
+                                IconButton.outlined(
+                                    style: IconButton.styleFrom(
+                                        side:
+                                            BorderSide(color: AppStyles.blue)),
+                                    onPressed: () {
+                                      clearDavcna(ref);
+                                      HapticFeedback.vibrate();
+                                    },
+                                    icon: const Icon(
+                                      Icons.clear,
+                                      size: 12,
+                                      color: AppStyles.blue,
+                                    ),
+                                    constraints: BoxConstraints(
+                                        minWidth: 13, minHeight: 13))
+                              ],
+                            )),
                     ],
                   ),
                 ),
@@ -136,6 +156,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                     return ElevatedButton(
                       onPressed: () {
                         paymentPrint(nacinPlacila, davcnaSt!);
+                        HapticFeedback.vibrate();
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.grey,
@@ -159,6 +180,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         height: 60,
                         child: ElevatedButton(
                           onPressed: () {
+                            HapticFeedback.vibrate();
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -188,6 +211,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         height: 60,
                         child: ElevatedButton(
                           onPressed: () {
+                            HapticFeedback.vibrate();
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(

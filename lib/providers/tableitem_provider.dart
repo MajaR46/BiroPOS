@@ -100,7 +100,7 @@ class TableNotifier extends Notifier<List<TableItem>> {
 
     List<String> tableItems = chosenItems.map((item) {
       String productCode = item.product.id.toString();
-      double quantitiy = item.quantity.toDouble();
+      String quantitiy = numberFormat.format(item.quantity); // Use formatter
       String price = numberFormat.format(item.product.price); // Use formatter
 
       double itemDiscountedPrice = item.product.discountedPrice > 0

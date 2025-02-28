@@ -10,14 +10,19 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
 
-    // Preveri, če obstaja isti artikel z ENAKO ceno in opisom
-    final existingItemIndex = state.indexWhere((item) =>
-        item.product.id == narociloItem.product.id &&
-        item.product.price == narociloItem.product.price && // Preverimo ceno!
-        item.description == narociloItem.description);
+    // Preverimo, ali količina vsebuje decimalno vrednost
+    bool isDecimalQuantity = narociloItem.quantity % 1 != 0;
+
+    // Poiščemo obstoječi izdelek, če ima celo količino
+    final existingItemIndex = isDecimalQuantity
+        ? -1 // Če je decimalna količina, vedno dodamo kot nov izdelek
+        : state.indexWhere((item) =>
+            item.product.id == narociloItem.product.id &&
+            item.product.price == narociloItem.product.price &&
+            item.description == narociloItem.description);
 
     if (existingItemIndex != -1) {
-      // Nadgradi količino, če je cena enaka
+      // Posodobimo količino, če je celotna količina
       state[existingItemIndex] = state[existingItemIndex].copyWith(
         quantity: state[existingItemIndex].quantity + narociloItem.quantity,
         discount: state[existingItemIndex].discount,
@@ -25,7 +30,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
         isFromTable: fromTable,
       );
     } else {
-      // Dodaj kot nov artikel, če ima drugačno ceno
+      // Dodamo kot nov izdelek
       state = [
         ...state,
         narociloItem.copyWith(
@@ -38,11 +43,17 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   void removeFromRacun(NarociloItem narociloItem) {
-    state = state
-        .where((item) => !(item.product.id == narociloItem.product.id &&
-            item.description == narociloItem.description &&
-            item.product.price == narociloItem.product.price))
-        .toList();
+    int indexToRemove = state.indexWhere((item) =>
+        item.product.id == narociloItem.product.id &&
+        item.description == narociloItem.description &&
+        item.product.price == narociloItem.product.price &&
+        item.quantity == narociloItem.quantity);
+
+    if (indexToRemove != -1) {
+      List<NarociloItem> updatedState = List.from(state);
+      updatedState.removeAt(indexToRemove);
+      state = updatedState;
+    }
   }
 
   double totalSum() {
@@ -55,11 +66,12 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   void updateQuantity(String productId, String description, double newQuantity,
-      double itemPrice) {
+      double itemPrice, double oldQuantity) {
     final updatedItems = state.map((item) {
       if (item.product.id == productId &&
           item.description == description &&
-          item.product.price == itemPrice) {
+          item.product.price == itemPrice &&
+          item.quantity == oldQuantity) {
         return item.copyWith(quantity: newQuantity);
       }
       return item;
