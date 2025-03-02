@@ -20,16 +20,17 @@ class Keyboard extends ConsumerStatefulWidget {
   final VoidCallback navigateToOpisDiscountScreen;
   final VoidCallback navigateToRacun;
   final String opisDiscountButton;
+  final String racunArtikliButton;
 
-  const Keyboard({
-    super.key,
-    required this.controller,
-    required this.navigateToMizaScreen,
-    required this.navigateToNacinPlacilaScreen,
-    required this.navigateToOpisDiscountScreen,
-    required this.navigateToRacun,
-    required this.opisDiscountButton,
-  });
+  const Keyboard(
+      {super.key,
+      required this.controller,
+      required this.navigateToMizaScreen,
+      required this.navigateToNacinPlacilaScreen,
+      required this.navigateToOpisDiscountScreen,
+      required this.navigateToRacun,
+      required this.opisDiscountButton,
+      required this.racunArtikliButton});
 
   @override
   ConsumerState<Keyboard> createState() => _KeyboardState();
@@ -116,9 +117,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
     try {
-      // Get the entered amount from the controller
-      final vnesenZnesek = double.tryParse(ref.watch(searchQueryProvider));
+      String searchQuery = ref.watch(searchQueryProvider);
+      String filtriranQuery = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
+
+      final vnesenZnesek = double.tryParse(filtriranQuery);
       print("vnesen znesek $vnesenZnesek");
+      print(ref.watch(searchQueryProvider));
 
       // Calculate the change
       double vracilo = Vracilo.izracunVracila(ref, vnesenZnesek ?? 0.0);
@@ -202,8 +206,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     final paymentMethods = ref.watch(paymentMethodProvider);
     bool obstajaKarPlacilo =
         paymentMethods.any((method) => method.kodaNacinaPlacila == "02");
+    String mizaButton;
 
-    print(paymentMethods);
+    final chosenItems = ref.watch(narociloNotifierProvider);
+
+    if (chosenItems.isEmpty) {
+      mizaButton = "MIZA";
+    } else {
+      mizaButton = "NA MIZO";
+    }
 
     return Container(
       padding: const EdgeInsets.only(top: 8),
@@ -301,14 +312,14 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 padding: const EdgeInsets.all(2.0),
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.blue,
-                    text: "RAČUN",
+                    text: widget.racunArtikliButton,
                     onPressed: widget.navigateToRacun),
               ),
               if (!prikazujSamoNarocila)
                 Padding(
                   padding: const EdgeInsets.all(2.0),
                   child: KeyboardRedirect(
-                      backgroundColor: AppStyles.darkOrange,
+                      backgroundColor: AppStyles.brightOrange,
                       text: "GOT",
                       onPressed: _paymentGotovina),
                 ),
@@ -316,7 +327,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 Padding(
                     padding: const EdgeInsets.all(2.0),
                     child: KeyboardRedirect(
-                      backgroundColor: AppStyles.red,
+                      backgroundColor: AppStyles.brightRed,
                       text: "KAR",
                       onPressed: obstajaKarPlacilo
                           ? _paymentKartica
@@ -326,15 +337,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 Padding(
                   padding: const EdgeInsets.all(2.0),
                   child: KeyboardRedirect(
-                      backgroundColor: AppStyles.darkPurple,
-                      text: "MIZA",
+                      backgroundColor: AppStyles.brightPurple,
+                      text: mizaButton,
                       onPressed: widget.navigateToMizaScreen),
                 ),
               if (!prikazujSamoNarocila)
                 Padding(
                   padding: const EdgeInsets.all(2.0),
                   child: KeyboardRedirect(
-                    backgroundColor: AppStyles.darkGreen,
+                    backgroundColor: AppStyles.green,
                     text: "OK",
                     onPressed: () {
                       widget
@@ -369,7 +380,7 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
       height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-            backgroundColor: AppStyles.silver.withOpacity(0.1),
+            backgroundColor: AppStyles.lightGrey,
             padding: EdgeInsets.zero,
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -416,7 +427,7 @@ class KeyboardC extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: AppStyles.silver.withOpacity(0.1),
+              backgroundColor: AppStyles.lightGrey,
               padding: EdgeInsets.zero,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -455,7 +466,7 @@ class KeyboardMultiply extends StatelessWidget {
       height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppStyles.silver.withOpacity(0.1),
+          backgroundColor: AppStyles.lightGrey,
           padding: EdgeInsets.zero,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -542,7 +553,7 @@ class KeyboardBack extends ConsumerWidget {
       height: height.toDouble(),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: AppStyles.silver.withOpacity(0.1),
+              backgroundColor: AppStyles.lightGrey,
               elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius:

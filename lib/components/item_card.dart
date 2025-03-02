@@ -6,7 +6,6 @@ class ItemCard extends StatelessWidget {
   final String itemName;
   final String itemPrice;
   final String itemCategory;
-  final Color itemCategoryBackgroundColor;
   final Color itemCategoryTextColor;
   final Color itemNameColor;
   final int stStolpcev;
@@ -19,7 +18,6 @@ class ItemCard extends StatelessWidget {
       required this.itemName,
       required this.itemPrice,
       required this.itemCategory,
-      required this.itemCategoryBackgroundColor,
       required this.itemCategoryTextColor,
       required this.itemNameColor,
       required this.stStolpcev,
@@ -36,7 +34,7 @@ class ItemCard extends StatelessWidget {
       padding: EdgeInsets.all(paddingOutCardValue),
       child: Container(
         decoration: BoxDecoration(
-          color: stStolpcev > 3 ? cardBackground : AppStyles.white,
+          color: cardBackground,
           borderRadius: BorderRadius.circular(8.0),
           boxShadow: const [
             BoxShadow(
@@ -69,7 +67,6 @@ class ItemCard extends StatelessWidget {
               if (stStolpcev < 3)
                 Container(
                   decoration: BoxDecoration(
-                    color: itemCategoryBackgroundColor,
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: Padding(

@@ -115,14 +115,20 @@ class BluetoothService {
       }).toList();
 
       // Conditionally add two empty lines at the end of dataLines
-      if (addEmptyLines) {
-        dataLines.addAll(
-          ['', ''],
-        );
-      }
+      dataLines.addAll(
+        ['', '', ' ', ' '],
+      );
 
       print(
           'BluetoothService: sendData with dataLines before processing: $dataLines');
+
+      int podpisIndex =
+          dataLines.indexWhere((line) => line.toLowerCase().contains("podpis"));
+
+      // Če je vrstica "Podpis" najdena, vstavi 3 prazne vrstice za njo
+      if (podpisIndex != -1) {
+        dataLines.insertAll(podpisIndex + 1, ['', '', '']);
+      }
 
       // Send data to platform method
       String result;

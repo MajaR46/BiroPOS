@@ -16,7 +16,6 @@ class ItemListBuilder extends StatefulWidget {
   final String selectedCategory;
   final Function(dynamic) onSelectItem;
   final List<Color> backgroundColors;
-  final List<Color> textColors;
   final int columnNum;
   final WidgetRef ref;
 
@@ -27,7 +26,6 @@ class ItemListBuilder extends StatefulWidget {
     required this.selectedCategory,
     required this.onSelectItem,
     required this.backgroundColors,
-    required this.textColors,
     required this.columnNum,
     required this.ref,
   }) : super(key: key);
@@ -204,8 +202,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                         Color assignedBackgroundColor = widget.backgroundColors[
                             categoryIndex % widget.backgroundColors.length];
 
-                        Color assignedTextColor = widget.textColors[
-                            categoryIndex % widget.textColors.length];
+                        Color assignedTextColor = AppStyles.black;
                         final String itemColor = item['itemColor'];
 
                         return GestureDetector(
@@ -231,16 +228,12 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                                     : item['hhPrice']
                                 : item['price'],
                             itemCategory: item['category'],
-                            cardBackground: AppStyles.white,
-                            itemNameColor: defaultColors == true
-                                ? Colors.black
-                                : itemColorMapping[itemColor] ?? Colors.black,
-                            itemCategoryBackgroundColor: defaultColors == true
+                            cardBackground: defaultColors == true
                                 ? assignedBackgroundColor
-                                : AppStyles.lightBlue,
-                            itemCategoryTextColor: defaultColors == true
-                                ? assignedTextColor
-                                : AppStyles.black,
+                                : itemColorMapping[itemColor] ??
+                                    AppStyles.white,
+                            itemNameColor: AppStyles.black,
+                            itemCategoryTextColor: AppStyles.black,
                             textSize: selectedTextSize,
                           ),
                         );
@@ -279,8 +272,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                     .indexOf(item['category']);
                 Color assignedBackgroundColor = widget.backgroundColors[
                     categoryIndex % widget.backgroundColors.length];
-                Color assignedTextColor =
-                    widget.textColors[categoryIndex % widget.textColors.length];
+                Color assignedTextColor = AppStyles.black;
                 final String itemColor = item['itemColor'];
 
                 return GestureDetector(
@@ -315,13 +307,8 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
                       itemCategory: item['category'],
                       cardBackground: defaultColors == true
                           ? assignedBackgroundColor
-                          : AppStyles.white,
-                      itemNameColor: defaultColors == true
-                          ? Colors.black
-                          : itemColorMapping[itemColor] ?? Colors.black,
-                      itemCategoryBackgroundColor: defaultColors == true
-                          ? assignedBackgroundColor
-                          : AppStyles.lightBlue,
+                          : itemColorMapping[itemColor] ?? AppStyles.white,
+                      itemNameColor: AppStyles.black,
                       itemCategoryTextColor: defaultColors == true
                           ? assignedTextColor
                           : AppStyles.black,
@@ -351,16 +338,16 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
   }
 
   Map<String, Color> itemColorMapping = {
-    'A': AppStyles.blue,
-    'B': AppStyles.darkBrown,
-    'C': AppStyles.darkOrange,
+    'A': AppStyles.darkBlue,
+    'B': AppStyles.oker,
+    'C': AppStyles.brightOrange,
     'D': AppStyles.red,
     'E': AppStyles.pink,
     'F': AppStyles.yellow,
-    'G': AppStyles.darkGrey,
-    'H': AppStyles.darkBlue,
-    'I': AppStyles.darkGreen,
-    'J': AppStyles.darkPurple,
+    'G': AppStyles.grey,
+    'H': AppStyles.lightBlue,
+    'I': AppStyles.lightGreen,
+    'J': AppStyles.purple,
     'K': AppStyles.green,
     'L': AppStyles.gold
 

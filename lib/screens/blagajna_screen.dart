@@ -61,6 +61,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     super.initState();
 
     _handleData();
+
     searchController.addListener(() {
       //updateNumbersString(searchController);
       ref.read(isSearchingProvider.notifier).state =
@@ -272,19 +273,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<Color> backgroundColors = [
-    Color(0xffbad4fb),
-    Color(0xffCDE7B2),
-    Color(0xffF1D899),
-    Color(0xffF4BA8A),
-    Color(0xffE79986)
-  ];
-
-  List<Color> textColors = [
-    AppStyles.darkBlue,
-    AppStyles.green,
+    AppStyles.lightBlue,
+    AppStyles.lightGreen,
     AppStyles.yellow,
-    Color(0xfff4a261),
-    Color(0xffe76f51),
+    AppStyles.orange,
+    AppStyles.red
   ];
 
   Map<String, List<dynamic>> _categorizeItems(List<dynamic> items) {
@@ -360,7 +353,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height: 40,
+        height: 36,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: categories.length,
@@ -371,9 +364,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                 categorizedItems.keys.toList().indexOf(category);
 
             Color assignedBackgroundColor =
-                textColors[categoryIndex % backgroundColors.length];
-            Color assignedTextColor =
-                textColors[categoryIndex % textColors.length];
+                backgroundColors[categoryIndex % backgroundColors.length];
+            Color assignedTextColor = AppStyles.black;
 
             Color textColor;
             Color backgroundColor;
@@ -394,12 +386,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                       borderRadius: BorderRadius.circular(20.0),
                       color: backgroundColor),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
                     child: Center(
                       child: Text(
                         category,
-                        style:
-                            AppStyles.button2.copyWith(color: AppStyles.white),
+                        style: AppStyles.paragraph3.copyWith(
+                            color: AppStyles.black,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -469,7 +463,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     final currentChosenItems = ref.watch(narociloNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppStyles.grey,
+      backgroundColor: AppStyles.lightGrey,
       appBar: AppBar(
         centerTitle: true,
         toolbarHeight: 32.0,
@@ -507,7 +501,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                             selectedCategory: stateSelectedCategory ?? "Vse",
                             onSelectItem: _ouputselectedItem,
                             backgroundColors: backgroundColors,
-                            textColors: textColors,
                             ref: ref)),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4.0),
@@ -529,6 +522,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                       alignment: Alignment.bottomCenter,
                       child: Keyboard(
                         opisDiscountButton: "OPIS",
+                        racunArtikliButton: "RAČUN",
                         navigateToRacun: () {
                           Navigator.push(
                             context,

@@ -1,33 +1,31 @@
 import 'package:flutter/material.dart';
 
 class AppStyles {
+  //OSNOVNE BARVE
   static const Color black = Color(0xff282828);
   static const Color white = Color(0xffFFFFFF);
-  static const Color grey = Color(0xffF7F7F7);
+  static const Color grey = Color(0xffD9D9D9);
+  static const Color lightGrey = Color(0xffF3F3F3);
   static const Color blue = Color(0xff2D70F4);
   static const Color silver = Color(0xFFBFBFBF);
-  static const Color red = Color(0xffe76f51);
-  static const Color pink = Color(0xffeD8ACF);
-  static const Color yellow = Color(0xffe9c46a);
+
+  // BARVE ZA OZADJA KARTIC
+  static const Color red = Color(0xffE79986);
+  static const Color pink = Color(0xffFFC4CD);
+  static const Color yellow = Color(0xffF1D899);
   static const Color green = Color(0xffa1c181);
-  static const Color orange = Color(0xfff4a261);
-  static const Color gold = Color.fromARGB(255, 182, 143, 26);
-  static const Color darkGrey = Color(0xff696969);
+  static const Color orange = Color(0xffF4BA8A);
+  static const Color gold = Color(0XFFF4D06F);
+  static const Color lightBlue = Color(0xffbad4fb);
+  static const Color lightGreen = Color(0xffCDE7B2);
+  static const Color darkBlue = Color(0xff94BDFC);
+  static const Color oker = Color(0xffD3AD66);
+  static const Color purple = Color(0xffE0CBFF);
 
-  static const Color lightBrown = Color(0xffFEF8F1);
-  static const Color darkBrown = Color(0xffA77B5B);
-
-  static const Color lightOrange = Color(0xfffff5f0);
-  static const Color darkOrange = Color(0xfffb9761);
-
-  static const Color lightGreen = Color(0xffe4f3f1);
-  static const Color darkGreen = Color(0xff7cbaaf);
-
-  static const Color lightBlue = Color(0xfff3fbfc);
-  static const Color darkBlue = Color(0xff94bdfc);
-
-  static const Color lightPurple = Color(0xfffbf3fb);
-  static const Color darkPurple = Color(0xffb97bb7);
+  //BARVE ZA GUMBE NA TIPKOVNICI
+  static const Color brightRed = Color(0xffe76f51);
+  static const Color brightOrange = Color(0xfff4a261);
+  static const Color brightPurple = Color(0xffb892ff);
 
   static const TextStyle heading1 = TextStyle(
     fontFamily: 'Poppins',

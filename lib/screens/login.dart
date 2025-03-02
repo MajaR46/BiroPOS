@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.7.1';
+  String verzijaPrograma = '5.9.1';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -391,6 +391,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
+                    backgroundColor: AppStyles.lightGrey,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -415,6 +416,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
+                    backgroundColor: AppStyles.lightGrey,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -435,6 +437,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
+                    backgroundColor: AppStyles.lightGrey,
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),

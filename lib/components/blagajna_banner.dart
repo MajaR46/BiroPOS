@@ -20,7 +20,7 @@ class BlagajnaBanner extends ConsumerWidget {
 
     // Display the banner content
     return Container(
-      color: AppStyles.grey,
+      color: AppStyles.lightGrey,
       height: 50,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),

@@ -218,7 +218,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                       }
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppStyles.red,
+                  backgroundColor: AppStyles.brightRed,
                 ),
                 child: Text(
                   'Odjava',

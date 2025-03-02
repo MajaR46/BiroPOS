@@ -47,7 +47,9 @@ class Utils {
       }
       bool isBold = false;
 
-      for (final line in filteredLines) {
+      for (int i = 0; i < filteredLines.length; i++) {
+        final line = filteredLines[i];
+
         if (line.contains('#VELIKOST-START#')) {
           isBold = true;
         } else if (line.contains('#VELIKOST-END#')) {
@@ -73,9 +75,20 @@ class Utils {
           await sunmiPrinterPlus.printText(
               text: line, style: SunmiTextStyle(bold: isBold));
         }
+
+        // Check if the line contains "Podpis"
+        if (line.toLowerCase().contains("podpis")) {
+          const int extraBlankLines = 2;
+          // Add 3 blank lines immediately after the "podpis" line
+          for (int j = 0; j < extraBlankLines; j++) {
+            await sunmiPrinterPlus.printText(
+              text: ' ',
+            );
+          }
+        }
+
         print("PRINT 6");
       }
-
       const int extraBlankLines = 3;
       for (int i = 0; i < extraBlankLines; i++) {
         await sunmiPrinterPlus.printText(
@@ -86,7 +99,6 @@ class Utils {
       if (e
           .toString()
           .contains('kotlin.UninitializedPropertyAccessException')) {
-        //await ErrorDialogs.showBluetoothErrorDialog(context, filteredLines);
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
         print("PRINT 7");
 

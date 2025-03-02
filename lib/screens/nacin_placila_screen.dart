@@ -159,7 +159,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         HapticFeedback.vibrate();
                       },
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.grey,
+                          backgroundColor: AppStyles.lightGrey,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15))),
                       child: Text(paymentMethod.nacinPlacila,

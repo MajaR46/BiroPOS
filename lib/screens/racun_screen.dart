@@ -6,6 +6,7 @@ import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
+import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/totdal_sum_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
@@ -49,6 +50,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
+    });
+    searchController.addListener(() {
+      ref.read(searchQueryProvider.notifier).state = searchController.text;
     });
   }
 
@@ -343,14 +347,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       backgroundColor: AppStyles.white,
       appBar: AppBar(
         backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () {
-            HapticFeedback.vibrate();
-            Navigator.of(context).pop();
-          },
-        ),
+        automaticallyImplyLeading: false,
         title: Text("Račun",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
@@ -447,7 +444,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                             ),
                             IconButton.filled(
                               style: IconButton.styleFrom(
-                                  backgroundColor: AppStyles.darkGreen),
+                                  backgroundColor: AppStyles.green),
                               onPressed: () {
                                 HapticFeedback.vibrate();
 
@@ -458,7 +455,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                             ),
                             IconButton.filled(
                                 style: IconButton.styleFrom(
-                                    backgroundColor: AppStyles.red),
+                                    backgroundColor: AppStyles.brightRed),
                                 onPressed: () {
                                   HapticFeedback.vibrate();
                                   _removeItem(
@@ -528,6 +525,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: Keyboard(
+                        racunArtikliButton: "ARTIKLI",
                         opisDiscountButton: "%",
                         controller: searchController,
                         navigateToMizaScreen: _navigateToMizaScreen,

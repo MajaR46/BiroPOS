@@ -230,7 +230,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                                     children: [
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
-                                              backgroundColor: AppStyles.red),
+                                              backgroundColor:
+                                                  AppStyles.brightRed),
                                           onPressed: () {
                                             _deleteFromRacun(index);
                                             HapticFeedback.vibrate();
@@ -308,44 +309,18 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                           elevation: 0,
                         ),
                         child: Text(
-                          "Prenos",
+                          "NA DRUGO MIZO",
                           style: AppStyles.button1
                               .copyWith(color: AppStyles.black),
                         ),
                       ),
                     ),
                     const Spacer(),
-                    // Button 2
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          HapticFeedback.vibrate();
 
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  SplitRacunScreen(imeMize: imeMize),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.silver.withOpacity(0.1),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          "Razdeli",
-                          style: AppStyles.button1
-                              .copyWith(color: AppStyles.black),
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
                     // Button 3
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: OKButton(onPressed: _ok, text: 'OK'),
+                      child: OKButton(onPressed: _ok, text: 'NA RAČUN'),
                     ),
                   ],
                 ),

@@ -71,7 +71,7 @@ class NumpadNumber extends StatelessWidget {
         height: 60,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppStyles.silver.withOpacity(0.1),
+            backgroundColor: AppStyles.lightGrey,
             elevation: 0,
           ),
           onPressed: () {
@@ -110,7 +110,7 @@ class NumpadDelete extends StatelessWidget {
       height: height.toDouble(),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-              backgroundColor: AppStyles.silver.withOpacity(0.1),
+              backgroundColor: AppStyles.lightGrey,
               elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius:

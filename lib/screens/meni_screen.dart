@@ -171,7 +171,7 @@ class MeniScreen extends ConsumerWidget {
                 child: ElevatedButton(
                     onPressed: () => logout(),
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: AppStyles.red),
+                        backgroundColor: AppStyles.brightRed),
                     child: Text(
                       "Odjava",
                       style:

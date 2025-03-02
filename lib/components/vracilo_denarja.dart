@@ -27,11 +27,11 @@ class Vracilo {
               child: ListBody(
                 children: <Widget>[
                   Text(
-                    "Vneseno: ${vnesenZnesek.toStringAsFixed(2)} €",
+                    "Prejeto: ${vnesenZnesek.toStringAsFixed(2)} €",
                     style: AppStyles.paragraph1,
                   ),
                   Text(
-                    "Znesek : ${finalSum.toStringAsFixed(2)} €",
+                    "Za plačilo : ${finalSum.toStringAsFixed(2)} €",
                     style: AppStyles.paragraph1,
                   ),
                   Text(""),

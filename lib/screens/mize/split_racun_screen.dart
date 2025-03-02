@@ -8,6 +8,7 @@ import 'package:biro_pos/models/tableItem.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/tableitem_provider.dart';
 import 'package:biro_pos/screens/blagajna_screen.dart';
+import 'package:biro_pos/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -126,7 +127,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const BlagajnaScreen(),
+        builder: (context) => const RacunScreen(),
       ),
     );
   }
@@ -213,7 +214,8 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                                     children: [
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
-                                              backgroundColor: AppStyles.red),
+                                              backgroundColor:
+                                                  AppStyles.brightRed),
                                           onPressed: () {
                                             _deleteFromRacun(index);
                                             HapticFeedback.vibrate();
