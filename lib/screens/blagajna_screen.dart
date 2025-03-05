@@ -300,6 +300,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     // če uporabnik začne z iskanjem avtomatsko preklopi na "VSE"
     searchController.addListener(() {
       if (searchController.text.isNotEmpty) {
+        ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
+      } else if (searchController.text.isEmpty) {
         ref.read(selectedCategoryProvider.notifier).state = 'Vse';
       }
     });
@@ -307,8 +309,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     generatePairs(searchController);
 
     List<dynamic> filteredItems = [];
-
-    if (stateSelectedCategory == "Vse") {
+    print("izbrana kategorija $stateSelectedCategory");
+    if (stateSelectedCategory == "Vse" || stateSelectedCategory == "Iskanje") {
       for (var categoryItems in categorizedItems.values) {
         filteredItems.addAll(categoryItems);
       }
@@ -324,14 +326,18 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
-
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
-      final searchPattern = RegExp(searchQuery, caseSensitive: false);
-
+      final searchQueries =
+          searchQuery.toLowerCase().split('|'); // Razdeli niz iskalnih poizvedb
+      print("searchQueries $searchQueries");
       filteredItems = filteredItems.where((item) {
         String itemName =
-            item['name'].toUpperCase().replaceAll(RegExp(r'\d'), '');
-        return searchPattern.hasMatch(itemName);
+            item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+        final words = itemName.split(' ');
+
+        // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
+        return searchQueries
+            .any((query) => words.any((word) => word.startsWith(query)));
       }).toList();
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {

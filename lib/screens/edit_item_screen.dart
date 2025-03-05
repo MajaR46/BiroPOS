@@ -72,6 +72,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
           List<String>.from(box.get('biroPosData', defaultValue: []));
       _categorizeResponseItems(apiResponseList);
 
+      print("edit item ${apiResponseList.toString}");
+
       if (apiResponseList == null) {
         print("No data");
         return;
@@ -86,10 +88,14 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
     for (String item in items) {
       if (item.startsWith('D')) {
-        String imeDodatka = item.split('|')[1];
-        String pripadajocaKateogrija = item.split('|')[2];
+        List<String> parts = item.split('|');
+        String imeDodatka = parts[1];
+        List<String> pripadajoceKategorije = parts[2].split(',');
+
         dodatki2.add(Dodatek(
-            ime: imeDodatka, pripadajocaKategorija: pripadajocaKateogrija));
+          ime: imeDodatka,
+          pripadajoceKategorije: pripadajoceKategorije,
+        ));
       }
     }
 
@@ -102,7 +108,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   void _filterDodatki(String categoryId) {
     setState(() {
       filteredDodatki = dodatki
-          .where((dodatek) => dodatek.pripadajocaKategorija == categoryId)
+          .where(
+              (dodatek) => dodatek.pripadajoceKategorije.contains(categoryId))
           .toList();
     });
   }

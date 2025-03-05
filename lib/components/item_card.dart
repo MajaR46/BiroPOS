@@ -1,8 +1,10 @@
+import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class ItemCard extends StatelessWidget {
+class ItemCard extends ConsumerWidget {
   final String itemName;
   final String itemPrice;
   final String itemCategory;
@@ -26,9 +28,11 @@ class ItemCard extends StatelessWidget {
       required this.textSize});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     double paddingInCardValue = isAllLayout ? 8.0 : 8.0;
     double paddingOutCardValue = isAllLayout ? 2.0 : 0.0;
+    final settings = ref.watch(settingsProvider);
+    final prikaziCene = settings['isCheckedPrikazCene'] ?? false;
 
     return Padding(
       padding: EdgeInsets.all(paddingOutCardValue),
@@ -57,12 +61,13 @@ class ItemCard extends StatelessWidget {
                     fontSize: textSize,
                     color: itemNameColor),
               ),
-              Text(
-                '${itemPrice.toString()} €',
-                style: TextStyle(fontSize: textSize - 2),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              if (prikaziCene)
+                Text(
+                  '${itemPrice.toString()} €',
+                  style: TextStyle(fontSize: textSize - 2),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               const SizedBox(height: 2),
               if (stStolpcev < 3)
                 Container(

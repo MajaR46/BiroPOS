@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter/material.dart';
 
-class ItemListBuilder extends StatefulWidget {
+class ItemListBuilder extends ConsumerStatefulWidget {
   final Map<String, List<dynamic>> categorizedItems;
   final List<dynamic> Function() getFilteredItems;
   final String selectedCategory;
@@ -34,7 +34,7 @@ class ItemListBuilder extends StatefulWidget {
   _ItemListBuilderState createState() => _ItemListBuilderState();
 }
 
-class _ItemListBuilderState extends State<ItemListBuilder> {
+class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
   late String dropdownvalue = '';
   late bool nastaviCeno = false;
   late double selectedTextSize;
@@ -147,10 +147,13 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
   @override
   Widget build(BuildContext context) {
     List<dynamic> filteredItems = widget.getFilteredItems();
+
     final settings = widget.ref.watch(settingsProvider);
     final enojniKlik = settings['isCheckedEnojniKlik'] ?? false;
     final hhCene = settings['isCheckedHHCene'] ?? false;
     final defaultColors = settings['isCheckedBarve'] ?? false;
+    final selectedCategory = ref.watch(selectedCategoryProvider);
+    print("selected category: $selectedCategory");
 
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
@@ -162,7 +165,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
       selectedTextSize = 12;
     }
 
-    if (widget.selectedCategory == "") {
+    if (selectedCategory == "") {
       return const Center(child: Text("Ni izbrane kategorije"));
     }
 
@@ -170,7 +173,7 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
       return const Center(child: Text("Ni izdelkov"));
     }
 
-    if (widget.selectedCategory == "Vse") {
+    if (selectedCategory == "Vse") {
       Map<String, List<dynamic>> itemsByCategory =
           _categorizeItems(filteredItems);
       List<String> categories = itemsByCategory.keys.toList();
@@ -244,6 +247,63 @@ class _ItemListBuilderState extends State<ItemListBuilder> {
               ),
             );
           }),
+        ),
+      );
+    } else if (selectedCategory == "Iskanje") {
+      return SingleChildScrollView(
+        child: Wrap(
+          spacing: 2.0, // Razmik med karticami horizontalno
+          runSpacing: 2.0, // Razmik med vrsticami
+          children: filteredItems.map((item) {
+            int categoryIndex =
+                widget.categorizedItems.keys.toList().indexOf(item['category']);
+            Color assignedBackgroundColor = widget.backgroundColors[
+                categoryIndex % widget.backgroundColors.length];
+            Color assignedTextColor = AppStyles.black;
+            final String itemColor = item['itemColor'];
+
+            return GestureDetector(
+              onTap: enojniKlik
+                  ? () {
+                      HapticFeedback.vibrate();
+                      _handleItemSelectItem(item, hhCene);
+                    }
+                  : null,
+              onDoubleTap: !enojniKlik
+                  ? () {
+                      _handleItemSelectItem(item, hhCene);
+                      HapticFeedback.vibrate();
+                    }
+                  : null,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: (MediaQuery.of(context).size.width - 8) /
+                      widget.columnNum, // Prilagodi širino stolpca
+                  maxWidth: (MediaQuery.of(context).size.width - 8) /
+                      widget.columnNum,
+                ),
+                child: ItemCard(
+                  isAllLayout: false,
+                  stStolpcev: widget.columnNum,
+                  itemName: item['name'],
+                  itemPrice: hhCene == true
+                      ? (item['hhPrice']?.isEmpty ?? true)
+                          ? item['price']
+                          : item['hhPrice']
+                      : item['price'],
+                  itemCategory: item['category'],
+                  cardBackground: defaultColors == true
+                      ? assignedBackgroundColor
+                      : itemColorMapping[itemColor] ?? AppStyles.white,
+                  itemNameColor: AppStyles.black,
+                  itemCategoryTextColor: defaultColors == true
+                      ? assignedTextColor
+                      : AppStyles.black,
+                  textSize: selectedTextSize,
+                ),
+              ),
+            );
+          }).toList(),
         ),
       );
     } else {

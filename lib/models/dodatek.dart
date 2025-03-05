@@ -1,6 +1,6 @@
 class Dodatek {
   String ime;
-  String pripadajocaKategorija;
+  List<String> pripadajoceKategorije;
 
-  Dodatek({required this.ime, required this.pripadajocaKategorija});
+  Dodatek({required this.ime, required this.pripadajoceKategorije});
 }

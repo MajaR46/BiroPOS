@@ -41,6 +41,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedBluetoothPrintanje = true;
   bool _isCheckedEnojniKlik = false;
   bool _isCheckedBarve = false;
+  bool _isCheckedPrikazCene = false;
 
   @override
   void initState() {
@@ -98,8 +99,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
         _isCheckedEnojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
         _isCheckedBarve = prefs.getBool('isCheckedBarve') ?? false;
-        print(
-            "Value of _isCheckedTiskajNarociloPriRacunu on screen load: $_isCheckedTiskajNarociloPriRacunu");
+        _isCheckedPrikazCene = prefs.getBool('isCheckedPrikazCene') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -140,6 +140,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         'isCheckedBluetoothPrintanje', _isCheckedBluetoothPrintanje);
     await prefs.setBool('isCheckedEnojniKlik', _isCheckedEnojniKlik);
     await prefs.setBool('isCheckedBarve', _isCheckedBarve);
+    await prefs.setBool('isCheckedPrikazCene', _isCheckedPrikazCene);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -457,6 +458,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             ref
                                 .read(settingsProvider.notifier)
                                 .toggleBarve(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Prikaži cene:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedPrikazCene,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedPrikazCene = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .togglePrikazCene(value ?? false);
                           },
                         ),
                       ],

@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
@@ -23,6 +24,7 @@ class NacinPlacilaScreen extends ConsumerStatefulWidget {
 class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
   late ProcessPayment paymentService;
+  final Debouncer _debouncer = Debouncer(miliseconds: 500);
 
   @override
   void initState() {
@@ -155,8 +157,10 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
                     return ElevatedButton(
                       onPressed: () {
-                        paymentPrint(nacinPlacila, davcnaSt!);
-                        HapticFeedback.vibrate();
+                        _debouncer.debouce(() async {
+                          paymentPrint(nacinPlacila, davcnaSt!);
+                          HapticFeedback.vibrate();
+                        });
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.lightGrey,

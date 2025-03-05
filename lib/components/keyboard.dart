@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/components/narocilo.dart';
 import 'package:biro_pos/components/vracilo_denarja.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
@@ -42,6 +43,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   List<NarociloItem> chosenItems = [];
   final TextEditingController searchController = TextEditingController();
   late ProcessPayment paymentService;
+  final Debouncer _debouncer = Debouncer(miliseconds: 200);
 
   @override
   void initState() {
@@ -109,54 +111,58 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     }
   }
  */
-  void _paymentGotovina() async {
-    final settings = ref.watch(settingsProvider);
-    final tiskajNarociloPriRacunu =
-        settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
-    print("tiskaj : $tiskajNarociloPriRacunu");
-    double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+  void _paymentGotovina() {
+    _debouncer.debouce(() async {
+      final settings = ref.watch(settingsProvider);
+      final tiskajNarociloPriRacunu =
+          settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+      print("tiskaj : $tiskajNarociloPriRacunu");
+      double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
-    try {
-      String searchQuery = ref.watch(searchQueryProvider);
-      String filtriranQuery = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
+      try {
+        String searchQuery = ref.watch(searchQueryProvider);
+        String filtriranQuery = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
-      final vnesenZnesek = double.tryParse(filtriranQuery);
-      print("vnesen znesek $vnesenZnesek");
-      print(ref.watch(searchQueryProvider));
+        final vnesenZnesek = double.tryParse(filtriranQuery);
+        print("vnesen znesek $vnesenZnesek");
+        print(ref.watch(searchQueryProvider));
 
-      // Calculate the change
-      double vracilo = Vracilo.izracunVracila(ref, vnesenZnesek ?? 0.0);
+        // Calculate the change
+        double vracilo = Vracilo.izracunVracila(ref, vnesenZnesek ?? 0.0);
 
-      if (vnesenZnesek != null && vnesenZnesek > 0.0) {
-        await Vracilo.showReturnDialog(
-            context, vnesenZnesek ?? 0.0, finalSum, vracilo);
+        if (vnesenZnesek != null && vnesenZnesek > 0.0) {
+          await Vracilo.showReturnDialog(
+              context, vnesenZnesek ?? 0.0, finalSum, vracilo);
+        }
+
+        // Process the payment
+        paymentService.processPayment(context, "GOT");
+
+        if (tiskajNarociloPriRacunu) {
+          await Narocilo.createNarocilo(ref, false, context);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
       }
-
-      // Process the payment
-      paymentService.processPayment(context, "GOT");
-
-      if (tiskajNarociloPriRacunu) {
-        await Narocilo.createNarocilo(ref, false, context);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
-    }
+    });
   }
 
-  void _paymentKartica() async {
-    final settings = ref.watch(settingsProvider);
-    final tiskajNarociloPriRacunu =
-        settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
-    try {
-      paymentService.processPayment(context, "KAR");
-      if (tiskajNarociloPriRacunu == true) {
-        await Narocilo.createNarocilo(ref, false, context);
+  void _paymentKartica() {
+    _debouncer.debouce(() async {
+      final settings = ref.watch(settingsProvider);
+      final tiskajNarociloPriRacunu =
+          settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+      try {
+        paymentService.processPayment(context, "KAR");
+        if (tiskajNarociloPriRacunu == true) {
+          await Narocilo.createNarocilo(ref, false, context);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
-    }
+    });
   }
 
   void _handleMultiply(double factor) {

@@ -137,60 +137,37 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                                     elevation: 0,
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 24),
+                                          horizontal: 16, vertical: 16),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
                                         children: [
                                           Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                            mainAxisAlignment: user.isNotEmpty
+                                                ? MainAxisAlignment.start
+                                                : MainAxisAlignment
+                                                    .center, // Če ni userja, centriramo vertikalno
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 'Miza $oznakaMize',
                                                 style: AppStyles.heading3,
                                               ),
+                                              if (user.isNotEmpty)
+                                                Text(
+                                                  user,
+                                                  style: AppStyles.paragraph3,
+                                                ),
                                             ],
                                           ),
-                                          Flexible(
-                                            child: ConstrainedBox(
-                                              constraints: BoxConstraints(
-                                                  maxWidth:
-                                                      MediaQuery.of(context)
-                                                              .size
-                                                              .width *
-                                                          1 /
-                                                          3),
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    '${znesek.toStringAsFixed(2)}€',
-                                                    style: AppStyles.heading3
-                                                        .copyWith(
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .normal),
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                          Text(
+                                            '${znesek.toStringAsFixed(2)}€',
+                                            style: AppStyles.heading3.copyWith(
+                                                fontWeight: FontWeight.normal),
                                           ),
-                                          Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                user,
-                                                style: AppStyles.paragraph3,
-                                              ),
-                                            ],
-                                          )
                                         ],
                                       ),
                                     ),

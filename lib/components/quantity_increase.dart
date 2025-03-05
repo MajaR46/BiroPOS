@@ -31,14 +31,16 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
   }
 
   void _increase() {
-    setState(() {
-      _currentQuantity++;
-      widget.onQuantityChanged(_currentQuantity);
-    });
+    if (_currentQuantity % 1 == 0) {
+      setState(() {
+        _currentQuantity++;
+        widget.onQuantityChanged(_currentQuantity);
+      });
+    }
   }
 
   void _decrease() {
-    if (_currentQuantity > 1) {
+    if (_currentQuantity > 1 && _currentQuantity % 1 == 0) {
       setState(() {
         _currentQuantity =
             double.parse((_currentQuantity - 1).toStringAsFixed(2));
