@@ -24,7 +24,7 @@ class NacinPlacilaScreen extends ConsumerStatefulWidget {
 class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
   late ProcessPayment paymentService;
-  final Debouncer _debouncer = Debouncer(miliseconds: 500);
+  final Debouncer _debouncer = Debouncer(seconds: 2);
 
   @override
   void initState() {
@@ -137,9 +137,9 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 2.5,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 200, // Nastavite največjo širino gumba
+                    childAspectRatio: 2.5, // Ohranite ustrezno razmerje
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -155,20 +155,28 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                       nacinPlacila = paymentMethod.kodaNacinaPlacila;
                     }
 
-                    return ElevatedButton(
-                      onPressed: () {
-                        _debouncer.debouce(() async {
-                          paymentPrint(nacinPlacila, davcnaSt!);
-                          HapticFeedback.vibrate();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
+                    return SizedBox(
+                      width: 150, // Nastavite fiksno širino
+                      height: 50, // Nastavite fiksno višino
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _debouncer.debouce(() async {
+                            paymentPrint(nacinPlacila, davcnaSt!);
+                            HapticFeedback.vibrate();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.lightGrey,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15))),
-                      child: Text(paymentMethod.nacinPlacila,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: Text(
+                          paymentMethod.nacinPlacila,
                           style: AppStyles.boldanparagraph1
-                              .copyWith(color: AppStyles.black)),
+                              .copyWith(color: AppStyles.black),
+                        ),
+                      ),
                     );
                   }),
                 ),

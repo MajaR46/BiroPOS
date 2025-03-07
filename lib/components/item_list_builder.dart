@@ -153,7 +153,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     final hhCene = settings['isCheckedHHCene'] ?? false;
     final defaultColors = settings['isCheckedBarve'] ?? false;
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    print("selected category: $selectedCategory");
 
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
@@ -252,8 +251,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     } else if (selectedCategory == "Iskanje") {
       return SingleChildScrollView(
         child: Wrap(
-          spacing: 2.0, // Razmik med karticami horizontalno
-          runSpacing: 2.0, // Razmik med vrsticami
+          spacing: 4.0, // Razmik med karticami horizontalno
+          runSpacing: 4.0, // Razmik med vrsticami
           children: filteredItems.map((item) {
             int categoryIndex =
                 widget.categorizedItems.keys.toList().indexOf(item['category']);
@@ -324,8 +323,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
 
           return SingleChildScrollView(
             child: Wrap(
-              spacing: 2.0, // Razmik med karticami horizontalno
-              runSpacing: 2.0, // Razmik med vrsticami
+              spacing: 4.0, // Razmik med karticami horizontalno
+              runSpacing: 4.0, // Razmik med vrsticami
               children: sortedItems.map((item) {
                 int categoryIndex = widget.categorizedItems.keys
                     .toList()

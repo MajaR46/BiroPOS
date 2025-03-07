@@ -43,11 +43,13 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
       for (String line in apiResponseList) {
         List<String> parts = line.split('|');
         if (parts.length < 4) continue;
+        String prostor = parts[0];
         String imeMize = parts[1];
         String znesek = parts[2].replaceAll(',', '.');
         String user = parts[3];
 
         mize.add({
+          'prostor': prostor,
           'imeMize': imeMize,
           'znesek': znesek.isNotEmpty ? znesek : '',
           'user': user
@@ -114,6 +116,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                             itemBuilder: (context, index) {
                               final tableData = odprteMize[index];
                               String oznakaMize = tableData['imeMize'] ?? '';
+                              String prostor = tableData['prostor'] ?? '';
                               double znesek = tableData['znesek'] != null
                                   ? double.tryParse(
                                           tableData['znesek'].toString()) ??
@@ -122,58 +125,79 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
                               String user = tableData['user'] ?? '';
 
                               return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCardIndex = index;
-                                      _ok();
-                                      HapticFeedback.vibrate();
-                                    });
-                                  },
-                                  child: Card(
-                                    color: AppStyles.silver.withOpacity(0.1),
-                                    elevation: 0,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 16),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Column(
-                                            mainAxisAlignment: user.isNotEmpty
-                                                ? MainAxisAlignment.start
-                                                : MainAxisAlignment
-                                                    .center, // Če ni userja, centriramo vertikalno
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _selectedCardIndex = index;
+                                          _ok();
+                                          HapticFeedback.vibrate();
+                                        });
+                                      },
+                                      child: Card(
+                                        color:
+                                            AppStyles.silver.withOpacity(0.1),
+                                        elevation: 0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 16),
+                                          child: Column(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                                CrossAxisAlignment.stretch,
                                             children: [
-                                              Text(
-                                                'Miza $oznakaMize',
-                                                style: AppStyles.heading3,
+                                              // Prva vrstica: Miza (levo) - Znesek (desno)
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    'Miza $oznakaMize',
+                                                    style: AppStyles.heading3,
+                                                  ),
+                                                  Text(
+                                                    '${znesek.toStringAsFixed(2)}€',
+                                                    style: AppStyles.heading3
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .normal),
+                                                  ),
+                                                ],
                                               ),
-                                              if (user.isNotEmpty)
-                                                Text(
-                                                  user,
-                                                  style: AppStyles.paragraph3,
-                                                ),
+                                              Row(
+                                                children: [
+                                                  // Prva tretjina (User - levo poravnano)
+                                                  Expanded(
+                                                    child: Text(
+                                                      user,
+                                                      style:
+                                                          AppStyles.paragraph3,
+                                                    ),
+                                                  ),
+                                                  // Druga tretjina (Test - centrirano)
+                                                  if (prostor != "Miza")
+                                                    Expanded(
+                                                      child: Align(
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Text(
+                                                          prostor,
+                                                          style: AppStyles
+                                                              .paragraph3,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  // Tretja tretjina (prazna)
+                                                  const Expanded(
+                                                      child: SizedBox()),
+                                                ],
+                                              ),
                                             ],
                                           ),
-                                          Text(
-                                            '${znesek.toStringAsFixed(2)}€',
-                                            style: AppStyles.heading3.copyWith(
-                                                fontWeight: FontWeight.normal),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
+                                        ),
+                                      )));
                             })),
               ],
             )

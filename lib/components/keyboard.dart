@@ -43,7 +43,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   List<NarociloItem> chosenItems = [];
   final TextEditingController searchController = TextEditingController();
   late ProcessPayment paymentService;
-  final Debouncer _debouncer = Debouncer(miliseconds: 200);
+  final Debouncer _debouncer = Debouncer(seconds: 2);
 
   @override
   void initState() {

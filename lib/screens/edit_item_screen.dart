@@ -216,41 +216,39 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                       Padding(
                         padding:
                             const EdgeInsets.only(top: 32, left: 16, right: 16),
-                        child: SizedBox(
-                          height: 500,
-                          child: GridView.builder(
-                            shrinkWrap:
-                                true, // Add this to avoid taking up extra space
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 3,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
-                            itemCount: filteredDodatki.length,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () {
-                                  _updateTextField(filteredDodatki[index].ime);
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppStyles.blue, // Background color
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: const EdgeInsets.all(8),
-                                  child: Center(
-                                    child: Text(
-                                      filteredDodatki[index].ime,
-                                      style: AppStyles.button1
-                                          .copyWith(color: AppStyles.white),
-                                    ),
+                        child: GridView.builder(
+                          shrinkWrap:
+                              true, // Add this to avoid taking up extra space
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent:
+                                200, // Nastavite največjo širino gumba
+                            childAspectRatio: 2.5, // Ohranite ustrezno razmerje
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          itemCount: filteredDodatki.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                _updateTextField(filteredDodatki[index].ime);
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: AppStyles.blue, // Background color
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.all(8),
+                                child: Center(
+                                  child: Text(
+                                    filteredDodatki[index].ime,
+                                    style: AppStyles.button1
+                                        .copyWith(color: AppStyles.white),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       )
                     ],

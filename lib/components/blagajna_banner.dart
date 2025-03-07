@@ -12,7 +12,8 @@ class BlagajnaBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartItems = ref.watch(narociloNotifierProvider);
 
-    final selectedItem = cartItems.isNotEmpty ? cartItems.last : null;
+    final selectedItem = ref.watch(selectedItemProvider);
+
     final itemQuantity = selectedItem?.quantity ?? 0.0;
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 

@@ -293,43 +293,43 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     return categories;
   }
 
-//filtriraj izdelke glede na kategorijo
   List<dynamic> _getFilteredItems() {
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
 
-    // če uporabnik začne z iskanjem avtomatsko preklopi na "VSE"
     searchController.addListener(() {
       if (searchController.text.isNotEmpty) {
-        ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
-      } else if (searchController.text.isEmpty) {
-        ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+        if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
+          ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
+        }
+      } else {
+        if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
+          ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+        }
       }
     });
 
     generatePairs(searchController);
 
     List<dynamic> filteredItems = [];
-    print("izbrana kategorija $stateSelectedCategory");
+
     if (stateSelectedCategory == "Vse" || stateSelectedCategory == "Iskanje") {
       for (var categoryItems in categorizedItems.values) {
         filteredItems.addAll(categoryItems);
       }
     } else {
-      // Get items for the selected category
+      // Preverimo, da je izbrana kategorija veljavna, preden filtriramo izdelke
       filteredItems = categorizedItems[stateSelectedCategory] ?? [];
     }
 
     String searchText = searchController.text;
-
     RegExp regExp = RegExp(r'\d+');
     Iterable<Match> matches = regExp.allMatches(searchText);
-
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
+
     if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
       final searchQueries =
           searchQuery.toLowerCase().split('|'); // Razdeli niz iskalnih poizvedb
-      print("searchQueries $searchQueries");
       filteredItems = filteredItems.where((item) {
         String itemName =
             item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
@@ -341,7 +341,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       }).toList();
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {
-        //int itemId = int.tryParse(item['itemId']) ?? 0;
         return int.tryParse(item['itemId']) == int.tryParse(numbers2String);
       }).toList();
     }
