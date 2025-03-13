@@ -1,4 +1,5 @@
 import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/selectedcategory_provider.dart';
@@ -39,6 +40,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
   late bool nastaviCeno = false;
   late double selectedTextSize;
   final TextEditingController priceController = TextEditingController();
+  final Debouncer _debouncer = Debouncer(miliseconds: 2000);
+  bool showSearchResults = false;
 
   @override
   void initState() {
@@ -176,6 +179,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
       Map<String, List<dynamic>> itemsByCategory =
           _categorizeItems(filteredItems);
       List<String> categories = itemsByCategory.keys.toList();
+      print("prikaz tukaj 1");
 
       return SizedBox(
         child: ListView.builder(
@@ -251,8 +255,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     } else if (selectedCategory == "Iskanje") {
       return SingleChildScrollView(
         child: Wrap(
-          spacing: 4.0, // Razmik med karticami horizontalno
-          runSpacing: 4.0, // Razmik med vrsticami
+          spacing: 4.0,
+          runSpacing: 4.0,
           children: filteredItems.map((item) {
             int categoryIndex =
                 widget.categorizedItems.keys.toList().indexOf(item['category']);
@@ -306,6 +310,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
         ),
       );
     } else {
+      print("prikaz tukaj 3");
+
       return LayoutBuilder(
         builder: (context, constraints) {
           int gridColumnCount = widget.columnNum;

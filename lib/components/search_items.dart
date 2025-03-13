@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ String joinedNumbers = "";
 String numbers = "";
 String numbers2String = '';
 bool isSearching = false;
+final Debouncer _debouncer = Debouncer(miliseconds: 350);
 
 List<int> extractNumbers(String input) {
   // Use RegExp to find all numbers in the input string.

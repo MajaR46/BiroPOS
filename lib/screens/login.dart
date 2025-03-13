@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.13.0';
+  String verzijaPrograma = '5.14.0';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;

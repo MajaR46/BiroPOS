@@ -1,4 +1,5 @@
 import 'package:biro_pos/components/blagajna_banner.dart';
+import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/item_list_builder.dart';
 import 'package:biro_pos/components/keyboard.dart';
@@ -63,11 +64,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     _handleData();
 
     searchController.addListener(() {
-      //updateNumbersString(searchController);
       ref.read(isSearchingProvider.notifier).state =
           searchController.text.isNotEmpty;
       updateNumbersString(searchController, ref);
     });
+
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
@@ -295,11 +296,16 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   List<dynamic> _getFilteredItems() {
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
+    String filtriranSearch =
+        searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    print("filtriran search $filtriranSearch");
 
     searchController.addListener(() {
-      if (searchController.text.isNotEmpty) {
+      // Sprememba: Preveri dolžino preden spremeniš kategorijo
+      if (filtriranSearch.length == 2 && searchController.text.isNotEmpty) {
         if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
           ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
+          print("nastavjeno na iskanje");
         }
       } else {
         if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
@@ -327,18 +333,22 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
 
-    if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
-      final searchQueries =
-          searchQuery.toLowerCase().split('|'); // Razdeli niz iskalnih poizvedb
-      filteredItems = filteredItems.where((item) {
-        String itemName =
-            item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
-        final words = itemName.split(' ');
+    // Preverimo dolžino iskalnega besedila pred filtrom po imenu
+    if (searchController.text.length >= 3) {
+      if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
+        final searchQueries = searchQuery
+            .toLowerCase()
+            .split('|'); // Razdeli niz iskalnih poizvedb
+        filteredItems = filteredItems.where((item) {
+          String itemName =
+              item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+          final words = itemName.split(' ');
 
-        // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
-        return searchQueries
-            .any((query) => words.any((word) => word.startsWith(query)));
-      }).toList();
+          // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
+          return searchQueries
+              .any((query) => words.any((word) => word.startsWith(query)));
+        }).toList();
+      }
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {
         return int.tryParse(item['itemId']) == int.tryParse(numbers2String);

@@ -24,7 +24,7 @@ class NacinPlacilaScreen extends ConsumerStatefulWidget {
 class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
   late ProcessPayment paymentService;
-  final Debouncer _debouncer = Debouncer(seconds: 2);
+  final Debouncer _debouncer = Debouncer(miliseconds: 2000);
 
   @override
   void initState() {
