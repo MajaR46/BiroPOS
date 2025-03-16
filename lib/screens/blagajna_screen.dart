@@ -339,15 +339,59 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         final searchQueries = searchQuery
             .toLowerCase()
             .split('|'); // Razdeli niz iskalnih poizvedb
+        print("search queris $searchQueries");
         filteredItems = filteredItems.where((item) {
           String itemName =
               item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
           final words = itemName.split(' ');
 
+          print("words part ${words[0]}");
+
           // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
           return searchQueries
               .any((query) => words.any((word) => word.startsWith(query)));
         }).toList();
+      } else if (joinedNumbers.length == 6 && searchQuery.isNotEmpty) {
+        final searchQueries = searchQuery
+            .toLowerCase()
+            .split('|'); // Split the search query into multiple queries
+        List<String> finalSearchQueries = [];
+
+        // Split each search query into two halves
+        for (var query in searchQueries) {
+          int middle = (query.length / 2).ceil();
+          finalSearchQueries.add(query.substring(0, middle));
+          finalSearchQueries.add(query.substring(middle));
+        }
+
+        filteredItems = filteredItems.where((item) {
+          String itemName =
+              item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+          List<String> words = itemName.split(' ');
+
+          // Remove empty strings from the list of words
+          words = words.where((word) => word.isNotEmpty).toList();
+
+          print("Words: $words");
+
+          // Ensure there are at least two words in `itemName`
+          if (words.length < 2) {
+            return false; // If there are less than two words, return false
+          }
+
+          // Now check if both the first and second words match the search queries
+          bool firstWordMatches =
+              finalSearchQueries.any((query) => words[0].startsWith(query));
+          bool secondWordMatches = words.skip(1).any((word) {
+            return finalSearchQueries.any((query) => word.startsWith(query));
+          });
+
+          // Both words must match the search queries
+          return firstWordMatches && secondWordMatches;
+        }).toList();
+
+        print("search queries: $searchQueries");
+        print("final search queries: $finalSearchQueries");
       }
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {

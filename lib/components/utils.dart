@@ -119,6 +119,9 @@ class Utils {
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
         print("PRINT 8");
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Problem $e"),
+        ));
 
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);

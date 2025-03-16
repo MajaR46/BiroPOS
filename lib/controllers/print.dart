@@ -63,6 +63,8 @@ class Print {
         }
       } else {
         try {
+          await Future.delayed(Duration(seconds: 2));
+
           await Utils.printTextWithIntegratedSunmi(
               context, text.join('\n'), ref);
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();

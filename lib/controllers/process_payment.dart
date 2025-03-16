@@ -185,6 +185,8 @@ class ProcessPayment {
 
     final printableResponse = filteredResponse.join("\r\n");
 
+    // Dodaj zamik 2 sekundi (lahko spremeniš trajanje)
+
     await Utils.printTextWithIntegratedSunmi(context, printableResponse, ref);
     ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
     clearSelectedItem(ref);

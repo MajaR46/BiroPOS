@@ -1,3 +1,4 @@
+import 'package:biro_pos/components/landscape_layout.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:biro_pos/screens/kopija_screen.dart';
@@ -120,7 +121,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const StornoScreen()));
+                            builder: (context) => StornoScreen()));
                   },
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
