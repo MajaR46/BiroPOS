@@ -9,7 +9,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
-
+    print("dodano na račun");
     // Preverimo, ali količina vsebuje decimalno vrednost
     bool isDecimalQuantity = narociloItem.quantity % 1 != 0;
 

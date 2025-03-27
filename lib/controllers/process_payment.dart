@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:biro_pos/components/error_dialog.dart';
+import 'package:biro_pos/components/usb_printer.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/bluetooth_controller.dart';
 import 'package:biro_pos/controllers/besteron_controller.dart';
@@ -26,8 +27,11 @@ class ProcessPayment {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
     final settings = ref.watch(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? false;
+    final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
     final paymentMethods = ref.watch(paymentMethodProvider);
     final prefs = await SharedPreferences.getInstance();
+    print("bluetooth printanje $bluetoothPrintanje");
+    print("usb printanje $usbPrintanje");
 
     String? posUrlNastavitve = prefs.getString('POS') ?? "";
     String? tid = prefs.getString('TID');
@@ -49,6 +53,8 @@ class ProcessPayment {
         if (bluetoothPrintanje) {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
+        } else if (usbPrintanje) {
+          await UsbPrint.sendDataUsb([besteronRacun]);
         } else {
           await Utils.printTextWithIntegratedSunmi(context, besteronRacun, ref);
         }
@@ -87,6 +93,8 @@ class ProcessPayment {
       if (bluetoothPrintanje) {
         await _processBluetoothPrinting(
             context, response, paymentType, finalSum);
+      } else if (usbPrintanje) {
+        await _processUsbPrinting(response);
       } else {
         await _processInnerPrinting(context, response, paymentType, finalSum);
       }
@@ -173,6 +181,15 @@ class ProcessPayment {
       print("Error checking Bluetooth status: $e");
       return false; // Consider Bluetooth not connected in case of an error
     }
+  }
+
+  Future<void> _processUsbPrinting(List<String> response) async {
+    final filteredResponse = Utils.filterEmptyLines(response);
+
+    await UsbPrint.sendDataUsb(filteredResponse);
+    ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+    clearSelectedItem(ref);
+    clearSearchQuery(ref);
   }
 
   Future<void> _processInnerPrinting(BuildContext context,

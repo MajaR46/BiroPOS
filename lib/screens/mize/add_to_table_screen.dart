@@ -131,6 +131,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                         itemBuilder: (context, index) {
                           final tableData = tables[index];
                           String tableNumber = tableData['miza'] ?? '';
+                          String prostor = tableData['prostor'] ?? '';
+
                           double tableFinalSum = tableData['cena'] != null
                               ? double.tryParse(tableData['cena'].toString()) ??
                                   0.0
@@ -163,6 +165,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             'Miza $tableNumber',
@@ -176,6 +180,19 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                           ),
                                         ],
                                       ),
+                                      Row(
+                                        children: [
+                                          if (prostor != "Miza")
+                                            Expanded(
+                                                child: Align(
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                prostor,
+                                                style: AppStyles.paragraph3,
+                                              ),
+                                            ))
+                                        ],
+                                      )
                                     ],
                                   ),
                                 ),

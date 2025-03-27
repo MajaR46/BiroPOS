@@ -2,6 +2,7 @@ import 'package:biro_pos/app_styles.dart';
 import 'package:biro_pos/components/debouncer.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/searchquery_provider.dart';
 import 'package:biro_pos/providers/selectedcategory_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
   late String dropdownvalue = '';
   late bool nastaviCeno = false;
   late double selectedTextSize;
+  late double minCardHeight = 50.0;
   final TextEditingController priceController = TextEditingController();
   final Debouncer _debouncer = Debouncer(miliseconds: 2000);
   bool showSearchResults = false;
@@ -157,14 +159,19 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     final defaultColors = settings['isCheckedBarve'] ?? false;
     final selectedCategory = ref.watch(selectedCategoryProvider);
 
+    print("visin $minCardHeight");
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
+      minCardHeight = 33;
     } else if (dropdownvalue == "Srednja") {
       selectedTextSize = 12;
+      minCardHeight = 50.0;
     } else if (dropdownvalue == "Velika") {
       selectedTextSize = 20;
+      minCardHeight = 80.0;
     } else {
       selectedTextSize = 12;
+      minCardHeight = 50.0;
     }
 
     if (selectedCategory == "") {
@@ -179,7 +186,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
       Map<String, List<dynamic>> itemsByCategory =
           _categorizeItems(filteredItems);
       List<String> categories = itemsByCategory.keys.toList();
-      print("prikaz tukaj 1");
 
       return SizedBox(
         child: ListView.builder(
@@ -241,6 +247,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                             itemNameColor: AppStyles.black,
                             itemCategoryTextColor: AppStyles.black,
                             textSize: selectedTextSize,
+                            minCardHeight: minCardHeight,
                           ),
                         );
                       },
@@ -303,6 +310,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                       ? assignedTextColor
                       : AppStyles.black,
                   textSize: selectedTextSize,
+                  minCardHeight: minCardHeight,
                 ),
               ),
             );
@@ -310,8 +318,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
         ),
       );
     } else {
-      print("prikaz tukaj 3");
-
       return LayoutBuilder(
         builder: (context, constraints) {
           int gridColumnCount = widget.columnNum;
@@ -322,8 +328,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                   gridColumnCount;
 
           // Prilagoditev razmerja glede na širino in privzeto višino
-          double cardHeight = selectedTextSize * 4 + 20; // Približna višina
-          double calculatedAspectRatio = cardWidth / cardHeight;
           final sortedItems = filteredItems
             ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
 
@@ -378,6 +382,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                           ? assignedTextColor
                           : AppStyles.black,
                       textSize: selectedTextSize,
+                      minCardHeight: minCardHeight,
                     ),
                   ),
                 );

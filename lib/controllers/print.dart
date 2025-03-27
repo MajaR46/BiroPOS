@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:biro_pos/components/usb_printer.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/bluetooth_controller.dart';
 import 'package:biro_pos/controllers/process_payment.dart';
@@ -22,6 +23,8 @@ class Print {
       BuildContext context, List<String> text, WidgetRef ref) async {
     final settings = ref.watch(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
+    final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
+
     final paymentMethods = ref.watch(paymentMethodProvider);
     print(
         "Bluetooth printanje: $bluetoothPrintanje"); // <- DODANO ZA PREVERJANJE
@@ -55,6 +58,18 @@ class Print {
           clearSelectedItem(ref);
           clearSearchQuery(ref);
           print("PRINTANO Z BLUETOOTH");
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Napaka $e")),
+          );
+          return;
+        }
+      } else if (usbPrintanje) {
+        try {
+          await UsbPrint.sendDataUsb(text);
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+          clearSelectedItem(ref);
+          clearSearchQuery(ref);
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Napaka $e")),

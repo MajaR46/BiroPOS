@@ -1,9 +1,13 @@
 import 'package:biro_pos/components/blagajna_banner.dart';
+import 'package:biro_pos/components/category_list.dart';
 import 'package:biro_pos/components/debouncer.dart';
+import 'package:biro_pos/components/id_ean_search.dart';
 import 'package:biro_pos/components/item_card.dart';
 import 'package:biro_pos/components/item_list_builder.dart';
 import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/components/landscape_layout.dart';
 import 'package:biro_pos/components/search_items.dart';
+import 'package:biro_pos/components/usb_printer.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
 import 'package:biro_pos/providers/categoriseditems_provider.dart';
@@ -56,6 +60,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   late OrderService orderService;
   late int stStolpcev = 1;
   bool isSearching = false;
+  double _totalDiscount = 0.0;
+  bool _isSearchMode = false;
 
   @override
   void initState() {
@@ -295,19 +301,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<dynamic> _getFilteredItems() {
+    print("klicano");
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
-    print("filtriran search $filtriranSearch");
 
     searchController.addListener(() {
-      // Sprememba: Preveri dolžino preden spremeniš kategorijo
+      // Check the length of the input and adjust the category selection
       if (filtriranSearch.length == 2 && searchController.text.isNotEmpty) {
         if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
           ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
           print("nastavjeno na iskanje");
         }
-      } else {
+      } else if (filtriranSearch.length < 6) {
+        // If less than 6 characters, keep the previous category if it's "Iskanje"
         if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
           ref.read(selectedCategoryProvider.notifier).state = 'Vse';
         }
@@ -339,13 +346,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         final searchQueries = searchQuery
             .toLowerCase()
             .split('|'); // Razdeli niz iskalnih poizvedb
-        print("search queris $searchQueries");
         filteredItems = filteredItems.where((item) {
           String itemName =
               item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
           final words = itemName.split(' ');
-
-          print("words part ${words[0]}");
 
           // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
           return searchQueries
@@ -398,71 +402,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         return int.tryParse(item['itemId']) == int.tryParse(numbers2String);
       }).toList();
     }
+    Future(() {
+      ref.read(filteredItemsProvider.notifier).state = filteredItems;
+    });
 
     return filteredItems;
-  }
-
-//category list na vrhu zaslona
-  Widget _categoryList() {
-    List<String> categories = ["Vse"] + categorizedItems.keys.toList();
-    final settings = ref.watch(settingsProvider);
-    final defaultColors = settings['isCheckedBarve'] ?? false;
-    final selectedCategoryState = ref.watch(selectedCategoryProvider);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: SizedBox(
-        height: 36,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
-          itemBuilder: ((context, index) {
-            String category = categories[index];
-
-            int categoryIndex =
-                categorizedItems.keys.toList().indexOf(category);
-
-            Color assignedBackgroundColor =
-                backgroundColors[categoryIndex % backgroundColors.length];
-            Color assignedTextColor = AppStyles.black;
-
-            Color textColor;
-            Color backgroundColor;
-
-            backgroundColor = assignedBackgroundColor;
-            textColor = assignedTextColor;
-
-            return GestureDetector(
-              onTap: () {
-                ref.read(selectedCategoryProvider.notifier).state = category;
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4.0,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0),
-                      color: backgroundColor),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                    child: Center(
-                      child: Text(
-                        category,
-                        style: AppStyles.paragraph3.copyWith(
-                            color: AppStyles.black,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }),
-        ),
-      ),
-    );
   }
 
   void _increaseQuantity() {
@@ -502,15 +446,58 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
   }
 
+  void _updateTotalDiscount() {
+    final chosenItems = ref.watch(narociloNotifierProvider);
+
+    double totalDiscount = 0;
+
+    for (var item in chosenItems) {
+      double itemQuantity = item.quantity;
+      double itemPrice = item.product.price;
+      double itemDiscountedPrice = item.product.discountedPrice;
+
+      double itemDiscountValue =
+          (itemPrice - itemDiscountedPrice) * itemQuantity;
+      if (itemDiscountedPrice > 0 && itemPrice > 0) {
+        totalDiscount += itemDiscountValue;
+      }
+    }
+    setState(() {
+      _totalDiscount = totalDiscount;
+    });
+  }
+
+  void _searchByEan(String input) {
+    searchByEan(input, ref, context, _updateTotalDiscount);
+  }
+
+  void _checkAndSetSearchMode() {
+    String searchText = searchController.text.trim();
+    _isSearchMode = checkAndSetSearchMode(
+        searchText); // Use the function from search_ean.dart
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
+    print("buildano");
 
     final String? user = SessionManager().getLoggedInUserName();
+    print("buildano - začetek builda");
+
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
+    print("buildano - po providerjih");
+
     final settings = ref.watch(settingsProvider);
     final defaultBarve = settings['isCheckedBarve'] ?? false;
+    final isCheckedUsbPrinting = settings['isCheckedUsbPrintanje'] ?? false;
+
+    var orientation = MediaQuery.of(context).orientation;
+    print("orientataion $orientation");
+    if (isCheckedUsbPrinting) {
+      UsbPrint.connectUsbPrinter();
+    }
 
     final numbers2String =
         ref.watch(searchQueryProvider); // Get value from provider
@@ -522,93 +509,121 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     final currentChosenItems = ref.watch(narociloNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppStyles.lightGrey,
-      appBar: AppBar(
-        centerTitle: true,
-        toolbarHeight: 32.0,
-        backgroundColor: AppStyles.white,
-        iconTheme: const IconThemeData(color: AppStyles.blue),
-        title: Text(
-          user ?? '',
-          style: AppStyles.paragraph3
-              .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Text(
-              formattedTime,
-              style: AppStyles.paragraph3
-                  .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
-            ),
+        backgroundColor: AppStyles.lightGrey,
+        appBar: AppBar(
+          centerTitle: true,
+          toolbarHeight: 32.0,
+          backgroundColor: AppStyles.white,
+          iconTheme: const IconThemeData(color: AppStyles.blue),
+          title: Text(
+            user ?? '',
+            style: AppStyles.paragraph3
+                .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
-      drawer: const CustomDrawer(),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : hasError
-              ? const Center(child: Text('Failed to load data'))
-              : Column(
-                  children: [
-                    _categoryList(),
-                    Expanded(
-                        child: ItemListBuilder(
-                            columnNum: stStolpcev,
-                            categorizedItems: categorizedItems,
-                            getFilteredItems: _getFilteredItems,
-                            selectedCategory: stateSelectedCategory ?? "Vse",
-                            onSelectItem: _ouputselectedItem,
-                            backgroundColors: backgroundColors,
-                            ref: ref)),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: GestureDetector(
-                          onHorizontalDragEnd: currentChosenItems.isNotEmpty
-                              ? (details) {
-                                  if (details.velocity.pixelsPerSecond.dx > 0) {
-                                    _decreaseQuantity();
-                                  } else if (details
-                                          .velocity.pixelsPerSecond.dx <
-                                      0) {
-                                    _increaseQuantity();
-                                  }
-                                }
-                              : null,
-                          child: BlagajnaBanner()),
-                    ),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Keyboard(
-                        opisDiscountButton: "OPIS",
-                        racunArtikliButton: "RAČUN",
-                        navigateToRacun: () {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      const RacunScreen(),
-                              transitionsBuilder: (context, animation,
-                                  secondaryAnimation, child) {
-                                return FadeTransition(
-                                    opacity: animation, child: child);
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Text(
+                formattedTime,
+                style: AppStyles.paragraph3.copyWith(
+                    color: AppStyles.blue, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        drawer: const CustomDrawer(),
+        body: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : hasError
+                ? const Center(child: Text('Failed to load data'))
+                : orientation == Orientation.portrait
+                    ? Column(
+                        children: [
+                          CategoryList(
+                              categorizedItems: categorizedItems,
+                              backgroundColors: backgroundColors,
+                              ref: ref),
+                          Expanded(
+                              child: ItemListBuilder(
+                                  columnNum: stStolpcev,
+                                  categorizedItems: categorizedItems,
+                                  getFilteredItems: _getFilteredItems,
+                                  selectedCategory:
+                                      stateSelectedCategory ?? "Vse",
+                                  onSelectItem: _ouputselectedItem,
+                                  backgroundColors: backgroundColors,
+                                  ref: ref)),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4.0),
+                            child: GestureDetector(
+                                onHorizontalDragEnd:
+                                    currentChosenItems.isNotEmpty
+                                        ? (details) {
+                                            if (details.velocity.pixelsPerSecond
+                                                    .dx >
+                                                0) {
+                                              _decreaseQuantity();
+                                            } else if (details.velocity
+                                                    .pixelsPerSecond.dx <
+                                                0) {
+                                              _increaseQuantity();
+                                            }
+                                          }
+                                        : null,
+                                child: BlagajnaBanner()),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Keyboard(
+                              search: () {},
+                              opisDiscountButton: "OPIS",
+                              racunArtikliButton: "RAČUN",
+                              navigateToRacun: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const RacunScreen()),
+                                ).then((_) {
+                                  _updateFinalSum(); // Update final sum on return
+                                });
                               },
+                              navigateToMizaScreen: _navigateToMizaScreen,
+                              navigateToNacinPlacilaScreen:
+                                  _navigateToNacinPlacilaScreen,
+                              controller: searchController,
+                              navigateToOpisDiscountScreen:
+                                  _navigateToOpisScreen,
+                              icon: Icons.arrow_back,
                             ),
-                          ).then((_) {
-                            _updateFinalSum(); // Update final sum on return
-                          });
-                        },
+                          ),
+                        ],
+                      )
+                    : LandscapeLayout(
+                        columnNum: stStolpcev,
+                        keyboardController: searchController,
+                        categorizedItems: categorizedItems,
+                        getFilteredItems: _getFilteredItems,
+                        selectedCategory: stateSelectedCategory ?? "Vse",
+                        onSelectItem: _ouputselectedItem,
+                        backgroundColors: backgroundColors,
+                        searchByName: _getFilteredItems,
+                        ref: ref,
                         navigateToMizaScreen: _navigateToMizaScreen,
-                        navigateToNacinPlacilaScreen:
-                            _navigateToNacinPlacilaScreen,
-                        controller: searchController,
-                        navigateToOpisDiscountScreen: _navigateToOpisScreen,
-                      ),
-                    ),
-                  ],
-                ),
-    );
+                        navigateToNacinPlacilaScreen: () {
+                          _checkAndSetSearchMode(); // Update mode based on search text
+
+                          if (_isSearchMode) {
+                            // If in search mode, perform the EAN search using the text in the search box
+                            _searchByEan(searchController.text);
+                            searchController.clear();
+                          } else {
+                            // If in navigation mode, perform the navigation
+                            _navigateToNacinPlacilaScreen();
+                          }
+                        },
+                        navigateToOpis: _navigateToOpisScreen,
+                      ));
   }
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////

@@ -14,6 +14,7 @@ class ItemCard extends ConsumerWidget {
   final Color cardBackground;
   final bool isAllLayout;
   final dynamic textSize;
+  final double minCardHeight;
 
   const ItemCard(
       {super.key,
@@ -25,7 +26,8 @@ class ItemCard extends ConsumerWidget {
       required this.stStolpcev,
       required this.cardBackground,
       required this.isAllLayout,
-      required this.textSize});
+      required this.textSize,
+      required this.minCardHeight});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -36,58 +38,61 @@ class ItemCard extends ConsumerWidget {
 
     return Padding(
       padding: EdgeInsets.all(paddingOutCardValue),
-      child: Container(
-        decoration: BoxDecoration(
-          color: cardBackground,
-          borderRadius: BorderRadius.circular(8.0),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4.0,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(paddingInCardValue),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                itemName,
-                style: AppStyles.paragraph3.copyWith(
-                    fontWeight: FontWeight.bold,
-                    fontSize: textSize,
-                    color: itemNameColor),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minCardHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color: cardBackground,
+            borderRadius: BorderRadius.circular(8.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4.0,
+                offset: Offset(0, 3),
               ),
-              if (prikaziCene)
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(paddingInCardValue),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Text(
-                  '${itemPrice.toString()} €',
-                  style: TextStyle(fontSize: textSize - 2),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  itemName,
+                  style: AppStyles.paragraph3.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: textSize,
+                      color: itemNameColor),
                 ),
-              const SizedBox(height: 2),
-              if (stStolpcev < 3)
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12.0),
+                if (prikaziCene)
+                  Text(
+                    '${itemPrice.toString()} €',
+                    style: TextStyle(fontSize: textSize - 2),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Text(
-                      itemCategory,
-                      style: TextStyle(
-                          fontSize: textSize - 6,
-                          color: itemCategoryTextColor,
-                          fontWeight: FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 2),
+                if (stStolpcev < 3)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text(
+                        itemCategory,
+                        style: TextStyle(
+                            fontSize: textSize - 6,
+                            color: itemCategoryTextColor,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

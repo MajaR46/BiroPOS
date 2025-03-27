@@ -27,7 +27,7 @@ class Narocilo {
     if (isFromTable == true) {
       narocilo.add("Miza: $tableNumber");
     } else {
-      narocilo.add("Številka: $orderNumberTime");
+      narocilo.add("Stevilka: $orderNumberTime");
     }
 
     narocilo.add("Streze vas: $user");

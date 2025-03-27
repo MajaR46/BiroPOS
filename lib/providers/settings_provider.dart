@@ -6,14 +6,15 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       : super({
           'isCheckedPrikazujNarocila': false,
           'isCheckedPrikazujRacune': false,
-          'isCheckedBluetoothPrintanje': true,
+          'isCheckedBluetoothPrintanje': false,
           'isCheckedEnojniKlik': false,
           'isCheckedPregledNarocil': false,
           'isCheckedHHCene': false,
           'isCheckedPregledNarocilTiskalnik': false,
           'isCheckedBarve': false,
           'isCheckedTiskajNarociloPriRacunu': false,
-          'isCheckedTiskajNarocilo': false
+          'isCheckedTiskajNarocilo': false,
+          'isCheckedUsbPrintanje': false
         }) {
     _loadSettings();
   }
@@ -25,7 +26,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
         prefs.getBool('isCheckedPrikazujNarocila') ?? false;
     final prikazujRacune = prefs.getBool('isCheckedPrikazujRacune') ?? false;
     final bluetoothprintanje =
-        prefs.getBool('isCheckedBluetoothPrintanje') ?? true;
+        prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
     final enojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
     final pregledNarocil = prefs.getBool('isCheckedPregledNarocil') ?? false;
     final hhCene = prefs.getBool('isCheckedHHCene') ?? false;
@@ -36,6 +37,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
         prefs.getBool('isCheckedTiskajNarociloPriRacunu') ?? false;
     final tiskajNarocilo = prefs.getBool('isCheckedTiskajNarocilo') ?? false;
     final prikaziCene = prefs.getBool('isCheckedPrikazCene') ?? false;
+    final usbPrintanje = prefs.getBool('isCheckedUsbPrintanje') ?? false;
 
     // Update the state with both values
     state = {
@@ -50,6 +52,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedTiskajNarociloPriRacunu': tiskajNarociloPriRacunu,
       'isCheckedTiskajNarocilo': tiskajNarocilo,
       'isCheckedPrikazCene': prikaziCene,
+      'isCheckedUsbPrintanje': usbPrintanje
     };
   }
 
@@ -114,6 +117,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void togglePrikazCene(bool isEnabled) {
     state = {...state, 'isCheckedPrikazCene': isEnabled};
     _saveSetting('isCheckedPrikazCene', isEnabled);
+  }
+
+  void toggleUsbPrintanje(bool isEnabled) {
+    state = {...state, 'isCheckedUsbPrintanje': isEnabled};
+    _saveSetting('isCheckedUsbPrintanje', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

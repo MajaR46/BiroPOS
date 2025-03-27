@@ -40,7 +40,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
       final printableResponse = filteredResponse.join("\r\n");
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         FocusScope.of(context).unfocus();
-        await Print.printText(context, apiResponse, ref);
+        await Print.printText(context, filteredResponse, ref);
         // await ErrorDialogs.showResponseDialog(apiResponse, context!);
 
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

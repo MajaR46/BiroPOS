@@ -1,5 +1,6 @@
 import 'package:biro_pos/components/error_dialog.dart';
 import 'package:biro_pos/components/numpad.dart';
+import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/providers/direct_payment_provider.dart';
 import 'package:biro_pos/providers/narociloitem_provider.dart';
@@ -35,8 +36,10 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
-      await Print.printText(context, apiResponse, ref);
-      await Print.printText(context, apiResponse, ref);
+      final filteredResponse = Utils.filterEmptyLines(apiResponse);
+
+      await Print.printText(context, filteredResponse, ref);
+      await Print.printText(context, filteredResponse, ref);
 
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       Navigator.pushReplacement(

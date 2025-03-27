@@ -1,5 +1,8 @@
+import 'package:biro_pos/components/id_ean_search.dart';
 import 'package:biro_pos/components/keyboard.dart';
 import 'package:biro_pos/components/quantity_increase.dart';
+import 'package:biro_pos/components/racun_list_banner.dart';
+import 'package:biro_pos/components/seznam_racun.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/nacinPlacila.dart';
 import 'package:biro_pos/models/narociloitem.dart';
@@ -276,65 +279,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   List<Item> matchingItems = [];
 
   void _searchByEan(String input) {
-    // Take eanCode as an argument
-    //String searchText = searchController.text.trim();  // No longer needed
-
-    RegExp regExp = RegExp(r'\d+');
-    Iterable<Match> matches = regExp.allMatches(input); // Use the argument
-    List<String> numbers = matches.map((match) => match.group(0)!).toList();
-    String numbersToString = numbers.join();
-    final items = ref.watch(itemsProvider);
-
-    if (numbersToString.length >= 6 && input.isNotEmpty) {
-      // Use the argument
-      matchingItems = items.where((item) {
-        return item.eanCode == numbersToString;
-      }).toList();
-
-      if (matchingItems.isNotEmpty) {
-        Item matchingItem = matchingItems.first;
-        NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
-
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false);
-
-        _updateTotalDiscount();
-        _isSearchMode = false;
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ne najdem izdelka s to EAN kodo")),
-        );
-      }
-    } else if (numbersToString.length <= 5 && input.isNotEmpty) {
-      matchingItems = items.where((item) {
-        return int.tryParse(item.id) == int.tryParse(numbersToString);
-      }).toList();
-
-      if (matchingItems.isNotEmpty) {
-        Item matchingItem = matchingItems.first;
-        NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
-
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false);
-        _updateTotalDiscount();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Ne najdem izdelka s tem IDjem")),
-        );
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne najdem izdelka")),
-      );
-    }
+    searchByEan(input, ref, context, _updateTotalDiscount);
   }
 
   void _checkAndSetSearchMode() {
     String searchText = searchController.text.trim();
-    _isSearchMode =
-        searchText.isNotEmpty; // Set to true if there is text in search
+    _isSearchMode = checkAndSetSearchMode(
+        searchText); // Use the function from search_ean.dart
   }
 
   @override
@@ -378,176 +329,40 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           }
         },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: chosenItems.length,
-                itemBuilder: (context, index) {
-                  final item = chosenItems[index];
+            SeznamRacun(
+                chosenItems: chosenItems,
+                totalSum: totalSum,
+                totalDiscount: _totalDiscount,
+                openDialog: openDialog,
+                removeItem: _removeItem,
+                handleQuantityChange: _handleQuantityChange),
+            RacunListBanner(totalDiscount: _totalDiscount, totalSum: totalSum),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Keyboard(
+                  search: () {},
+                  icon: Icons.arrow_back,
+                  racunArtikliButton: "ARTIKLI",
+                  opisDiscountButton: "%",
+                  controller: searchController,
+                  navigateToMizaScreen: _navigateToMizaScreen,
+                  navigateToNacinPlacilaScreen: () {
+                    _checkAndSetSearchMode(); // Update mode based on search text
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16.0,
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(item.product.name,
-                                      style: AppStyles.boldanparagraph1),
-                                  Text(
-                                    item.description != null
-                                        ? item.description
-                                        : '',
-                                    style: AppStyles.paragraph4
-                                        .copyWith(fontStyle: FontStyle.italic),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Text('${item.product.price.toString()}€',
-                                  style: AppStyles.heading3),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            IconButton.filled(
-                              style: IconButton.styleFrom(
-                                  backgroundColor: AppStyles.blue),
-                              onPressed: () {
-                                HapticFeedback.vibrate();
-
-                                FocusScope.of(context)
-                                    .unfocus(); // Unfocus everything before navigation
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => EditItemScreen(
-                                              itemName: item.product.name,
-                                              itemCategory:
-                                                  item.product.categoryID,
-                                              itemPrice: item.product.price,
-                                            )));
-                              },
-                              icon: const Icon(Icons.edit),
-                            ),
-                            IconButton.filled(
-                              style: IconButton.styleFrom(
-                                  backgroundColor: AppStyles.green),
-                              onPressed: () {
-                                HapticFeedback.vibrate();
-
-                                openDialog(item.product.id, item.description,
-                                    item.product.price, false);
-                              },
-                              icon: const Icon(Icons.percent),
-                            ),
-                            IconButton.filled(
-                                style: IconButton.styleFrom(
-                                    backgroundColor: AppStyles.brightRed),
-                                onPressed: () {
-                                  HapticFeedback.vibrate();
-                                  _removeItem(
-                                      item.product.id,
-                                      item.product.price,
-                                      item.description,
-                                      item.quantity);
-                                },
-                                icon: const Icon(Icons.delete)),
-                            const Spacer(),
-                            QuantityIncrease(
-                              quantity: item.quantity,
-                              onQuantityChanged: (newQuantity) {
-                                _handleQuantityChange(
-                                    newQuantity,
-                                    item.product.id,
-                                    item.description,
-                                    item.product.price,
-                                    item.quantity);
-                              },
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            Container(
-              width: double.infinity,
-              color: AppStyles.silver.withOpacity(0.1),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 16,
-                      right: 16,
-                    ),
-                    child: Row(
-                      children: [
-                        const Text(
-                          "Vrednost popusta: ",
-                        ),
-                        const Spacer(),
-                        Text('${_totalDiscount.toStringAsFixed(2)} €')
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.only(left: 16, right: 16, bottom: 8),
-                    child: Row(
-                      children: [
-                        const Text("SKUPAJ:", style: AppStyles.heading4),
-                        const Spacer(),
-                        Text(
-                          '${totalSum.toStringAsFixed(2)} €',
-                          style: AppStyles.cardItemName.copyWith(
-                              color: AppStyles.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Keyboard(
-                        racunArtikliButton: "ARTIKLI",
-                        opisDiscountButton: "%",
-                        controller: searchController,
-                        navigateToMizaScreen: _navigateToMizaScreen,
-                        navigateToNacinPlacilaScreen: () {
-                          _checkAndSetSearchMode(); // Update mode based on search text
-
-                          if (_isSearchMode) {
-                            // If in search mode, perform the EAN search using the text in the search box
-                            _searchByEan(searchController.text);
-                            searchController.clear();
-                          } else {
-                            // If in navigation mode, perform the navigation
-                            _navigateToNacinPlacilaScreen();
-                          }
-                        },
-                        navigateToOpisDiscountScreen: () =>
-                            openDialog(null, itemOpis, itemPrice, true),
-                        navigateToRacun: _navigateToBlagajnaScreen),
-                  )
-                ],
-              ),
-            ),
+                    if (_isSearchMode) {
+                      // If in search mode, perform the EAN search using the text in the search box
+                      _searchByEan(searchController.text);
+                      searchController.clear();
+                    } else {
+                      // If in navigation mode, perform the navigation
+                      _navigateToNacinPlacilaScreen();
+                    }
+                  },
+                  navigateToOpisDiscountScreen: () =>
+                      openDialog(null, itemOpis, itemPrice, true),
+                  navigateToRacun: _navigateToBlagajnaScreen),
+            )
           ],
         ),
       ),

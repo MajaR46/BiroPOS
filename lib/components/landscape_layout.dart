@@ -1,273 +1,321 @@
-import 'package:biro_pos/components/error_dialog.dart';
-import 'package:biro_pos/components/ok_button.dart';
+import 'package:biro_pos/app_styles.dart';
+import 'package:biro_pos/components/blagajna_banner.dart';
+import 'package:biro_pos/components/category_list.dart';
+import 'package:biro_pos/components/item_list_builder.dart';
+import 'package:biro_pos/components/keyboard.dart';
+import 'package:biro_pos/components/racun_list_banner.dart';
+import 'package:biro_pos/components/seznam_racun.dart';
+import 'package:biro_pos/components/usb_printer.dart';
 import 'package:biro_pos/components/utils.dart';
 import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/print.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LandscapeLayout extends ConsumerStatefulWidget {
-  const LandscapeLayout({super.key});
+  final Map<String, List<dynamic>> categorizedItems;
+  final List<dynamic> Function() getFilteredItems;
+  final String selectedCategory;
+  final Function(dynamic) onSelectItem;
+  final List<Color> backgroundColors;
+  final WidgetRef ref;
+  final void Function() navigateToMizaScreen;
+  final void Function() navigateToOpis;
+  final void Function() navigateToNacinPlacilaScreen;
+  final void Function() searchByName;
+  final int columnNum;
+  final TextEditingController keyboardController;
+  const LandscapeLayout(
+      {Key? key,
+      required this.categorizedItems,
+      required this.getFilteredItems,
+      required this.selectedCategory,
+      required this.onSelectItem,
+      required this.backgroundColors,
+      required this.columnNum,
+      required this.ref,
+      required this.navigateToMizaScreen,
+      required this.navigateToOpis,
+      required this.navigateToNacinPlacilaScreen,
+      required this.searchByName,
+      required this.keyboardController})
+      : super(key: key);
 
   @override
-  ConsumerState<LandscapeLayout> createState() => _LandscapeLayoutScreenState();
+  ConsumerState<LandscapeLayout> createState() => _LandscapeLayoutState();
 }
 
-class _LandscapeLayoutScreenState extends ConsumerState<LandscapeLayout> {
-  static const platform = MethodChannel('bluetooth_channel');
-  static const usbPlatform = MethodChannel('usb_channel'); // USB channel
-  final TextEditingController _stornoRacunController = TextEditingController();
-  final TextEditingController _testDataController =
-      TextEditingController(); // For test data
-  final String? userSifra = SessionManager().getLoggedInUserSifra();
-  String? _apiResponse;
-  bool _usbPrinterConnected = false;
-  String _status = 'Disconnected';
+class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
+  final TextEditingController _keyboardController = TextEditingController();
+  final TextEditingController discountController = TextEditingController();
+  bool _isDiscountDialogOpen = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkUsbConnection(); // Check USB connection on startup
-  }
-
-  Future<void> _checkUsbConnection() async {
-    try {
-      final bool isConnected = await usbPlatform.invokeMethod('isUsbConnected');
-      setState(() {
-        _usbPrinterConnected = isConnected;
-        _status =
-            isConnected ? 'USB Printer Connected' : 'USB Printer Disconnected';
-      });
-    } on PlatformException catch (e) {
-      setState(() {
-        _usbPrinterConnected = false;
-        _status = 'Error checking USB connection: ${e.message}';
-      });
-    }
-  }
-
+  double _totalDiscount = 0.0;
   void _clearText() {
-    _stornoRacunController.clear();
+    discountController.clear();
+  }
+
+  void _updateTotalDiscount() {
+    final chosenItems = ref.watch(narociloNotifierProvider);
+
+    double totalDiscount = 0;
+
+    for (var item in chosenItems) {
+      double itemQuantity = item.quantity;
+      double itemPrice = item.product.price;
+      double itemDiscountedPrice = item.product.discountedPrice;
+
+      double itemDiscountValue =
+          (itemPrice - itemDiscountedPrice) * itemQuantity;
+      if (itemDiscountedPrice > 0 && itemPrice > 0) {
+        totalDiscount += itemDiscountValue;
+      }
+    }
     setState(() {
-      _apiResponse = null;
+      _totalDiscount = totalDiscount;
     });
   }
 
-  Future<void> _connectUsbPrinter() async {
-    try {
-      final bool? result =
-          await usbPlatform.invokeMethod('findAndConnectUsbPrinter');
+  void _submit(String? productId, String itemDescription, double itemPrice,
+      bool isFinalDiscount,
+      [double? discount]) {
+    final chosenItems = ref.read(narociloNotifierProvider);
 
-      if (result != null && result == true) {
-        setState(() {
-          _usbPrinterConnected = true;
-          _status = 'USB Printer Connected';
-        });
-        _showSnackBar('USB Printer connected successfully!');
-      } else {
-        setState(() {
-          _usbPrinterConnected = false;
-          _status = 'USB Printer Connection Failed';
-        });
-        _showSnackBar('Failed to connect to USB Printer.');
-      }
-    } on PlatformException catch (e) {
+    if (isFinalDiscount) {
+      double finalDiscountPercentage = (discount ?? 0) / 100;
+
       setState(() {
-        _usbPrinterConnected = false;
-        _status = 'Failed to connect: ${e.message}';
-      });
-      _showSnackBar('Failed to connect to USB Printer: ${e.message}');
-    }
-  }
+        for (var item in chosenItems) {
+          double itemPrice = double.tryParse(
+                  item.product.price.toString().replaceAll(',', '.')) ??
+              0;
+          double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
 
-  Future<void> _printViaUsb(List<String> dataLines) async {
-    if (!_usbPrinterConnected) {
-      _showSnackBar('USB Printer not connected!');
+          ref.read(narociloNotifierProvider.notifier).updateDiscount(
+              item.product.id,
+              item.description,
+              item.product.price,
+              discountedPrice,
+              discount ?? 0);
+        }
+        _updateTotalDiscount();
+      });
       return;
     }
 
-    try {
-      final String result = await usbPlatform.invokeMethod('sendDataUsb', {
-        'dataLines': dataLines,
-      });
-      setState(() {
-        _status = 'Printing completed successfully!';
-      });
-      _showSnackBar(
-          'Printing completed successfully!'); // Show success SnackBar
-    } on PlatformException catch (e) {
-      setState(() {
-        _status = 'Failed to send data via USB: ${e.message}';
-      });
-      _showSnackBar('Failed to send data: ${e.message}'); // Show error SnackBar
+    // Popravljen del: iteracija čez vse izdelke, ne le prvi
+    if (productId != null) {
+      double itemDiscount = (discount ?? 0) / 100;
+
+      var itemsToUpdate = chosenItems
+          .where((item) =>
+              item.product.id == productId &&
+              item.description == itemDescription &&
+              item.product.price == itemPrice)
+          .toList();
+
+      for (var item in itemsToUpdate) {
+        double itemPrice = double.tryParse(
+                item.product.price.toString().replaceAll(',', '.')) ??
+            0;
+        double discountedPrice = itemPrice * (1 - itemDiscount);
+
+        ref.read(narociloNotifierProvider.notifier).updateDiscount(
+            item.product.id,
+            item.description,
+            item.product.price,
+            discountedPrice,
+            discount ?? 0);
+      }
+
+      _updateTotalDiscount();
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 3),
-      ),
-    );
+  Future openDialog(String? productId, String itemDescription, double itemPrice,
+      bool isFinalDiscount,
+      [double? discount]) {
+    final chosenItems = ref.read(narociloNotifierProvider);
+    discountController.clear();
+
+    //_barcodeFocusNode.unfocus();
+
+    FocusScope.of(context).unfocus();
+
+    if (productId != null && !isFinalDiscount) {
+      var item = chosenItems.firstWhere((element) =>
+          element.product.id == productId &&
+          element.description == itemDescription &&
+          element.product.price == itemPrice);
+      double originalPrice =
+          double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
+              0;
+      double discountedPrice = item.product.discountedPrice;
+
+      if (discountedPrice > 0 && originalPrice > 0) {
+        double discountPercentage =
+            100 - ((discountedPrice / originalPrice) * 100);
+        discountController.text = discountPercentage.toStringAsFixed(0);
+      }
+    } else if (isFinalDiscount && discount != null) {
+      discountController.text = discount.toString();
+    }
+
+    setState(() {
+      _isDiscountDialogOpen = true;
+    });
+
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppStyles.white,
+          title: const Text(
+            "Popust",
+            textAlign: TextAlign.center,
+            style: AppStyles.heading2,
+          ),
+          content: TextField(
+            //focusNode: _discountFocusNode,
+            controller: discountController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppStyles.silver.withOpacity(0.1),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(20.0),
+                borderSide: BorderSide.none,
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.clear),
+                onPressed: _clearText,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                HapticFeedback.vibrate();
+
+                _submit(productId, itemDescription, itemPrice, isFinalDiscount,
+                    double.tryParse(discountController.text));
+                SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky);
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
+              child: Text("OK",
+                  style: AppStyles.button1.copyWith(color: AppStyles.white)),
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.center,
+        );
+      },
+    ).then((_) {
+      setState(() {
+        _isDiscountDialogOpen = false;
+      });
+      /*Future.delayed(Duration(milliseconds: 200), () {
+        FocusScope.of(context).requestFocus(_barcodeFocusNode);
+      });*/
+    });
   }
 
-  _handleData() async {
-    try {
-      String stRacuna = _stornoRacunController.text;
+  void _removeItem(
+      String productId, double price, String description, double quantity) {
+    //Change from int index to item ID
+    final currentItems = ref.read(narociloNotifierProvider);
 
-      String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
-      List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
-      print('api response $apiResponse');
+    final itemToRemove = currentItems.firstWhere((element) =>
+        element.product.id == productId &&
+        element.product.price == price &&
+        element.description == description &&
+        element.quantity == quantity);
 
-      final filteredResponse = Utils.filterEmptyLines(apiResponse);
-
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        FocusScope.of(context).unfocus();
-        SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-
-        await _printViaUsb(filteredResponse);
-      });
-    } catch (e) {
-      setState(() {
-        _apiResponse = 'Error fetching data';
-      });
+    if (itemToRemove != null) {
+      ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
+      _updateTotalDiscount();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ne morem izbrisati izdelka")),
+      );
     }
   }
 
-  //New method for printing test data
-  _handleTestData() async {
-    List<String> testData = [_testDataController.text];
-    await _printViaUsb(testData);
+  void _handleQuantityChange(double newQuantity, String productId,
+      String description, double itemPrice, double oldQuantity) {
+    //Change from int index to item ID
+    ref.read(narociloNotifierProvider.notifier).updateQuantity(
+        productId, description, newQuantity, itemPrice, oldQuantity);
+    _updateTotalDiscount();
+    print("TUKI PROBLEM 1");
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: AppStyles.white,
-        appBar: AppBar(
-          backgroundColor: AppStyles.white,
-          title: Text(
-            "Storno računa",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppStyles.black),
-            onPressed: () {
-              HapticFeedback.vibrate();
-              Navigator.of(context).pop();
-            },
-          ),
-        ),
-        body: SingleChildScrollView(
-          // Wrap Column with SingleChildScrollView
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: _connectUsbPrinter,
-                    child: Text(_usbPrinterConnected
-                        ? 'USB Printer Connected'
-                        : 'Connect to USB Printer'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _usbPrinterConnected ? Colors.green : AppStyles.blue,
-                      foregroundColor: AppStyles.white,
-                    ),
-                  ),
-                  Text(
-                    'Status: $_status',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 32),
-                  Center(
-                    child: Text(
-                      "Številka računa:",
-                      style:
-                          AppStyles.heading2.copyWith(color: AppStyles.black),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 250,
-                    child: TextField(
-                      autofocus: true,
-                      controller: _stornoRacunController,
-                      cursorColor: AppStyles.blue,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: AppStyles.silver.withOpacity(0.1),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                        suffixIconColor: AppStyles.blue,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: _clearText,
-                          focusColor: AppStyles.blue,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32), // Added spacing
-                  Center(
-                    child: Text(
-                      "Test Data:",
-                      style:
-                          AppStyles.heading2.copyWith(color: AppStyles.black),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: 250,
-                    child: TextField(
-                      controller: _testDataController,
-                      cursorColor: AppStyles.blue,
-                      decoration: InputDecoration(
-                        hintText: 'Enter test data here',
-                        filled: true,
-                        fillColor: AppStyles.silver.withOpacity(0.1),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _handleTestData,
-                    child: const Text('Print Test Data via USB'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppStyles.green,
-                      foregroundColor: AppStyles.white,
-                    ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16, bottom: 32),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: OKButton(
-                    onPressed: _handleData,
-                    text: 'OK',
-                  ),
+    final chosenItems = ref.watch(narociloNotifierProvider);
+    final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
+    return Scaffold(
+      body: Row(
+        children: <Widget>[
+          Expanded(
+              flex: 2,
+              child: Container(
+                color: AppStyles.white,
+                child: Column(
+                  children: [
+                    CategoryList(
+                        categorizedItems: widget.categorizedItems,
+                        backgroundColors: widget.backgroundColors,
+                        ref: widget.ref),
+                    Expanded(
+                        child: ItemListBuilder(
+                            categorizedItems: widget.categorizedItems,
+                            getFilteredItems: widget.getFilteredItems,
+                            selectedCategory: widget.selectedCategory,
+                            onSelectItem: widget.onSelectItem,
+                            backgroundColors: widget.backgroundColors,
+                            columnNum: widget.columnNum,
+                            ref: widget.ref)),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ),
+              )),
+          Expanded(
+              flex: 1,
+              child: Container(
+                color: AppStyles.white,
+                child: Column(children: [
+                  Expanded(
+                      child: SeznamRacun(
+                          chosenItems: chosenItems,
+                          totalSum: totalSum,
+                          totalDiscount: _totalDiscount,
+                          openDialog: openDialog,
+                          removeItem: _removeItem,
+                          handleQuantityChange: _handleQuantityChange)),
+                  RacunListBanner(
+                      totalDiscount: _totalDiscount, totalSum: totalSum),
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Keyboard(
+                      controller: widget.keyboardController,
+                      navigateToMizaScreen: widget.navigateToMizaScreen,
+                      navigateToNacinPlacilaScreen:
+                          widget.navigateToNacinPlacilaScreen,
+                      navigateToOpisDiscountScreen: widget.navigateToOpis,
+                      navigateToRacun: () => openDialog(null, "", 0, true, 0),
+                      opisDiscountButton: "OPIS",
+                      racunArtikliButton: "%",
+                      icon: Icons.search,
+                      search: widget.searchByName,
+                    ),
+                  ),
+                ]),
+              ))
+        ],
       ),
     );
   }

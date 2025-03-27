@@ -6,6 +6,8 @@ final searchQueryProvider =
 
 final isSearchingProvider = StateProvider<bool>((ref) => false);
 
+final filteredItemsProvider = StateProvider<List<dynamic>>((ref) => []);
+
 void clearSearchQuery(WidgetRef ref) {
   ref.read(searchQueryProvider.notifier).state = '';
 }

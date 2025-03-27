@@ -1,5 +1,6 @@
 package com.example.biro_pos
 
+import android.app.PendingIntent
 import android.bluetooth.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -9,24 +10,41 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.usb.*
 import android.os.Build
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
-import java.io.IOException // <-- Added import for IOException
-import java.io.OutputStream // <-- Added import for OutputStream
-import java.util.UUID // <-- Added import for UUID
+import java.io.IOException
+import java.io.OutputStream
+import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "bluetooth_channel"
+    private val USB_CHANNEL = "usb_channel"
+
+    // Bluetooth
     private val bluetoothAdapter: BluetoothAdapter? = BluetoothAdapter.getDefaultAdapter()
     private val discoveredDevices = mutableListOf<String>()
     private var currentDevice: BluetoothDevice? = null
     private var bluetoothSocket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
 
+    // USB
+    private var usbManager: UsbManager? = null
+    private var usbDevice: UsbDevice? = null
+    private var usbInterface: UsbInterface? = null
+    private var usbConnection: UsbDeviceConnection? = null
+    private var usbOutEndpoint: UsbEndpoint? = null
+    private var usbInEndpoint: UsbEndpoint? = null
+
+    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
+
+    // BroadcastReceivers
     private val discoveryReceiver =
             object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
@@ -53,17 +71,33 @@ class MainActivity : FlutterActivity() {
                 }
             }
 
+    private val usbReceiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    if (ACTION_USB_PERMISSION == intent.action) {
+                        synchronized(this) {
+                            val device: UsbDevice? =
+                                    intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                            if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)
+                            ) {
+                                device?.also { initializeUsbDevice(it) }
+                            } else {
+                                Log.d("USB", "Permission denied for device ${device?.deviceName}")
+                            }
+                        }
+                    } else if (UsbManager.ACTION_USB_DEVICE_DETACHED == intent.action) {
+                        val device: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
+                        if (device == usbDevice) {
+                            disconnectUsb()
+                        }
+                    }
+                }
+            }
+
     override fun configureFlutterEngine(flutterEngine: io.flutter.embedding.engine.FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        val filter =
-                IntentFilter().apply {
-                    addAction(BluetoothDevice.ACTION_FOUND)
-                    addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
-                    addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
-                }
-        registerReceiver(discoveryReceiver, filter)
-
+        // Bluetooth Channel
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler {
                 call,
                 result ->
@@ -177,8 +211,65 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // USB Channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, USB_CHANNEL)
+                .setMethodCallHandler { call, result ->
+                    when (call.method) {
+                        "connectUsbPrinter" -> {
+                            connectUsbPrinter(result)
+                        }
+                        "sendDataUsb" -> {
+                            val data = call.argument<List<String>>("dataLines")
+                            if (data != null) {
+                                sendDataUsb(data, result)
+                            } else {
+                                result.error("INVALID_ARGUMENT", "Data argument is null", null)
+                            }
+                        }
+                        "printQrCodeUsb" -> {
+                            val qrCodeData = call.argument<String>("qrCodeData")
+                            if (qrCodeData != null) {
+                                printQrCodeTextUsb(qrCodeData, result)
+                            } else {
+                                result.error("INVALID_ARGUMENT", "QR Code data is null", null)
+                            }
+                        }
+                        "disconnectUsb" -> {
+                            disconnectUsb()
+                            result.success(null)
+                        }
+                        else -> result.notImplemented()
+                    }
+                }
+
+        // Register Bluetooth receiver
+        val filter =
+                IntentFilter().apply {
+                    addAction(BluetoothDevice.ACTION_FOUND)
+                    addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED)
+                    addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
+                }
+        registerReceiver(discoveryReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(discoveryReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(discoveryReceiver, filter)
+        }
+        // Register USB receiver
+        val filterUsb = IntentFilter(ACTION_USB_PERMISSION)
+        filterUsb.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(usbReceiver, filterUsb, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(usbReceiver, filterUsb)
+        }
+
+        usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
     }
 
+    // ----------------------------------Bluetooth---------------------------------------------------
     private fun handleLine(line: String, outputStream: OutputStream) {
 
         when {
@@ -614,19 +705,241 @@ class MainActivity : FlutterActivity() {
                 .start()
     }
 
+    // ----------------------------------USB---------------------------------------------------
+    private fun connectUsbPrinter(result: MethodChannel.Result) {
+        executorService.execute {
+            usbDevice = findUsbPrinter()
+            if (usbDevice == null) {
+                activity.runOnUiThread {
+                    result.error("NO_USB_PRINTER", "No USB printer found", null)
+                }
+                return@execute
+            }
+
+            if (usbManager?.hasPermission(usbDevice) == true) {
+                initializeUsbDevice(usbDevice!!)
+                activity.runOnUiThread { result.success("USB printer connected") }
+            } else {
+                val permissionIntent =
+                        PendingIntent.getBroadcast(
+                                this@MainActivity,
+                                0,
+                                Intent(ACTION_USB_PERMISSION),
+                                PendingIntent.FLAG_IMMUTABLE
+                        )
+                usbManager?.requestPermission(usbDevice, permissionIntent)
+                // Permission result is handled in the usbReceiver
+                activity.runOnUiThread { result.success("USB printer Permission requested.") }
+            }
+        }
+    }
+
+    private fun findUsbPrinter(): UsbDevice? {
+        usbManager?.deviceList?.values?.forEach { device ->
+            // Check device class and interface class to identify printer
+            if (device.deviceClass == 0) {
+                if (device.interfaceCount > 0 && device.getInterface(0).interfaceClass == 7) {
+                    return device
+                }
+            }
+        }
+        return null
+    }
+
+    private fun initializeUsbDevice(device: UsbDevice) {
+        usbInterface = device.getInterface(0)
+        for (i in 0 until usbInterface!!.endpointCount) {
+            val endpoint = usbInterface!!.getEndpoint(i)
+            if (endpoint.type == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+                if (endpoint.direction == UsbConstants.USB_DIR_OUT) {
+                    usbOutEndpoint = endpoint
+                } else {
+                    usbInEndpoint = endpoint
+                }
+            }
+        }
+
+        usbConnection = usbManager?.openDevice(device)
+        usbConnection?.claimInterface(usbInterface!!, true)
+        Log.d("USB", "USB printer initialized")
+    }
+
+    private fun sendDataUsb(dataLines: List<String>, result: MethodChannel.Result) {
+        if (usbOutEndpoint == null || usbConnection == null) {
+            activity.runOnUiThread {
+                result.error("NO_USB_CONNECTION", "USB printer not connected", null)
+            }
+            return
+        }
+
+        executorService.execute {
+            try {
+                for (line in dataLines) {
+                    handleLineUsb(line)
+                    if (line.contains("Podpis:", ignoreCase = true)) {
+                        // Add three empty lines after the "Podpis" line
+                        sendDataToUsb("\r\n")
+                        sendDataToUsb("\r\n")
+                        sendDataToUsb("\r\n")
+                    }
+                }
+                sendDataToUsb("\r\n")
+                sendDataToUsb("\r\n")
+                activity.runOnUiThread { result.success("Data sent to USB printer") }
+            } catch (e: Exception) {
+                Log.e("USB", "Error sending data to USB printer", e)
+                activity.runOnUiThread {
+                    result.error(
+                            "USB_SEND_ERROR",
+                            "Error sending data to USB printer: ${e.message}",
+                            null
+                    )
+                }
+            }
+        }
+    }
+
+    private fun handleLineUsb(line: String) {
+        when {
+            line.contains("#VELIKOST-START#") -> handleVelikostStartUsb()
+            line.contains("#VELIKOST-END#") -> handleVelikostEndUsb()
+            line.contains("#QRKODA#") -> handleQrCodeUsb(line) // Process QR code
+            else -> sendDataToUsb(line + "\r\n")
+        }
+    }
+    private fun handleQrCodeUsb(line: String) {
+        var qrCodeData = line.replace("#QRKODA#", "").trim()
+        if (qrCodeData.endsWith("#")) {
+            qrCodeData = qrCodeData.substring(0, qrCodeData.length - 1)
+        }
+        qrCodeData = qrCodeData.replace("\n", "").replace("\r", "")
+
+        if (qrCodeData.isNotEmpty() && qrCodeData.length <= 400) { // Limit QR code length
+            // Adapt the Bluetooth QR code generation here
+            // For a generic ESC/POS printer, this is an example:
+
+            val qrCodeBytes = generateEscPosQrCode(qrCodeData)
+            sendDataToUsb(qrCodeBytes)
+        } else {
+            Log.e("USB", "Invalid QR Code Data")
+            sendDataToUsb("Invalid QR Code Data\r\n") // Send an error message
+        }
+    }
+
+    private fun generateEscPosQrCode(data: String): ByteArray {
+        val bytes = mutableListOf<Byte>()
+
+        // QR Code: Select the model
+        bytes.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00).toList())
+
+        // QR Code: Set the size
+        bytes.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x06).toList()) // Size 6
+
+        // QR Code: Set the error correction level
+        bytes.addAll(
+                byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30).toList()
+        ) // Error correction level L
+
+        // QR Code: Store the data
+        val dataBytes = data.toByteArray(Charsets.UTF_8)
+        val dataLength = dataBytes.size + 3
+        bytes.addAll(
+                byteArrayOf(
+                                0x1D,
+                                0x28,
+                                0x6B,
+                                dataLength.toByte(),
+                                (dataLength shr 8).toByte(),
+                                0x31,
+                                0x50,
+                                0x30
+                        )
+                        .toList()
+        )
+        bytes.addAll(dataBytes.toList())
+
+        // QR Code: Print the QR code
+        bytes.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30).toList())
+
+        return bytes.toByteArray()
+    }
+    private fun handleVelikostStartUsb() {
+        val largeFontCommand = byteArrayOf(27, 33, 16) // Example command, adjust as needed
+        sendDataToUsb(largeFontCommand)
+    }
+
+    private fun handleVelikostEndUsb() {
+        val defaultFontCommand = byteArrayOf(27, 33, 0) // Example command, adjust as needed
+        sendDataToUsb(defaultFontCommand)
+    }
+    private fun printQrCodeTextUsb(qrCodeData: String, result: MethodChannel.Result) {
+        if (usbOutEndpoint == null || usbConnection == null) {
+            activity.runOnUiThread {
+                result.error("NO_USB_CONNECTION", "USB printer not connected", null)
+            }
+            return
+        }
+
+        executorService.execute {
+            try {
+                // Uporabi besedilo namesto generiranja QR kode
+                val textData = "QR Code Data: $qrCodeData"
+                val bytes = textData.toByteArray(Charsets.UTF_8) // Eksplicitno kodiranje UTF-8
+                sendDataToUsb(bytes)
+                activity.runOnUiThread { result.success("QR code data printed as text via USB") }
+            } catch (e: Exception) {
+                Log.e("USB", "Error printing QR code data via USB", e)
+                activity.runOnUiThread {
+                    result.error(
+                            "USB_QR_ERROR",
+                            "Error printing QR code data via USB: ${e.message}",
+                            null
+                    )
+                }
+            }
+        }
+    }
+
+    private fun sendDataToUsb(data: ByteArray) {
+        usbConnection?.bulkTransfer(usbOutEndpoint, data, data.size, 0)
+    }
+
+    private fun sendDataToUsb(data: String) {
+        val bytes = data.toByteArray(Charsets.UTF_8)
+        sendDataToUsb(bytes)
+    }
+
+    private fun disconnectUsb() {
+        executorService.execute {
+            usbConnection?.releaseInterface(usbInterface)
+            usbConnection?.close()
+            usbConnection = null
+            usbInterface = null
+            usbOutEndpoint = null
+            usbInEndpoint = null
+            usbDevice = null
+            Log.d("USB", "USB printer disconnected")
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(discoveryReceiver)
+        unregisterReceiver(usbReceiver) // Unregister USB receiver
         try {
             outputStream?.close()
             bluetoothSocket?.close()
         } catch (e: IOException) {
             Log.e("Bluetooth", "Error closing socket", e)
         }
+        disconnectUsb()
     }
 
     companion object {
-        // A predefined UUID for the Bluetooth RFCOMM socket
+        // Bluetooth
         val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
+
+        // USB
+        private const val ACTION_USB_PERMISSION = "com.example.biro_pos.USB_PERMISSION"
     }
 }

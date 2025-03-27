@@ -22,6 +22,8 @@ class Keyboard extends ConsumerStatefulWidget {
   final VoidCallback navigateToRacun;
   final String opisDiscountButton;
   final String racunArtikliButton;
+  final IconData icon;
+  final VoidCallback search;
 
   const Keyboard(
       {super.key,
@@ -31,7 +33,9 @@ class Keyboard extends ConsumerStatefulWidget {
       required this.navigateToOpisDiscountScreen,
       required this.navigateToRacun,
       required this.opisDiscountButton,
-      required this.racunArtikliButton});
+      required this.racunArtikliButton,
+      required this.search,
+      required this.icon});
 
   @override
   ConsumerState<Keyboard> createState() => _KeyboardState();
@@ -292,7 +296,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const KeyboardBack(
+                      KeyboardBack(
+                        search: widget.search,
+                        icon: widget.icon,
                         height: 50,
                         fontSize: 16,
                         borderRadius: 20,
@@ -543,16 +549,23 @@ class KeyboardBack extends ConsumerWidget {
   final int fontSize;
   final int borderRadius;
   final int height;
+  final VoidCallback? search;
+  final IconData icon;
 
   const KeyboardBack(
       {super.key,
       required this.fontSize,
       required this.borderRadius,
-      required this.height});
+      required this.height,
+      this.search,
+      required this.icon});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chosenItems = ref.watch(narociloNotifierProvider);
+
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
 
     return SizedBox(
       width: 80,
@@ -564,19 +577,27 @@ class KeyboardBack extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                   borderRadius:
                       BorderRadius.circular(borderRadius.toDouble()))),
-          onPressed: chosenItems.isEmpty
-              ? () {
-                  HapticFeedback.vibrate();
-
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginScreen()));
-                }
-              : null,
+          onPressed: () {
+            HapticFeedback.vibrate();
+            if (isLandscape && search != null) {
+              // Če je landscape in je funkcija na voljo, jo izvedi
+              search!();
+            } else {
+              // Sicer izvedi navigacijo na LoginScreen, če je seznam prazen
+              if (chosenItems.isEmpty) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()));
+              } else {
+                // Ne naredi nič, če je seznam poln v portrait načinu.
+                null;
+              }
+            }
+          },
           child: Center(
             child: Icon(
-              Icons.arrow_back,
+              icon,
               color: AppStyles.black,
               size: fontSize.toDouble(),
             ),

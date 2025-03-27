@@ -43,7 +43,9 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
 
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
-      await Print.printText(context, apiResponse, ref);
+      final filteredResponse = Utils.filterEmptyLines(apiResponse);
+
+      await Print.printText(context, filteredResponse, ref);
       await ErrorDialogs.showResponseDialog(apiResponse, context!);
 
       if (mounted) {
