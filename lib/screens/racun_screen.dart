@@ -395,7 +395,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _navigateToBlagajnaScreen() async {
-    Navigator.push(
+    Navigator.pop(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>

@@ -62,17 +62,24 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool isSearching = false;
   double _totalDiscount = 0.0;
   bool _isSearchMode = false;
-
+  bool isManualSearch = false;
   @override
   void initState() {
+    print("init state");
     super.initState();
 
-    _handleData();
-
+    if (izdelki.isEmpty) {
+      // Preverimo, če so podatki že v pomnilniku
+      _handleData();
+    }
     searchController.addListener(() {
-      ref.read(isSearchingProvider.notifier).state =
-          searchController.text.isNotEmpty;
-      updateNumbersString(searchController, ref);
+      var orientation = MediaQuery.of(context).orientation;
+
+      if (orientation == Orientation.portrait) {
+        ref.read(isSearchingProvider.notifier).state =
+            searchController.text.isNotEmpty;
+        updateNumbersString(searchController, ref);
+      }
     });
 
     Future.microtask(() {
@@ -300,11 +307,35 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     return categories;
   }
 
-  List<dynamic> _getFilteredItems() {
-    print("klicano");
-    final stateSelectedCategory = ref.watch(selectedCategoryProvider);
+  void _searchByName() {
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    setState(() {
+      isManualSearch = true;
+      if (searchController.text.isNotEmpty) {
+        if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
+          ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
+          print("nastavjeno na iskanje");
+        } else if (filtriranSearch.length < 6) {
+          // If less than 6 characters, keep the previous category if it's "Iskanje"
+          if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
+            ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+          }
+        }
+      } // Označimo, da je iskanje sproženo ročno
+
+      print("filtriran search $filtriranSearch");
+    });
+
+    _getFilteredItems(); // Pokličemo iskanje
+  }
+
+  List<dynamic> _getFilteredItems() {
+    print("klicano");
+    final stateSelectedCategory = ref.read(selectedCategoryProvider);
+    String filtriranSearch =
+        searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    var orientation = MediaQuery.of(context).orientation;
 
     searchController.addListener(() {
       // Check the length of the input and adjust the category selection
@@ -330,7 +361,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         filteredItems.addAll(categoryItems);
       }
     } else {
-      // Preverimo, da je izbrana kategorija veljavna, preden filtriramo izdelke
       filteredItems = categorizedItems[stateSelectedCategory] ?? [];
     }
 
@@ -376,8 +406,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           // Remove empty strings from the list of words
           words = words.where((word) => word.isNotEmpty).toList();
 
-          print("Words: $words");
-
           // Ensure there are at least two words in `itemName`
           if (words.length < 2) {
             return false; // If there are less than two words, return false
@@ -393,9 +421,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           // Both words must match the search queries
           return firstWordMatches && secondWordMatches;
         }).toList();
-
-        print("search queries: $searchQueries");
-        print("final search queries: $finalSearchQueries");
       }
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {
@@ -405,7 +430,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     Future(() {
       ref.read(filteredItemsProvider.notifier).state = filteredItems;
     });
-
     return filteredItems;
   }
 
@@ -479,22 +503,18 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("build");
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
-    print("buildano");
 
     final String? user = SessionManager().getLoggedInUserName();
-    print("buildano - začetek builda");
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
-    print("buildano - po providerjih");
-
     final settings = ref.watch(settingsProvider);
     final defaultBarve = settings['isCheckedBarve'] ?? false;
     final isCheckedUsbPrinting = settings['isCheckedUsbPrintanje'] ?? false;
 
     var orientation = MediaQuery.of(context).orientation;
-    print("orientataion $orientation");
     if (isCheckedUsbPrinting) {
       UsbPrint.connectUsbPrinter();
     }
@@ -585,7 +605,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                       builder: (context) =>
                                           const RacunScreen()),
                                 ).then((_) {
-                                  _updateFinalSum(); // Update final sum on return
+                                  _updateFinalSum();
+                                  ref.read(searchQueryProvider.notifier).state =
+                                      '';
+                                  ref.read(isSearchingProvider.notifier).state =
+                                      false;
+                                  searchController.clear();
+
+                                  // Update final sum on return
                                 });
                               },
                               navigateToMizaScreen: _navigateToMizaScreen,
@@ -607,7 +634,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         selectedCategory: stateSelectedCategory ?? "Vse",
                         onSelectItem: _ouputselectedItem,
                         backgroundColors: backgroundColors,
-                        searchByName: _getFilteredItems,
+                        searchByName: _searchByName,
                         ref: ref,
                         navigateToMizaScreen: _navigateToMizaScreen,
                         navigateToNacinPlacilaScreen: () {

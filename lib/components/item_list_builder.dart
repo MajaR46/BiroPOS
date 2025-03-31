@@ -159,7 +159,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     final defaultColors = settings['isCheckedBarve'] ?? false;
     final selectedCategory = ref.watch(selectedCategoryProvider);
 
-    print("visin $minCardHeight");
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
       minCardHeight = 33;
@@ -271,6 +270,11 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                 categoryIndex % widget.backgroundColors.length];
             Color assignedTextColor = AppStyles.black;
             final String itemColor = item['itemColor'];
+            int gridColumnCount = widget.columnNum;
+
+            double cardWidth = (MediaQuery.of(context).size.width -
+                    4 * (gridColumnCount - 1)) /
+                gridColumnCount;
 
             return GestureDetector(
               onTap: enojniKlik
@@ -285,32 +289,35 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                       HapticFeedback.vibrate();
                     }
                   : null,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minWidth: (MediaQuery.of(context).size.width - 8) /
-                      widget.columnNum, // Prilagodi širino stolpca
-                  maxWidth: (MediaQuery.of(context).size.width - 8) /
-                      widget.columnNum,
-                ),
-                child: ItemCard(
-                  isAllLayout: false,
-                  stStolpcev: widget.columnNum,
-                  itemName: item['name'],
-                  itemPrice: hhCene == true
-                      ? (item['hhPrice']?.isEmpty ?? true)
-                          ? item['price']
-                          : item['hhPrice']
-                      : item['price'],
-                  itemCategory: item['category'],
-                  cardBackground: defaultColors == true
-                      ? assignedBackgroundColor
-                      : itemColorMapping[itemColor] ?? AppStyles.white,
-                  itemNameColor: AppStyles.black,
-                  itemCategoryTextColor: defaultColors == true
-                      ? assignedTextColor
-                      : AppStyles.black,
-                  textSize: selectedTextSize,
-                  minCardHeight: minCardHeight,
+              child: Container(
+                width: cardWidth,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: (MediaQuery.of(context).size.width - 8) /
+                        widget.columnNum, // Prilagodi širino stolpca
+                    maxWidth: (MediaQuery.of(context).size.width - 8) /
+                        widget.columnNum,
+                  ),
+                  child: ItemCard(
+                    isAllLayout: false,
+                    stStolpcev: widget.columnNum,
+                    itemName: item['name'],
+                    itemPrice: hhCene == true
+                        ? (item['hhPrice']?.isEmpty ?? true)
+                            ? item['price']
+                            : item['hhPrice']
+                        : item['price'],
+                    itemCategory: item['category'],
+                    cardBackground: defaultColors == true
+                        ? assignedBackgroundColor
+                        : itemColorMapping[itemColor] ?? AppStyles.white,
+                    itemNameColor: AppStyles.black,
+                    itemCategoryTextColor: defaultColors == true
+                        ? assignedTextColor
+                        : AppStyles.black,
+                    textSize: selectedTextSize,
+                    minCardHeight: minCardHeight,
+                  ),
                 ),
               ),
             );
@@ -322,9 +329,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
         builder: (context, constraints) {
           int gridColumnCount = widget.columnNum;
 
-          // Dinamična širina kartice glede na število stolpcev
           double cardWidth =
-              (constraints.maxWidth - (gridColumnCount - 1) * 2) /
+              (MediaQuery.of(context).size.width - 4 * (gridColumnCount - 1)) /
                   gridColumnCount;
 
           // Prilagoditev razmerja glede na širino in privzeto višino
@@ -357,13 +363,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                           HapticFeedback.vibrate();
                         }
                       : null,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: (MediaQuery.of(context).size.width - 8) /
-                          widget.columnNum, // Prilagodi širino stolpca
-                      maxWidth: (MediaQuery.of(context).size.width - 8) /
-                          widget.columnNum,
-                    ),
+                  child: Container(
+                    width: cardWidth,
                     child: ItemCard(
                       isAllLayout: false,
                       stStolpcev: widget.columnNum,
