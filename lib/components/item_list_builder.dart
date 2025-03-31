@@ -259,48 +259,43 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
         ),
       );
     } else if (selectedCategory == "Iskanje") {
-      return SingleChildScrollView(
-        child: Wrap(
-          spacing: 4.0,
-          runSpacing: 4.0,
-          children: filteredItems.map((item) {
-            int categoryIndex =
-                widget.categorizedItems.keys.toList().indexOf(item['category']);
-            Color assignedBackgroundColor = widget.backgroundColors[
-                categoryIndex % widget.backgroundColors.length];
-            Color assignedTextColor = AppStyles.black;
-            final String itemColor = item['itemColor'];
-            int gridColumnCount = widget.columnNum;
+      return LayoutBuilder(builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: Wrap(
+            spacing: 4.0,
+            runSpacing: 4.0,
+            children: filteredItems.map((item) {
+              int categoryIndex = widget.categorizedItems.keys
+                  .toList()
+                  .indexOf(item['category']);
+              Color assignedBackgroundColor = widget.backgroundColors[
+                  categoryIndex % widget.backgroundColors.length];
+              Color assignedTextColor = AppStyles.black;
+              final String itemColor = item['itemColor'];
+              int gridColumnCount = widget.columnNum;
 
-            double cardWidth = (MediaQuery.of(context).size.width -
-                    4 * (gridColumnCount - 1)) /
-                gridColumnCount;
+              double cardWidth =
+                  (constraints.maxWidth - 4 * (gridColumnCount - 1)) /
+                      gridColumnCount;
 
-            return GestureDetector(
-              onTap: enojniKlik
-                  ? () {
-                      HapticFeedback.vibrate();
-                      _handleItemSelectItem(item, hhCene);
-                    }
-                  : null,
-              onDoubleTap: !enojniKlik
-                  ? () {
-                      _handleItemSelectItem(item, hhCene);
-                      HapticFeedback.vibrate();
-                    }
-                  : null,
-              child: Container(
-                width: cardWidth,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: (MediaQuery.of(context).size.width - 8) /
-                        widget.columnNum, // Prilagodi širino stolpca
-                    maxWidth: (MediaQuery.of(context).size.width - 8) /
-                        widget.columnNum,
-                  ),
+              return GestureDetector(
+                onTap: enojniKlik
+                    ? () {
+                        HapticFeedback.vibrate();
+                        _handleItemSelectItem(item, hhCene);
+                      }
+                    : null,
+                onDoubleTap: !enojniKlik
+                    ? () {
+                        _handleItemSelectItem(item, hhCene);
+                        HapticFeedback.vibrate();
+                      }
+                    : null,
+                child: Container(
+                  width: cardWidth,
                   child: ItemCard(
                     isAllLayout: false,
-                    stStolpcev: widget.columnNum,
+                    stStolpcev: gridColumnCount,
                     itemName: item['name'],
                     itemPrice: hhCene == true
                         ? (item['hhPrice']?.isEmpty ?? true)
@@ -319,24 +314,24 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                     minCardHeight: minCardHeight,
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      );
+              );
+            }).toList(),
+          ),
+        );
+      });
     } else {
       return LayoutBuilder(
         builder: (context, constraints) {
           int gridColumnCount = widget.columnNum;
 
           double cardWidth =
-              (MediaQuery.of(context).size.width - 4 * (gridColumnCount - 1)) /
+              (constraints.maxWidth - 4 * (gridColumnCount - 1)) /
                   gridColumnCount;
 
           // Prilagoditev razmerja glede na širino in privzeto višino
           final sortedItems = filteredItems
             ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
-
+          print("st stolpcev ${widget.columnNum}");
           return SingleChildScrollView(
             child: Wrap(
               spacing: 4.0, // Razmik med karticami horizontalno

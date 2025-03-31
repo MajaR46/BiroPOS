@@ -297,7 +297,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         : "Ni podatka";
     return Scaffold(
       backgroundColor: AppStyles.white,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -305,159 +305,171 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Row(
               children: [
                 Expanded(
-                    child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(formattedDate),
-                )),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Text(formattedDate),
+                  ),
+                ),
                 Expanded(
-                    child: Align(
-                  alignment: Alignment.topRight,
-                  child: Text(formattedTime),
-                ))
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: Text(formattedTime),
+                  ),
+                )
               ],
             ),
-            const SizedBox(
-              height: 36,
-            ),
-            Text('Prijava',
-                style: AppStyles.heading1.copyWith(color: AppStyles.black)),
-            const SizedBox(
-              height: 16,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: 250,
-                child: TextField(
-                  obscureText: _isHidden,
-                  controller: _logininputcontroller,
-                  readOnly: true,
-                  decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppStyles.silver.withOpacity(0.1),
-                      suffixIconColor: AppStyles.blue,
-                      suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear),
+            const SizedBox(height: 16),
+
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 20),
+                    Text('Prijava',
+                        style: AppStyles.heading1
+                            .copyWith(color: AppStyles.black)),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        width: 250,
+                        child: TextField(
+                          obscureText: _isHidden,
+                          controller: _logininputcontroller,
+                          readOnly: true,
+                          style: const TextStyle(
+                              fontSize: 20), // Make input text larger
+                          decoration: InputDecoration(
+                              filled: true,
+                              fillColor: AppStyles.silver.withOpacity(0.1),
+                              suffixIconColor: AppStyles.blue,
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  _clearText();
+                                  HapticFeedback.vibrate();
+                                },
+                                focusColor: AppStyles.blue,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(20.0),
+                                borderSide: BorderSide.none,
+                              )),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Numpad(
+                      controller: _logininputcontroller,
+                      onOKPressed: _handleOKPressed,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: 150,
+                      height: 50,
+                      child: ElevatedButton(
                         onPressed: () {
-                          _clearText();
+                          _refresh();
                           HapticFeedback.vibrate();
                         },
-                        focusColor: AppStyles.blue,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppStyles.blue),
+                        child: Text(
+                          "Osveži",
+                          style: AppStyles.heading3.copyWith(
+                              color: AppStyles.white,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                        borderSide: BorderSide.none,
-                      )),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            _handleTestConnection();
+                            HapticFeedback.vibrate();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: AppStyles.lightGrey,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Test\npovezave",
+                              textAlign: TextAlign.center,
+                              style: AppStyles.button2
+                                  .copyWith(color: AppStyles.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            HapticFeedback.vibrate();
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const ApiKeyScreen(
+                                          isDefaultPassword: false,
+                                        )));
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: AppStyles.lightGrey,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Api ključ",
+                              textAlign: TextAlign.center,
+                              style: AppStyles.button2
+                                  .copyWith(color: AppStyles.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            HapticFeedback.vibrate();
+                            Print.printText(
+                                context, ["Programska oprema BiroPOS"], ref);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            backgroundColor: AppStyles.lightGrey,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "Test\ntiskalnika",
+                              textAlign: TextAlign.center,
+                              style: AppStyles.button2
+                                  .copyWith(color: AppStyles.black),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Add some padding at the bottom of scrollable content
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            Numpad(
-              controller: _logininputcontroller,
-              onOKPressed: _handleOKPressed,
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            SizedBox(
-              width: 150,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  _refresh();
-                  HapticFeedback.vibrate();
-                },
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),
-                child: Text(
-                  "Osveži",
-                  style: AppStyles.heading3.copyWith(
-                      color: AppStyles.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 24,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _handleTestConnection();
-                    HapticFeedback.vibrate();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: AppStyles.lightGrey,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Test\npovezave",
-                      textAlign: TextAlign.center,
-                      style: AppStyles.button2.copyWith(color: AppStyles.black),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.vibrate();
 
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ApiKeyScreen(
-                                  isDefaultPassword: false,
-                                )));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: AppStyles.lightGrey,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Api ključ",
-                      textAlign: TextAlign.center,
-                      style: AppStyles.button2.copyWith(color: AppStyles.black),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    HapticFeedback.vibrate();
-
-                    Print.printText(
-                        context, ["Programska oprema BiroPOS"], ref);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: AppStyles.lightGrey,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Test\ntiskalnika",
-                      textAlign: TextAlign.center,
-                      style: AppStyles.button2.copyWith(color: AppStyles.black),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Text(
-                  'Osveženo: $formattedLastRefresh, verzija: $verzijaPrograma',
-                  style: AppStyles.paragraph3
-                      .copyWith(color: AppStyles.black, fontSize: 10),
-                ),
+            // --- Bottom Fixed Text ---
+            Padding(
+              // Add padding if needed above the text
+              padding: const EdgeInsets.only(
+                  top: 8.0), // Space between scroll view and text
+              child: Text(
+                'Osveženo: $formattedLastRefresh, verzija: $verzijaPrograma',
+                style: AppStyles.paragraph3
+                    .copyWith(color: AppStyles.black, fontSize: 10),
               ),
             )
           ],
