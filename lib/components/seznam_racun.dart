@@ -2,12 +2,15 @@ import 'package:biro_pos/components/quantity_increase.dart';
 import 'package:biro_pos/components/racun_list_banner.dart';
 import 'package:biro_pos/models/item.dart';
 import 'package:biro_pos/models/narociloitem.dart';
+import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:biro_pos/providers/selecteditem_provider.dart';
 import 'package:biro_pos/screens/edit_item_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SeznamRacun extends StatelessWidget {
+class SeznamRacun extends ConsumerWidget {
   final List<NarociloItem> chosenItems;
   final double totalSum;
   final double totalDiscount;
@@ -26,7 +29,7 @@ class SeznamRacun extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,6 +112,8 @@ class SeznamRacun extends StatelessWidget {
                                 item.description,
                                 item.quantity,
                               );
+                              ref.read(selectedItemProvider.notifier).state =
+                                  null;
                             },
                             icon: const Icon(Icons.delete),
                           ),

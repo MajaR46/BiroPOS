@@ -74,7 +74,10 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppStyles.black),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const BlagajnaScreen())),
           ),
         ),
         body: Padding(

@@ -56,7 +56,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
       ref.read(narociloNotifierProvider.notifier).clearChosenItems();
       clearSelectedItem(ref);
 
-      Navigator.push(context,
+      Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     }
   }

@@ -12,6 +12,8 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   String port = prefs.getString('Port') ?? '';
   String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
 
+  print("podjetje davcna $podjetjeDavcna");
+
   String url = 'http://$ip:$port/api/biropos';
 
   final Map<String, String> headers = {

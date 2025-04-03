@@ -72,20 +72,45 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
     }
-    searchController.addListener(() {
-      var orientation = MediaQuery.of(context).orientation;
-
-      if (orientation == Orientation.portrait) {
-        ref.read(isSearchingProvider.notifier).state =
-            searchController.text.isNotEmpty;
-        updateNumbersString(searchController, ref);
-      }
-    });
-
+    searchController.addListener(_searchListener);
+    searchController.addListener(_searchListener2);
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
+  }
+
+  void _searchListener() {
+    var orientation = MediaQuery.of(context).orientation;
+
+    if (orientation == Orientation.portrait) {
+      ref.read(isSearchingProvider.notifier).state =
+          searchController.text.isNotEmpty;
+      updateNumbersString(searchController, ref);
+    }
+  }
+
+  void _searchListener2() {
+    String filtriranSearch =
+        searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    print('Filtriran Search: $filtriranSearch');
+
+    if (filtriranSearch.length == 3 ||
+        filtriranSearch.length == 6 && searchController.text.isNotEmpty) {
+      final selectedCategory = ref.read(selectedCategoryProvider.notifier);
+
+      if (selectedCategory.state != 'Iskanje') {
+        selectedCategory.state = 'Iskanje';
+        print("Nastavljeno na iskanje");
+      }
+    } else if (filtriranSearch.length < 6) {
+      final selectedCategory = ref.read(selectedCategoryProvider.notifier);
+
+      if (selectedCategory.state == 'Iskanje') {
+        selectedCategory.state = 'Vse';
+      }
+    }
   }
 
   @override
@@ -96,7 +121,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   void dispose() {
+    searchController.removeListener(_searchListener);
+    searchController.removeListener(_searchListener2);
     searchController.dispose();
+
     super.dispose();
   }
 
@@ -337,22 +365,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
     var orientation = MediaQuery.of(context).orientation;
 
-    searchController.addListener(() {
-      // Check the length of the input and adjust the category selection
-      if (filtriranSearch.length == 2 && searchController.text.isNotEmpty) {
-        if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
-          ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
-          print("nastavjeno na iskanje");
-        }
-      } else if (filtriranSearch.length < 6) {
-        // If less than 6 characters, keep the previous category if it's "Iskanje"
-        if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
-          ref.read(selectedCategoryProvider.notifier).state = 'Vse';
-        }
-      }
-    });
-
     generatePairs(searchController);
+    print("kategorija $stateSelectedCategory");
 
     List<dynamic> filteredItems = [];
 
@@ -370,28 +384,21 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     String numbers2String = numbers2.join();
 
-    // Preverimo dolžino iskalnega besedila pred filtrom po imenu
     if (searchController.text.length >= 3) {
       if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
-        final searchQueries = searchQuery
-            .toLowerCase()
-            .split('|'); // Razdeli niz iskalnih poizvedb
+        final searchQueries = searchQuery.toLowerCase().split('|');
         filteredItems = filteredItems.where((item) {
           String itemName =
               item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
           final words = itemName.split(' ');
 
-          // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
           return searchQueries
               .any((query) => words.any((word) => word.startsWith(query)));
         }).toList();
       } else if (joinedNumbers.length == 6 && searchQuery.isNotEmpty) {
-        final searchQueries = searchQuery
-            .toLowerCase()
-            .split('|'); // Split the search query into multiple queries
+        final searchQueries = searchQuery.toLowerCase().split('|');
         List<String> finalSearchQueries = [];
 
-        // Split each search query into two halves
         for (var query in searchQueries) {
           int middle = (query.length / 2).ceil();
           finalSearchQueries.add(query.substring(0, middle));
@@ -403,22 +410,18 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
           List<String> words = itemName.split(' ');
 
-          // Remove empty strings from the list of words
           words = words.where((word) => word.isNotEmpty).toList();
 
-          // Ensure there are at least two words in `itemName`
           if (words.length < 2) {
-            return false; // If there are less than two words, return false
+            return false;
           }
 
-          // Now check if both the first and second words match the search queries
           bool firstWordMatches =
               finalSearchQueries.any((query) => words[0].startsWith(query));
           bool secondWordMatches = words.skip(1).any((word) {
             return finalSearchQueries.any((query) => word.startsWith(query));
           });
 
-          // Both words must match the search queries
           return firstWordMatches && secondWordMatches;
         }).toList();
       }
@@ -599,11 +602,19 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                               opisDiscountButton: "OPIS",
                               racunArtikliButton: "RAČUN",
                               navigateToRacun: () {
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                   context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RacunScreen()),
+                                  PageRouteBuilder(
+                                      pageBuilder: (context, animation,
+                                              secondaryAnimation) =>
+                                          const RacunScreen(),
+                                      transitionsBuilder: (context, animation,
+                                          secondaryAnimation, child) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        );
+                                      }),
                                 ).then((_) {
                                   _updateFinalSum();
                                   ref.read(searchQueryProvider.notifier).state =
@@ -659,14 +670,14 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
 
     if (currentChosenItems.isNotEmpty) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const AddToTableScreen(),
         ),
       );
     } else {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const OpenTablesScreen(),
@@ -676,7 +687,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    Navigator.push(context,
+    Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const NacinPlacilaScreen()));
   }
 

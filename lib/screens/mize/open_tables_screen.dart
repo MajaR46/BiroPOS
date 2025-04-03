@@ -1,6 +1,7 @@
 import 'package:biro_pos/components/ok_button.dart';
 import 'package:biro_pos/controllers/klic.dart';
 import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:biro_pos/screens/blagajna_screen.dart';
 import 'package:biro_pos/screens/mize/miza_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:biro_pos/app_styles.dart';
@@ -98,7 +99,8 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppStyles.black),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => BlagajnaScreen())),
           ),
           title: Text("Odprte mize",
               style: AppStyles.heading3.copyWith(color: AppStyles.black)),

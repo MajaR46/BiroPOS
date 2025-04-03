@@ -19,3 +19,8 @@ class ItemsNotifier extends StateNotifier<List<Item>> {
     state = items;
   }
 }
+
+final categorizedItemsProvider =
+    StateProvider<Map<String, List<dynamic>>>((ref) => {});
+final izdelkiProvider = StateProvider<List<Item>>((ref) => []);
+final isLoadingProvider = StateProvider<bool>((ref) => true);

@@ -158,7 +158,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     final hhCene = settings['isCheckedHHCene'] ?? false;
     final defaultColors = settings['isCheckedBarve'] ?? false;
     final selectedCategory = ref.watch(selectedCategoryProvider);
-
     if (dropdownvalue == "Majhna") {
       selectedTextSize = 8;
       minCardHeight = 33;

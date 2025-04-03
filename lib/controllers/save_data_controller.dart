@@ -140,6 +140,8 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
       (box.get('podjetje', defaultValue: <Podjetje>[]) as List)
           .cast<Podjetje>();
 
+  print("podjetje list $podjetjeList");
+
   if (podjetjeList.isNotEmpty) {
     // Access the 'podjetjeDavcna' field of the first 'Podjetje' object
     String podjetjeDavcna = podjetjeList[0].davcna;

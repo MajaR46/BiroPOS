@@ -373,14 +373,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
 
     if (currentChosenItems.isNotEmpty) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const AddToTableScreen(),
         ),
       );
     } else {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const OpenTablesScreen(),
@@ -395,7 +395,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _navigateToBlagajnaScreen() async {
-    Navigator.pop(
+    Navigator.push(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
