@@ -3,8 +3,9 @@ import 'package:biro_pos/providers/selectedcategory_provider.dart';
 import 'package:biro_pos/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class CategoryList extends StatelessWidget {
+class CategoryList extends StatefulWidget {
   final Map<String, List<dynamic>> categorizedItems;
   final List<Color> backgroundColors;
   final WidgetRef ref;
@@ -17,11 +18,44 @@ class CategoryList extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<CategoryList> createState() => _CategoryListState();
+}
+
+class _CategoryListState extends State<CategoryList> {
+  late String dropdownvalue = '';
+  late double selectedTextSize;
+
+  Future<void> _loadDropdownValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      dropdownvalue = prefs.getString('touchKey') ?? 'Default Value';
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDropdownValue();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    List<String> categories = ["Vse"] + categorizedItems.keys.toList();
-    final settings = ref.watch(settingsProvider);
+    if (dropdownvalue == "Majhna") {
+      selectedTextSize = 11;
+    } else if (dropdownvalue == "Srednja") {
+      selectedTextSize = 16;
+    } else if (dropdownvalue == "Velika") {
+      selectedTextSize = 26;
+    } else {
+      selectedTextSize = 16;
+    }
+    List<String> preostaleKategorije = widget.categorizedItems.keys.toList()
+      ..sort();
+    List<String> sortedCategories = ["Vse", ...preostaleKategorije];
+
+    final settings = widget.ref.watch(settingsProvider);
     final defaultColors = settings['isCheckedBarve'] ?? false;
-    final selectedCategoryState = ref.watch(selectedCategoryProvider);
+    final selectedCategoryState = widget.ref.watch(selectedCategoryProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -29,15 +63,15 @@ class CategoryList extends StatelessWidget {
         height: 36,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: categories.length,
+          itemCount: sortedCategories.length,
           itemBuilder: (context, index) {
-            String category = categories[index];
+            String category = sortedCategories[index];
 
             int categoryIndex =
-                categorizedItems.keys.toList().indexOf(category);
+                widget.categorizedItems.keys.toList().indexOf(category);
 
-            Color assignedBackgroundColor =
-                backgroundColors[categoryIndex % backgroundColors.length];
+            Color assignedBackgroundColor = widget.backgroundColors[
+                categoryIndex % widget.backgroundColors.length];
             Color assignedTextColor = AppStyles.black;
 
             Color textColor;
@@ -48,7 +82,8 @@ class CategoryList extends StatelessWidget {
 
             return GestureDetector(
               onTap: () {
-                ref.read(selectedCategoryProvider.notifier).state = category;
+                widget.ref.read(selectedCategoryProvider.notifier).state =
+                    category;
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -65,6 +100,7 @@ class CategoryList extends StatelessWidget {
                       child: Text(
                         category,
                         style: AppStyles.paragraph1.copyWith(
+                            fontSize: selectedTextSize,
                             color: AppStyles.black,
                             fontWeight: FontWeight.bold),
                       ),

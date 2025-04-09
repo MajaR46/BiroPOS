@@ -128,13 +128,23 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     _dodajNaRacun(itemsToProcess);
     clearSelectedItem(ref);
 
-    // Navigate to BlagajnaScreen after adding items to the bill
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const RacunScreen(),
-      ),
-    );
+    var orientation = MediaQuery.of(context).orientation;
+
+    if (orientation == Orientation.portrait) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RacunScreen(),
+        ),
+      );
+    } else if (orientation == Orientation.landscape) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BlagajnaScreen(),
+        ),
+      );
+    }
   }
 
   void _prenosMize() {

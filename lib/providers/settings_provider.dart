@@ -124,6 +124,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
     _saveSetting('isCheckedUsbPrintanje', isEnabled);
   }
 
+  void toggleVecjiPrint(bool isEnabled) {
+    state = {...state, 'isCheckedVecjiPrint': isEnabled};
+    _saveSetting('isCheckedVecjiPrint', isEnabled);
+  }
+
   // This method saves the state to SharedPreferences.
   Future<void> _saveSetting(String key, bool value) async {
     final prefs = await SharedPreferences.getInstance();

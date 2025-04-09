@@ -43,6 +43,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedBarve = false;
   bool _isCheckedPrikazCene = false;
   bool _isCheckedUsbPrintanje = false;
+  bool _isCheckedVecjiPrint = false;
 
   @override
   void initState() {
@@ -103,6 +104,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedPrikazCene = prefs.getBool('isCheckedPrikazCene') ?? false;
         _isCheckedUsbPrintanje =
             prefs.getBool('isCheckedUsbPrintanje') ?? false;
+        _isCheckedVecjiPrint = prefs.getBool('isCheckedVecjiPrint') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -145,6 +147,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedBarve', _isCheckedBarve);
     await prefs.setBool('isCheckedPrikazCene', _isCheckedPrikazCene);
     await prefs.setBool('isCheckedUsbPrintanje', _isCheckedUsbPrintanje);
+    await prefs.setBool('isCheckedVecjiPrint', _isCheckedVecjiPrint);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -578,6 +581,32 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ),
                       ],
                     ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text("Večja velikost teksta pri računu:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyCheckbox(
+                            value: ref.watch(
+                                    settingsProvider)['isCheckedVecjiPrint'] ??
+                                false,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isCheckedVecjiPrint = value ?? false;
+                              });
+
+                              // Update provider state
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .toggleVecjiPrint(value ?? false);
+                            },
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
