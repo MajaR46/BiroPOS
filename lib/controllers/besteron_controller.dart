@@ -119,3 +119,78 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
     throw Exception("Besteron call error: $e");
   }
 }
+
+Future<List<String>> besteronPorocilo() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
+  String? TID = prefs.getString('TID');
+  String guid = DateTime.now().millisecondsSinceEpoch.toString();
+
+  String? posUrlNastavitve = prefs.getString('POS');
+
+  if (posUrlNastavitve == null || posUrlNastavitve.isEmpty) {
+    throw Exception("Ni nastavitev POS.");
+  }
+
+  List<String> posurl = posUrlNastavitve.split(';');
+  if (posurl.length < 3) {
+    throw Exception("POS nastavitve so nepravilne.");
+  }
+
+  String baseUrl = posurl[1];
+  String path = posurl[0];
+  String authCredentials = posurl[2];
+
+  String authorizationHeader = 'Basic $authCredentials';
+
+  Map<String, dynamic> requestBody = {
+    "SaleToPOIRequest": {
+      "MessageHeader": {
+        "MessageType": "Request",
+        "MessageClass": "Service",
+        "MessageCategory": "Reconciliation",
+        "SaleID": podjetjeDavcna,
+        "POIID": TID,
+        "ProtocolVersion": "3.1",
+        "ServiceID": guid
+      },
+      "ReconciliationRequest": {"ReconciliationType": "AcquirerReconciliation"}
+    }
+  };
+
+  print("RequestBody: ${jsonEncode(requestBody.toString())}");
+
+  try {
+    final response = await http.post(Uri.parse('$baseUrl/$path'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authorizationHeader
+        },
+        body: jsonEncode(requestBody));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          "POS terminal error: HTTP ${response.statusCode} - ${response.reasonPhrase}");
+    }
+
+    List<String> porocilo = [];
+    var decodedResponse = jsonDecode(response.body);
+    print("Response body $decodedResponse");
+
+    List<dynamic> paymentTotals = decodedResponse["SaleToPOIResponse"]
+        ["ReconciliationResponse"]["TransactionTotals"][0]["PaymentTotals"];
+
+    for (var transaction in paymentTotals) {
+      porocilo.add("Tip: ${transaction["TransactionType"]}");
+      porocilo.add("Znesek: ${transaction["TransactionAmount"]}");
+      porocilo.add("Stevilo: ${transaction["TransactionCount"]}");
+      porocilo.add("--------------------------------");
+    }
+
+    return porocilo;
+  } catch (e, stackTrace) {
+    print("Error: $e");
+    print("StackTrace: $stackTrace");
+    throw Exception("Besteron call error: $e");
+  }
+}

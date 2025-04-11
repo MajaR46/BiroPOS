@@ -1,7 +1,10 @@
+import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/controllers/besteron_controller.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -69,6 +72,13 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
     return responsePorocilaList;
   }
 
+  _porocilaPOS() async {
+    final besteronResponse = await besteronPorocilo();
+
+    await Print.printText(context, besteronResponse, ref);
+    print("besteron response ${besteronResponse.toString()}");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,40 +99,49 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
           },
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.separated(
-                    itemCount: naslovPorocila.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            HapticFeedback.vibrate();
+      body: Stack(children: [
+        Column(
+          children: [
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.separated(
+                      itemCount: naslovPorocila.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticFeedback.vibrate();
 
-                            _prikaziPorocila(naslovPorocila[index]);
-                          },
-                          child: ListTile(
-                            title: Text(naslovPorocila[index]),
+                              _prikaziPorocila(naslovPorocila[index]);
+                            },
+                            child: ListTile(
+                              title: Text(naslovPorocila[index]),
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return Divider(
-                        indent: 7,
-                        endIndent: 7,
-                        color: AppStyles.silver.withOpacity(0.6),
-                        thickness: 1,
-                      );
-                    },
-                  ),
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return Divider(
+                          indent: 7,
+                          endIndent: 7,
+                          color: AppStyles.silver.withOpacity(0.6),
+                          thickness: 1,
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.only(right: 16, bottom: 32),
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: OKButton(onPressed: _porocilaPOS, text: "Poročila POS"),
           ),
-        ],
-      ),
+        )
+      ]),
     );
   }
 }
