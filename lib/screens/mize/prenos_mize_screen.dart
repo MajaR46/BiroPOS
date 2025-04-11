@@ -1,11 +1,11 @@
-import 'package:biro_pos/components/ok_button.dart';
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/tableitem_provider.dart';
-import 'package:biro_pos/screens/blagajna_screen.dart';
+import 'package:BiroPOS/components/ok_button.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/tableitem_provider.dart';
+import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PrenosMizeScreen extends ConsumerStatefulWidget {

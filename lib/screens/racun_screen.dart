@@ -1,23 +1,23 @@
-import 'package:biro_pos/components/id_ean_search.dart';
-import 'package:biro_pos/components/keyboard.dart';
-import 'package:biro_pos/components/quantity_increase.dart';
-import 'package:biro_pos/components/racun_list_banner.dart';
-import 'package:biro_pos/components/seznam_racun.dart';
-import 'package:biro_pos/models/item.dart';
-import 'package:biro_pos/models/nacinPlacila.dart';
-import 'package:biro_pos/models/narociloitem.dart';
-import 'package:biro_pos/providers/categoriseditems_provider.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/direct_payment_provider.dart';
-import 'package:biro_pos/providers/searchquery_provider.dart';
-import 'package:biro_pos/providers/totdal_sum_provider.dart';
-import 'package:biro_pos/screens/blagajna_screen.dart';
-import 'package:biro_pos/screens/edit_item_screen.dart';
-import 'package:biro_pos/screens/mize/add_to_table_screen.dart';
-import 'package:biro_pos/screens/mize/open_tables_screen.dart';
-import 'package:biro_pos/screens/nacin_placila_screen.dart';
+import 'package:BiroPOS/components/id_ean_search.dart';
+import 'package:BiroPOS/components/keyboard.dart';
+import 'package:BiroPOS/components/quantity_increase.dart';
+import 'package:BiroPOS/components/racun_list_banner.dart';
+import 'package:BiroPOS/components/seznam_racun.dart';
+import 'package:BiroPOS/models/item.dart';
+import 'package:BiroPOS/models/nacinPlacila.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
+import 'package:BiroPOS/providers/categoriseditems_provider.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/direct_payment_provider.dart';
+import 'package:BiroPOS/providers/searchquery_provider.dart';
+import 'package:BiroPOS/providers/totdal_sum_provider.dart';
+import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/screens/edit_item_screen.dart';
+import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
+import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
+import 'package:BiroPOS/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -145,6 +145,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   item.product.price.toString().replaceAll(',', '.')) ??
               0;
           double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
+          print("discountedprice $discountedPrice");
 
           ref.read(narociloNotifierProvider.notifier).updateDiscount(
               item.product.id,

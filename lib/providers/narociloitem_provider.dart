@@ -1,4 +1,4 @@
-import 'package:biro_pos/models/narociloitem.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class NarociloNotifier extends Notifier<List<NarociloItem>> {

@@ -1,5 +1,5 @@
-import 'package:biro_pos/models/item.dart';
-import 'package:biro_pos/models/narociloitem.dart';
+import 'package:BiroPOS/models/item.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
 
 class PaymentItem extends NarociloItem {
   String userId;

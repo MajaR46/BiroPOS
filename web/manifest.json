@@ -1,6 +1,6 @@
 {
-    "name": "biro_pos",
-    "short_name": "biro_pos",
+    "name": "BiroPOS",
+    "short_name": "BiroPOS",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

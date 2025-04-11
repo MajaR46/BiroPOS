@@ -1,9 +1,9 @@
-import 'package:biro_pos/components/utils.dart';
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/print.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
+import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/print.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';

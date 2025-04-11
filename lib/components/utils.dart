@@ -1,8 +1,8 @@
 import 'dart:typed_data';
-import 'package:biro_pos/components/error_dialog.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/selecteditem_provider.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart'; // Import Material package
 import 'package:sunmi_printer_plus/core/enums/enums.dart';
 import 'package:sunmi_printer_plus/core/styles/sunmi_qrcode_style.dart';
@@ -25,17 +25,13 @@ class Utils {
     final settings = ref.watch(settingsProvider);
     final vecjiPrint = settings['isCheckedVecjiPrint'] ?? false;
 
-    print("vecji print $vecjiPrint");
-
     final cleanedText = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final lines = cleanedText.split('\n');
     final filteredLines = filterEmptyLines(lines);
-    print("Filtered lines before printing: ${filteredLines.join(', ')}");
 
     try {
       // Store the printer status
       final printerStatus = await sunmiPrinterPlus.getStatus();
-      print("sunmi printer test: $printerStatus");
 
       if (printerStatus == PrinterStatus.COMM) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -81,7 +77,7 @@ class Utils {
           await sunmiPrinterPlus.printText(
               text: line,
               style:
-                  SunmiTextStyle(bold: isBold, fontSize: vecjiPrint ? 33 : 24));
+                  SunmiTextStyle(bold: isBold, fontSize: vecjiPrint ? 26 : 24));
         }
 
         // Check if the line contains "Podpis"

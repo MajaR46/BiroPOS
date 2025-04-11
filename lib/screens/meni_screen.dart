@@ -1,14 +1,14 @@
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
-import 'package:biro_pos/screens/blagajna_screen.dart';
-import 'package:biro_pos/screens/kopija_screen.dart';
-import 'package:biro_pos/screens/login.dart';
-import 'package:biro_pos/screens/porocila_screen.dart';
-import 'package:biro_pos/screens/pregled_narocil_screen.dart';
-import 'package:biro_pos/screens/storno_screen.dart';
-import 'package:biro_pos/screens/testbluetooth.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/screens/kopija_screen.dart';
+import 'package:BiroPOS/screens/login.dart';
+import 'package:BiroPOS/screens/porocila_screen.dart';
+import 'package:BiroPOS/screens/pregled_narocil_screen.dart';
+import 'package:BiroPOS/screens/storno_screen.dart';
+import 'package:BiroPOS/screens/testbluetooth.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class MeniScreen extends ConsumerWidget {

@@ -1,4 +1,4 @@
-import 'package:biro_pos/models/item.dart';
+import 'package:BiroPOS/models/item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Define the Item state provider

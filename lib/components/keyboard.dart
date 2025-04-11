@@ -1,18 +1,18 @@
-import 'package:biro_pos/components/debouncer.dart';
-import 'package:biro_pos/components/narocilo.dart';
-import 'package:biro_pos/components/vracilo_denarja.dart';
-import 'package:biro_pos/controllers/process_payment.dart';
-import 'package:biro_pos/providers/direct_payment_provider.dart';
-import 'package:biro_pos/providers/searchquery_provider.dart';
-import 'package:biro_pos/providers/selecteditem_provider.dart';
-import 'package:biro_pos/screens/login.dart';
+import 'package:BiroPOS/components/debouncer.dart';
+import 'package:BiroPOS/components/narocilo.dart';
+import 'package:BiroPOS/components/vracilo_denarja.dart';
+import 'package:BiroPOS/controllers/process_payment.dart';
+import 'package:BiroPOS/providers/direct_payment_provider.dart';
+import 'package:BiroPOS/providers/searchquery_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:biro_pos/models/narociloitem.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/app_styles.dart';
 
 class Keyboard extends ConsumerStatefulWidget {
   final TextEditingController controller;

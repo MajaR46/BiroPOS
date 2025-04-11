@@ -1,7 +1,7 @@
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/models/tableItem.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/models/tableItem.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

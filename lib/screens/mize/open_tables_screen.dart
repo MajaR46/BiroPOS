@@ -1,10 +1,10 @@
-import 'package:biro_pos/components/ok_button.dart';
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/screens/blagajna_screen.dart';
-import 'package:biro_pos/screens/mize/miza_details_screen.dart';
+import 'package:BiroPOS/components/ok_button.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/screens/mize/miza_details_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

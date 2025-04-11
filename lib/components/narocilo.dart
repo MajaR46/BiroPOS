@@ -1,7 +1,7 @@
-import 'package:biro_pos/controllers/print.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/order_number_provider.dart';
+import 'package:BiroPOS/controllers/print.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/order_number_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';

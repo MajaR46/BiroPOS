@@ -28,7 +28,7 @@
 
 
     <application
-        android:label="BiroPOSF"
+        android:label="BiroPOS"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -63,7 +63,7 @@
         <receiver android:name=".MainActivity$usbReceiver"
                   android:exported="false">
             <intent-filter>
-                <action android:name="com.example.biro_pos.USB_PERMISSION" />
+                <action android:name="si.Flop.BiroPOS.USB_PERMISSION" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
             </intent-filter>
         </receiver>

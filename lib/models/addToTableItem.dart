@@ -1,4 +1,4 @@
-import 'package:biro_pos/models/tableItem.dart';
+import 'package:BiroPOS/models/tableItem.dart';
 
 class AddToTableItem extends TableItem {
   final String userID;

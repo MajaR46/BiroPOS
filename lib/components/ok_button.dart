@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 
 class OKButton extends StatelessWidget {

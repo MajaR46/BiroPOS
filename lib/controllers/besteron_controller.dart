@@ -4,18 +4,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Map<String, dynamic>> callBesteron(double finalSum) async {
   final prefs = await SharedPreferences.getInstance();
-  print("Fetching POS settings...");
+  print("final sum sent to besteron $finalSum");
+  final roundedFinalSum = double.parse(finalSum.toStringAsFixed(2));
 
   String? posUrlNastavitve = prefs.getString('POS');
-  print("POS settings: $posUrlNastavitve");
 
   if (posUrlNastavitve == null || posUrlNastavitve.isEmpty) {
-    throw Exception("POS settings are missing or empty.");
+    throw Exception("Ni nastavitev POS.");
   }
 
   List<String> posurl = posUrlNastavitve.split(';');
   if (posurl.length < 3) {
-    throw Exception("POS settings are incorrectly formatted.");
+    throw Exception("POS nastavitve so nepravilne.");
   }
 
   String baseUrl = posurl[1];
@@ -54,7 +54,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
           }
         },
         "PaymentTransaction": {
-          "AmountsReq": {"Currency": "EUR", "RequestedAmount": finalSum},
+          "AmountsReq": {"Currency": "EUR", "RequestedAmount": roundedFinalSum},
           "ProprietaryTags": {"PrintReceipt": false}
         },
         "PaymentData": {"PaymentType": "Normal"}

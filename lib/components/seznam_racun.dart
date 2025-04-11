@@ -1,12 +1,12 @@
-import 'package:biro_pos/components/quantity_increase.dart';
-import 'package:biro_pos/components/racun_list_banner.dart';
-import 'package:biro_pos/models/item.dart';
-import 'package:biro_pos/models/narociloitem.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/selecteditem_provider.dart';
-import 'package:biro_pos/screens/edit_item_screen.dart';
+import 'package:BiroPOS/components/quantity_increase.dart';
+import 'package:BiroPOS/components/racun_list_banner.dart';
+import 'package:BiroPOS/models/item.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/screens/edit_item_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:biro_pos/app_styles.dart';
+import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

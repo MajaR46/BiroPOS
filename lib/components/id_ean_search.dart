@@ -1,10 +1,10 @@
-import 'package:biro_pos/models/item.dart';
-import 'package:biro_pos/models/narociloitem.dart';
+import 'package:BiroPOS/models/item.dart';
+import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Assuming you have these providers defined somewhere:
-import 'package:biro_pos/providers/categoriseditems_provider.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/categoriseditems_provider.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
 
 void searchByEan(String input, WidgetRef ref, BuildContext context,
     Function updateTotalDiscount) {

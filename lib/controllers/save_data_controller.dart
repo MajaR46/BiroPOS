@@ -1,9 +1,9 @@
-import 'package:biro_pos/controllers/klic.dart';
-import 'package:biro_pos/controllers/sessionmanager.dart';
-import 'package:biro_pos/hive_adaprters/blagajna.dart';
-import 'package:biro_pos/hive_adaprters/osebje.dart';
-import 'package:biro_pos/hive_adaprters/podjetje.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/hive_adaprters/blagajna.dart';
+import 'package:BiroPOS/hive_adaprters/osebje.dart';
+import 'package:BiroPOS/hive_adaprters/podjetje.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';

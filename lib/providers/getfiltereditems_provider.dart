@@ -1,5 +1,5 @@
-import 'package:biro_pos/providers/searchquery_provider.dart';
-import 'package:biro_pos/providers/selectedcategory_provider.dart';
+import 'package:BiroPOS/providers/searchquery_provider.dart';
+import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final filteredItemsProvider2 = Provider<List<dynamic>>((ref) {

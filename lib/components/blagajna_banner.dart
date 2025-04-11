@@ -1,9 +1,9 @@
-import 'package:biro_pos/providers/searchquery_provider.dart';
+import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:biro_pos/app_styles.dart';
-import 'package:biro_pos/providers/narociloitem_provider.dart';
-import 'package:biro_pos/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/app_styles.dart';
+import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
 
 class BlagajnaBanner extends ConsumerWidget {
   const BlagajnaBanner({super.key});

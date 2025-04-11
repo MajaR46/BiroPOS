@@ -1,4 +1,4 @@
-package com.example.biro_pos
+package si.flop.BiroPOS
 
 import android.content.Context
 import android.hardware.usb.*

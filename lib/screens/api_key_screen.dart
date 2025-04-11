@@ -1,7 +1,7 @@
-import 'package:biro_pos/app_styles.dart';
-import 'package:biro_pos/components/ok_button.dart';
-import 'package:biro_pos/providers/settings_provider.dart';
-import 'package:biro_pos/screens/login.dart';
+import 'package:BiroPOS/app_styles.dart';
+import 'package:BiroPOS/components/ok_button.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';

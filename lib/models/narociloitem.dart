@@ -1,4 +1,4 @@
-import 'package:biro_pos/models/item.dart';
+import 'package:BiroPOS/models/item.dart';
 
 class NarociloItem {
   final Item product;

@@ -1,5 +1,4 @@
-package com.example.biro_pos
-
+package si.Flop.BiroPOS
 import android.app.PendingIntent
 import android.bluetooth.*
 import android.bluetooth.BluetoothAdapter
@@ -940,6 +939,6 @@ class MainActivity : FlutterActivity() {
         val MY_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 
         // USB
-        private const val ACTION_USB_PERMISSION = "com.example.biro_pos.USB_PERMISSION"
+        private const val ACTION_USB_PERMISSION = "si.Flop.BiroPOS.USB_PERMISSION"
     }
 }

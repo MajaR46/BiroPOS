@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "biro_pos" "\0"
+            VALUE "FileDescription", "BiroPOS" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "biro_pos" "\0"
+            VALUE "InternalName", "BiroPOS" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "biro_pos.exe" "\0"
-            VALUE "ProductName", "biro_pos" "\0"
+            VALUE "OriginalFilename", "BiroPOS.exe" "\0"
+            VALUE "ProductName", "BiroPOS" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
