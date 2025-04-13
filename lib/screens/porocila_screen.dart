@@ -23,6 +23,9 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   List<String> porocila = [];
   List<String> naslovPorocila = [];
   bool isLoading = false;
+  final TextEditingController vraciloController = TextEditingController();
+  double vraciloAmount = 0.0;
+  String tid = '';
 
   @override
   void initState() {
@@ -30,8 +33,15 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
     _handleData();
   }
 
+  void _clearText() {
+    vraciloController.clear();
+  }
+
   _handleData() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      String? TID = prefs.getString('TID') ?? '';
+
       String userId = SessionManager().getLoggedInUserSifra() ?? '';
       List<String> apiResponseList = await sendRequest(userId, "VrniPorocila");
       List<String> extractedTexts = apiResponseList.map((element) {
@@ -42,6 +52,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
       setState(() {
         porocila = apiResponseList;
         naslovPorocila = extractedTexts;
+        tid = TID;
       });
     } catch (e) {
       setState(() {
@@ -77,6 +88,68 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
     await Print.printText(context, besteronResponse, ref);
     print("besteron response ${besteronResponse.toString()}");
+  }
+
+  Future<void> _vrniPOSZnesek() async {
+    final double? vraciloAmount = await showDialog<double>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppStyles.white,
+        title: Text(
+          "Znesek vračila",
+          textAlign: TextAlign.center,
+          style: AppStyles.heading3,
+        ),
+        content: TextField(
+          controller: vraciloController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppStyles.silver.withOpacity(0.1),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0),
+              borderSide: BorderSide.none,
+            ),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _clearText,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              final value = double.tryParse(vraciloController.text);
+              Navigator.of(context).pop(value); // Vrnemo znesek in zapremo
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppStyles.blue,
+            ),
+            child: Text(
+              "OK",
+              style: AppStyles.button1.copyWith(color: AppStyles.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (vraciloAmount == null) return;
+
+    final besteronResponse = await besteronVracilo(vraciloAmount);
+    String result = besteronResponse['result'];
+    String besteronRacun = besteronResponse['receipt'];
+
+    if (result != "Success") {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri komunikaciji z Besteronom ")),
+        );
+      }
+    }
+
+    await Print.printText(context, [besteronRacun], ref);
+    vraciloController.text = '';
   }
 
   @override
@@ -134,13 +207,23 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
             ),
           ],
         ),
-        Padding(
-          padding: const EdgeInsets.only(right: 16, bottom: 32),
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: OKButton(onPressed: _porocilaPOS, text: "Poročila POS"),
+        if (tid != '')
+          Padding(
+            padding: const EdgeInsets.only(right: 16, bottom: 32),
+            child: Align(
+              alignment: Alignment.bottomRight,
+              child: OKButton(onPressed: _porocilaPOS, text: "Poročilo POS"),
+            ),
           ),
-        )
+        if (tid != '')
+          Padding(
+            padding: const EdgeInsets.only(left: 16, bottom: 32),
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child:
+                  OKButton(onPressed: _vrniPOSZnesek, text: "Vračilo zneska"),
+            ),
+          )
       ]),
     );
   }

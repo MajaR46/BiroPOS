@@ -194,3 +194,103 @@ Future<List<String>> besteronPorocilo() async {
     throw Exception("Besteron call error: $e");
   }
 }
+
+Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
+  final prefs = await SharedPreferences.getInstance();
+
+  String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
+  String? TID = prefs.getString('TID');
+  String guid = DateTime.now().millisecondsSinceEpoch.toString();
+  final roundedVracilo = double.parse(vraciloAmount.toStringAsFixed(2));
+
+  String? posUrlNastavitve = prefs.getString('POS');
+
+  if (posUrlNastavitve == null || posUrlNastavitve.isEmpty) {
+    throw Exception("Ni nastavitev POS.");
+  }
+
+  List<String> posurl = posUrlNastavitve.split(';');
+  if (posurl.length < 3) {
+    throw Exception("POS nastavitve so nepravilne.");
+  }
+
+  String baseUrl = posurl[1];
+  String path = posurl[0];
+  String authCredentials = posurl[2];
+  String authorizationHeader = 'Basic $authCredentials';
+
+  Map<String, dynamic> requestBody = {
+    "SaleToPOIRequest": {
+      "MessageHeader": {
+        "MessageType": "Request",
+        "MessageClass": "Service",
+        "MessageCategory": "Payment",
+        "SaleID": podjetjeDavcna,
+        "POIID": TID,
+        "ProtocolVersion": "3.1",
+        "ServiceID": guid
+      },
+      "PaymentRequest": {
+        "SaleData": {
+          "SaleTransactionID": {
+            "TransactionID": guid,
+            "TimeStamp": DateTime.now().toIso8601String()
+          }
+        },
+        "PaymentTransaction": {
+          "AmountsReq": {"Currency": "EUR", "RequestedAmount": roundedVracilo},
+          "ProprietaryTags": {"PrintReceipt": false}
+        },
+        "PaymentData": {"PaymentType": "Refund"}
+      }
+    }
+  };
+
+  try {
+    final response = await http.post(Uri.parse('$baseUrl/$path'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authorizationHeader
+        },
+        body: jsonEncode(requestBody));
+
+    if (response.statusCode != 200) {
+      throw Exception(
+          "POS terminal error: HTTP ${response.statusCode} - ${response.reasonPhrase}");
+    }
+
+    var decodedJson = jsonDecode(response.body);
+
+    var saleToPOIResponse = decodedJson['SaleToPOIResponse'];
+    if (saleToPOIResponse == null) {
+      throw Exception("Invalid POS response: SaleToPOIResponse missing");
+    }
+
+    var paymentResponse = saleToPOIResponse['PaymentResponse'];
+    if (paymentResponse == null) {
+      throw Exception("Invalid POS response: PaymentResponse missing");
+    }
+
+    var result = paymentResponse['Response']?['Result'] ?? 'Failure';
+    print("Payment Result: $result");
+
+    var receipt = "";
+    var paymentReceipt = paymentResponse['PaymentReceipt'];
+    if (paymentReceipt != null && paymentReceipt.isNotEmpty) {
+      var outputContent = paymentReceipt[0]['OutputContent'];
+      if (outputContent != null && outputContent['OutputText'] != null) {
+        receipt =
+            outputContent['OutputText'].map((item) => item['Text']).join("\n");
+      }
+    }
+
+    return {
+      "result": result,
+      "receipt": receipt,
+    };
+  } catch (e, stackTrace) {
+    print("Error: $e");
+    print("StackTrace: $stackTrace");
+    throw Exception("Besteron call error: $e");
+  }
+}
