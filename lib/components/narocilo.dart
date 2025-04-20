@@ -19,6 +19,7 @@ class Narocilo {
     String formattedTime = DateFormat("HH:mm").format(currentDate);
     String orderNumberTime = DateFormat("mmss").format(currentDate);
     final narociloItems = ref.watch(narociloNotifierProvider);
+    print("narociloItems $narociloItems");
     int orderNumber = ref.watch(orderNumberProvider);
 
     narocilo.add("NAROCILO");

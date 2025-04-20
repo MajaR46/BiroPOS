@@ -1,6 +1,7 @@
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
@@ -15,9 +16,8 @@ import 'package:hive/hive.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddToTableScreen extends ConsumerStatefulWidget {
-  const AddToTableScreen({
-    super.key,
-  });
+  final String? prostor;
+  const AddToTableScreen({super.key, this.prostor});
 
   static Map<String, double> tableSums = {};
 
@@ -26,7 +26,7 @@ class AddToTableScreen extends ConsumerStatefulWidget {
 }
 
 class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
-  List<Map<String, String>> tables = [];
+  List<Map<String, String>> _tables = [];
   Map<String, List<String>> tableItems = {};
 
   late List<dynamic> chosenItems;
@@ -37,52 +37,32 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchTables();
+    _loadTables();
   }
 
-  Future<void> _fetchTables() async {
+  Future<void> _loadTables() async {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
 
-    try {
-      String? userId = SessionManager().getLoggedInUserSifra();
+    List<Map<String, String>> tables = await TableService.fetchTables();
+    List<Map<String, String>> filteredTables =
+        tables.where((table) => table['prostor'] == widget.prostor).toList();
 
-      String txtData = 'VrniSeznamMiz';
-      List<String> apiResponseList = await sendRequest(userId!, txtData);
-      print(apiResponseList);
-      List<Map<String, String>> parsedTables = [];
-
-      for (String line in apiResponseList) {
-        List<String> splitLine = line.split('|');
-
-        if (splitLine.length >= 4) {
-          String prostor = splitLine[0];
-          String miza = splitLine[1];
-          String cena =
-              splitLine[2].replaceAll(',', '.'); // Handle comma decimal
-
-          parsedTables.add({
-            'miza': miza,
-            'prostor': prostor,
-            'cena': cena.isNotEmpty ? cena : '',
-          });
-        }
+    setState(() {
+      print("widget prostore ${widget.prostor}");
+      if (widget.prostor != null &&
+          widget.prostor != '' &&
+          widget.prostor != 'Miza') {
+        print("tututut");
+        _tables = filteredTables;
+      } else {
+        print("gegegeg");
+        _tables = tables;
       }
 
-      setState(() {
-        tables = parsedTables;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error fetching tables: $e';
-        _isLoading = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni vzpostavljene povezave")),
-      );
-    }
+      _isLoading = false;
+    });
   }
 
   void addToExistingTable(String tableNumber) async {
@@ -96,8 +76,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     if (tiskajNarocilo == true) {
       await Narocilo.createNarocilo(ref, true, context, tableNumber);
     }
-
     ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+
     ref.read(tableNotifierProvider.notifier).state = [];
     clearSelectedItem(ref);
   }
@@ -111,8 +91,16 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
               color: AppStyles.black),
-          onPressed: () => Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const BlagajnaScreen())),
+          onPressed: () {
+            if (widget.prostor?.isEmpty ?? true) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const BlagajnaScreen()));
+            } else {
+              Navigator.of(context).pop();
+            }
+          },
         ),
         title: Text(
           "Dodaj na mizo",
@@ -128,9 +116,9 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : ListView.builder(
-                        itemCount: tables.length,
+                        itemCount: _tables.length,
                         itemBuilder: (context, index) {
-                          final tableData = tables[index];
+                          final tableData = _tables[index];
                           String tableNumber = tableData['miza'] ?? '';
                           String prostor = tableData['prostor'] ?? '';
 
@@ -181,19 +169,20 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                           ),
                                         ],
                                       ),
-                                      Row(
-                                        children: [
-                                          if (prostor != "Miza")
-                                            Expanded(
-                                                child: Align(
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                prostor,
-                                                style: AppStyles.paragraph3,
-                                              ),
-                                            ))
-                                        ],
-                                      )
+                                      if (prostor.isNotEmpty)
+                                        Row(
+                                          children: [
+                                            if (prostor != "Miza")
+                                              Expanded(
+                                                  child: Align(
+                                                alignment: Alignment.center,
+                                                child: Text(
+                                                  prostor,
+                                                  style: AppStyles.paragraph3,
+                                                ),
+                                              ))
+                                          ],
+                                        )
                                     ],
                                   ),
                                 ),

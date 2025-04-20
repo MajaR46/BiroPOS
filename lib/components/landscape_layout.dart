@@ -286,7 +286,13 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
           Expanded(
               flex: 1,
               child: Container(
-                color: AppStyles.white,
+                decoration: BoxDecoration(color: AppStyles.white, boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: Offset(-4, 0), // Senčka na levi strani
+                    blurRadius: 6,
+                  ),
+                ]),
                 child: Column(children: [
                   Expanded(
                       child: SeznamRacun(

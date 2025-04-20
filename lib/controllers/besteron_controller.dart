@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -177,8 +178,14 @@ Future<List<String>> besteronPorocilo() async {
     var decodedResponse = jsonDecode(response.body);
     print("Response body $decodedResponse");
 
+    DateTime currentDate = DateTime.now();
+    String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
+    String formattedTime = DateFormat("HH:mm").format(currentDate);
+
     List<dynamic> paymentTotals = decodedResponse["SaleToPOIResponse"]
         ["ReconciliationResponse"]["TransactionTotals"][0]["PaymentTotals"];
+
+    porocilo.add("Datum: $formattedDate  $formattedTime");
 
     for (var transaction in paymentTotals) {
       porocilo.add("Tip: ${transaction["TransactionType"]}");
@@ -186,7 +193,7 @@ Future<List<String>> besteronPorocilo() async {
       porocilo.add("Stevilo: ${transaction["TransactionCount"]}");
       porocilo.add("--------------------------------");
     }
-
+    print("porocilo $porocilo");
     return porocilo;
   } catch (e, stackTrace) {
     print("Error: $e");
@@ -202,6 +209,7 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
   String? TID = prefs.getString('TID');
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
   final roundedVracilo = double.parse(vraciloAmount.toStringAsFixed(2));
+  print("rounded $roundedVracilo");
 
   String? posUrlNastavitve = prefs.getString('POS');
 

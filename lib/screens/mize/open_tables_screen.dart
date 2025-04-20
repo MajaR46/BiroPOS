@@ -9,7 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenTablesScreen extends StatefulWidget {
-  const OpenTablesScreen({super.key});
+  final String? prostor;
+  const OpenTablesScreen({super.key, this.prostor});
 
   @override
   State<OpenTablesScreen> createState() => _OpenTablesScreenState();
@@ -56,8 +57,18 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
           'user': user
         });
 
+        List<Map<String, String>> filteredTables =
+            mize.where((table) => table['prostor'] == widget.prostor).toList();
+
+        print("prostor $prostor");
+
+        print("filteredTables $filteredTables");
         setState(() {
-          odprteMize = mize;
+          if (prostor != '' && prostor != 'Miza') {
+            odprteMize = filteredTables;
+          } else if (prostor == "Miza") {
+            odprteMize = mize;
+          }
           _isLoading = false;
         });
       }
@@ -99,8 +110,16 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded,
                 color: AppStyles.black),
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => BlagajnaScreen())),
+            onPressed: () {
+              if (widget.prostor?.isEmpty ?? true) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen()));
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
           title: Text("Odprte mize",
               style: AppStyles.heading3.copyWith(color: AppStyles.black)),

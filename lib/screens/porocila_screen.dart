@@ -119,7 +119,8 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              final value = double.tryParse(vraciloController.text);
+              final value =
+                  double.tryParse(vraciloController.text.replaceAll(',', '.'));
               Navigator.of(context).pop(value); // Vrnemo znesek in zapremo
             },
             style: ElevatedButton.styleFrom(

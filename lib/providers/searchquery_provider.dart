@@ -13,3 +13,4 @@ void clearSearchQuery(WidgetRef ref) {
 }
 
 final searchTextProvider = StateProvider<String>((ref) => '');
+final savedSearchResultsProvider = StateProvider<List<dynamic>>((ref) => []);

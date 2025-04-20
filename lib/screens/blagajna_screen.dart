@@ -8,6 +8,7 @@ import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/landscape_layout.dart';
 import 'package:BiroPOS/components/search_items.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
+import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/categoriseditems_provider.dart';
@@ -20,6 +21,7 @@ import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/edit_item_screen.dart';
 import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
 import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
+import 'package:BiroPOS/screens/mize/prostori_screen.dart';
 import 'package:BiroPOS/screens/nacin_placila_screen.dart';
 import 'package:BiroPOS/screens/racun_screen.dart';
 import 'package:flutter/material.dart';
@@ -44,7 +46,7 @@ class BlagajnaScreen extends ConsumerStatefulWidget {
 class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   final DateTime currentDate = DateTime.now();
   //late List<dynamic> cafeItems;
-  bool isLoading = true;
+  bool isLoading = false;
   bool hasError = false;
   Map<String, List<dynamic>> categorizedItems = {};
   String selectedCategory = "";
@@ -63,6 +65,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   double _totalDiscount = 0.0;
   bool _isSearchMode = false;
   bool isManualSearch = false;
+  List<Map<String, String>> _tables = [];
+  bool _tablesFetched = false;
+
   @override
   void initState() {
     print("init state");
@@ -72,6 +77,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
     }
+    _fetchTables();
     searchController.addListener(_searchListener);
     searchController.addListener(_searchListener2);
     Future.microtask(() {
@@ -150,7 +156,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           stStolpcev = columNums.isNotEmpty ? int.tryParse(columNums) ?? 1 : 1;
         });
       }
-
       Map<String, Map<String, String>> itemToCategoryMap = {};
 
       for (String line in apiResponseList) {
@@ -176,6 +181,22 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         isLoading = false;
       });
       print("Error loading data: $e");
+    }
+  }
+
+  Future<void> _fetchTables() async {
+    if (_tablesFetched) return;
+
+    _tablesFetched = true;
+
+    try {
+      List<Map<String, String>> tables = await TableService.fetchTables();
+      setState(() {
+        _tables = tables;
+      });
+    } catch (e) {
+      print("Napaka pri pridobivanju tabel: $e");
+      // Lahko dodaš logiko za napako, če želiš
     }
   }
 
@@ -359,14 +380,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<dynamic> _getFilteredItems() {
-    print("klicano");
     final stateSelectedCategory = ref.read(selectedCategoryProvider);
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
     var orientation = MediaQuery.of(context).orientation;
 
     generatePairs(searchController);
-    print("kategorija $stateSelectedCategory");
 
     List<dynamic> filteredItems = [];
 
@@ -433,6 +452,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     Future(() {
       ref.read(filteredItemsProvider.notifier).state = filteredItems;
     });
+    print("filtereditems $filteredItems");
     return filteredItems;
   }
 
@@ -506,7 +526,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("build");
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
 
@@ -668,21 +687,48 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-
+    final table = _tables.firstWhere(
+      (table) => table['prostor'] != '',
+      orElse: () => {},
+    );
     if (currentChosenItems.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AddToTableScreen(),
-        ),
-      );
+      // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
+
+      if (table['prostor'] == null ||
+          table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
+        // Če je 'prostor' prazen, preusmeri na AddToTableScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AddToTableScreen()),
+        );
+      } else {
+        // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ProstoriScreen(
+                    whereTo: "DodajNaMizo",
+                  )),
+        );
+      }
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const OpenTablesScreen(),
-        ),
-      );
+      if (table['prostor'] == null ||
+          table['prostor']!.isEmpty && table['prostor'] != "Miza") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OpenTablesScreen(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ProstoriScreen(
+                    whereTo: "VrniPrazneMize",
+                  )),
+        );
+      }
     }
   }
 

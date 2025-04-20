@@ -582,18 +582,7 @@ class KeyboardBack extends ConsumerWidget {
             if (isLandscape && search != null) {
               // Če je landscape in je funkcija na voljo, jo izvedi
               search!();
-            } else {
-              // Sicer izvedi navigacijo na LoginScreen, če je seznam prazen
-              if (chosenItems.isEmpty) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginScreen()));
-              } else {
-                // Ne naredi nič, če je seznam poln v portrait načinu.
-                null;
-              }
-            }
+            } else {}
           },
           child: Center(
             child: Icon(

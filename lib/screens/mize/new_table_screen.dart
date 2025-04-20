@@ -1,9 +1,11 @@
+import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
@@ -29,6 +31,8 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   void _addToNewTable(String tableNumber) async {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
+    final settings = ref.watch(settingsProvider);
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
 
     if (_newTableController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -54,6 +58,11 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
           await sendRequest(userId, narociloItems.join('\r\n'));
 
       ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+
+      if (tiskajNarocilo == true) {
+        await Narocilo.createNarocilo(ref, true, context, tableNumber);
+      }
+
       clearSelectedItem(ref);
 
       Navigator.pushReplacement(context,

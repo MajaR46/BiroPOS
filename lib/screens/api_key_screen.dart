@@ -26,6 +26,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controllerPOS = TextEditingController();
   final TextEditingController _controllerTID = TextEditingController();
   final TextEditingController _controllerStStolpcev = TextEditingController();
+  final TextEditingController _controllerGroups = TextEditingController();
 
   bool _isCheckedMoney = false;
   bool _isCheckedOrders = false;
@@ -75,6 +76,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _controllerTextSize.text = prefs.getString('textSize') ?? '';
         _controllerRefresh.text = prefs.getString('refreshInterval') ?? '';
         _controllerStStolpcev.text = prefs.getString('stStolpcev') ?? '';
+        _controllerGroups.text = prefs.getString('groupsSize') ?? '';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -124,6 +126,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setString('textSize', _controllerTextSize.text);
     await prefs.setString('refreshInterval', _controllerRefresh.text);
     await prefs.setString('stStolpcev', _controllerStStolpcev.text);
+    await prefs.setString('groupsSize', _controllerGroups.text);
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
@@ -392,29 +395,25 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
-                        DropdownMenu(
-                            onSelected: (value) {
-                              if (value != null) {
-                                setState(() {
-                                  _controllerTouchKey.text = value;
-                                });
-                              }
-                            },
-                            initialSelection: _controllerTouchKey.text,
-                            width: 150,
-                            menuStyle: const MenuStyle(
-                              backgroundColor: WidgetStatePropertyAll(
-                                  const Color.fromARGB(255, 235, 233, 233)),
-                            ),
-                            dropdownMenuEntries: const <DropdownMenuEntry<
-                                String>>[
-                              DropdownMenuEntry(
-                                  value: 'Majhna', label: 'Majhna'),
-                              DropdownMenuEntry(
-                                  value: 'Srednja', label: 'Srednja'),
-                              DropdownMenuEntry(
-                                  value: 'Velika', label: 'Velika')
-                            ])
+                        ApiKeyTextfield(
+                          controller: _controllerTouchKey,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text("Velikost pisave skupine:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerGroups,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
                       ],
                     ),
                     Row(

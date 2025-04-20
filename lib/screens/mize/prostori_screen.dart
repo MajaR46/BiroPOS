@@ -1,0 +1,183 @@
+import 'package:BiroPOS/app_styles.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
+import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
+import 'package:BiroPOS/screens/porocila_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class ProstoriScreen extends ConsumerStatefulWidget {
+  final String whereTo;
+
+  const ProstoriScreen({
+    required this.whereTo,
+    super.key,
+  });
+
+  @override
+  ConsumerState<ProstoriScreen> createState() => _ProstoriScreenState();
+}
+
+class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
+  List<Map<String, String>> tables = [];
+  Map<String, List<String>> tableItems = {};
+  List<String> uniqueSpacesList = [];
+
+  late List<dynamic> chosenItems;
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTables();
+  }
+
+  Future<void> _fetchTables() async {
+    setState(() {
+      _isLoading = false;
+    });
+
+    try {
+      String? userId = SessionManager().getLoggedInUserSifra();
+
+      String txtData = 'VrniSeznamMiz';
+      List<String> apiResponseList = await sendRequest(userId!, txtData);
+      print(apiResponseList);
+      List<Map<String, String>> parsedTables = [];
+
+      for (String line in apiResponseList) {
+        List<String> splitLine = line.split('|');
+
+        if (splitLine.length >= 4) {
+          String prostor = splitLine[0];
+          String miza = splitLine[1];
+          String cena =
+              splitLine[2].replaceAll(',', '.'); // Handle comma decimal
+
+          parsedTables.add({
+            'miza': miza,
+            'prostor': prostor,
+            'cena': cena.isNotEmpty ? cena : '',
+          });
+        }
+      }
+
+      Set<String> uniqueProstori = parsedTables
+          .map((table) => table['prostor'] ?? '')
+          .where((space) => space.isNotEmpty)
+          .toSet();
+
+      setState(() {
+        tables = parsedTables;
+        uniqueSpacesList = uniqueProstori.toList();
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error fetching tables: $e';
+        _isLoading = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ni vzpostavljene povezave")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppStyles.white,
+      appBar: AppBar(
+        backgroundColor: AppStyles.white,
+        leading: IconButton(
+            onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const BlagajnaScreen())),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppStyles.black,
+            )),
+        title: Text(
+          "Prostori",
+          style: AppStyles.heading3.copyWith(color: AppStyles.black),
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          itemCount: uniqueSpacesList.length,
+                          itemBuilder: (context, index) {
+                            final tableData = tables[index];
+                            String tableNumber = tableData['miza'] ?? '';
+                            String prostor = uniqueSpacesList[index];
+
+                            double tableFinalSum = tableData['cena'] != null
+                                ? double.tryParse(
+                                        tableData['cena'].toString()) ??
+                                    0.0
+                                : 0.0;
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 2),
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (widget.whereTo == "DodajNaMizo") {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                AddToTableScreen(
+                                                    prostor: prostor)));
+                                  } else if (widget.whereTo ==
+                                      "VrniPrazneMize") {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                OpenTablesScreen(
+                                                  prostor: prostor,
+                                                )));
+                                  }
+                                  HapticFeedback.vibrate();
+                                },
+                                child: Card(
+                                  color: AppStyles.silver.withOpacity(0.1),
+                                  elevation: 0,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 24),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          prostor,
+                                          style: AppStyles.heading3,
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ))
+            ],
+          )
+        ],
+      ),
+    );
+  }
+}

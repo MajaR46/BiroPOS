@@ -158,19 +158,9 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
     final hhCene = settings['isCheckedHHCene'] ?? false;
     final defaultColors = settings['isCheckedBarve'] ?? false;
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    if (dropdownvalue == "Majhna") {
-      selectedTextSize = 8;
-      minCardHeight = 33;
-    } else if (dropdownvalue == "Srednja") {
-      selectedTextSize = 12;
-      minCardHeight = 50.0;
-    } else if (dropdownvalue == "Velika") {
-      selectedTextSize = 20;
-      minCardHeight = 80.0;
-    } else {
-      selectedTextSize = 12;
-      minCardHeight = 50.0;
-    }
+    final textSize = double.tryParse(dropdownvalue) ?? 12.0;
+
+    minCardHeight = textSize * 4;
 
     if (selectedCategory == "") {
       return const Center(child: Text("Ni izbrane kategorije"));
@@ -244,7 +234,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                                     AppStyles.white,
                             itemNameColor: AppStyles.black,
                             itemCategoryTextColor: AppStyles.black,
-                            textSize: selectedTextSize,
+                            textSize: textSize,
                             minCardHeight: minCardHeight,
                           ),
                         );
@@ -309,7 +299,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                     itemCategoryTextColor: defaultColors == true
                         ? assignedTextColor
                         : AppStyles.black,
-                    textSize: selectedTextSize,
+                    textSize: textSize,
                     minCardHeight: minCardHeight,
                   ),
                 ),
@@ -376,7 +366,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                       itemCategoryTextColor: defaultColors == true
                           ? assignedTextColor
                           : AppStyles.black,
-                      textSize: selectedTextSize,
+                      textSize: textSize,
                       minCardHeight: minCardHeight,
                     ),
                   ),

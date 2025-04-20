@@ -22,13 +22,13 @@ class CategoryList extends StatefulWidget {
 }
 
 class _CategoryListState extends State<CategoryList> {
-  late String dropdownvalue = '';
+  late String textSize = "";
   late double selectedTextSize;
 
   Future<void> _loadDropdownValue() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      dropdownvalue = prefs.getString('touchKey') ?? 'Default Value';
+      textSize = prefs.getString('groupsSize') ?? '';
     });
   }
 
@@ -40,15 +40,7 @@ class _CategoryListState extends State<CategoryList> {
 
   @override
   Widget build(BuildContext context) {
-    if (dropdownvalue == "Majhna") {
-      selectedTextSize = 11;
-    } else if (dropdownvalue == "Srednja") {
-      selectedTextSize = 16;
-    } else if (dropdownvalue == "Velika") {
-      selectedTextSize = 26;
-    } else {
-      selectedTextSize = 16;
-    }
+    final categorySize = double.tryParse(textSize) ?? 16.0;
     List<String> preostaleKategorije = widget.categorizedItems.keys.toList()
       ..sort();
     List<String> sortedCategories = ["Vse", ...preostaleKategorije];
@@ -60,7 +52,7 @@ class _CategoryListState extends State<CategoryList> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
-        height: 36,
+        height: categorySize + 20,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           itemCount: sortedCategories.length,
@@ -100,7 +92,7 @@ class _CategoryListState extends State<CategoryList> {
                       child: Text(
                         category,
                         style: AppStyles.paragraph1.copyWith(
-                            fontSize: selectedTextSize,
+                            fontSize: categorySize,
                             color: AppStyles.black,
                             fontWeight: FontWeight.bold),
                       ),
