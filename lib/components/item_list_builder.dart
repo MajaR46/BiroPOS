@@ -317,7 +317,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
               (constraints.maxWidth - 4 * (gridColumnCount - 1)) /
                   gridColumnCount;
 
-          // Prilagoditev razmerja glede na širino in privzeto višino
           final sortedItems = filteredItems
             ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
           print("st stolpcev ${widget.columnNum}");

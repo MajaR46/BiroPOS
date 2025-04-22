@@ -6,75 +6,114 @@ import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 
 class BlagajnaBanner extends ConsumerWidget {
-  const BlagajnaBanner({super.key});
+  final TextEditingController controller;
+
+  const BlagajnaBanner({required this.controller, super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cartItems = ref.watch(narociloNotifierProvider);
-
+    // Opazuj stanja, ki niso odvisna od controllerja tukaj
     final selectedItem = ref.watch(selectedItemProvider);
-
     final itemQuantity = selectedItem?.quantity ?? 0.0;
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+    final cartItems =
+        ref.watch(narociloNotifierProvider); // Odkomentiraj, če potrebuješ
 
-    final numbers2String = ref.watch(searchQueryProvider);
+    print("izvedeno");
 
-    // Display the banner content
+    // Uporabi ValueListenableBuilder za del, ki prikazuje vnos
     return Container(
       color: AppStyles.lightGrey,
-      height: 50,
+      height: 60,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
           children: [
-            // Item details
-            Flexible(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 2 / 3,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Text("Izbrano:", style: AppStyles.paragraph3),
-                    Text(
-                      numbers2String.isNotEmpty
-                          ? numbers2String!
-                          : (selectedItem != null
-                              ? selectedItem.product.name
-                              : ''),
-                      style: AppStyles.paragraph2
-                          .copyWith(fontWeight: FontWeight.bold),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Quantity details
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Row(
               children: [
-                const Text("Količina:", style: AppStyles.paragraph3),
-                Text(
-                  itemQuantity.toStringAsFixed(2),
-                  style: AppStyles.paragraph2
-                      .copyWith(fontWeight: FontWeight.bold),
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 2 / 3,
+                    ),
+                    child: ValueListenableBuilder<TextEditingValue>(
+                      valueListenable:
+                          controller, // Poslušaj spremembe controllerja
+                      builder: (context, textEditingValue, child) {
+                        String currentText = textEditingValue.text;
+                        String filtriranSearch =
+                            currentText.replaceAll(RegExp(r'[^0-9]'), '');
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              filtriranSearch,
+                              style: AppStyles.paragraph3
+                                  .copyWith(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    // --- KONEC SPREMEMBE ---
+                  ),
                 ),
               ],
             ),
-            // Sum details
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Znesek:", style: AppStyles.paragraph3),
-                Text(
-                  totalSum.toStringAsFixed(2),
-                  style: AppStyles.paragraph2.copyWith(
-                      fontWeight: FontWeight.bold, color: AppStyles.blue),
+                // Item details - Ovijemo z ValueListenableBuilder
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 2 / 3,
+                    ),
+                    // --- ZAČETEK SPREMEMBE ---
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Text("Izbrano:", style: AppStyles.paragraph3),
+                        Text(
+                          (selectedItem != null
+                              ? selectedItem.product.name
+                              : ''),
+                          style: AppStyles.paragraph2
+                              .copyWith(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Količina:", style: AppStyles.paragraph3),
+                    Text(
+                      itemQuantity.toStringAsFixed(2),
+                      style: AppStyles.paragraph2
+                          .copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                // Sum details (ostane enako)
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text("Znesek:", style: AppStyles.paragraph3),
+                    Text(
+                      totalSum.toStringAsFixed(2),
+                      style: AppStyles.paragraph2.copyWith(
+                          fontWeight: FontWeight.bold, color: AppStyles.blue),
+                    ),
+                  ],
                 ),
               ],
             ),

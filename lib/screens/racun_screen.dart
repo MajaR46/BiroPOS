@@ -294,6 +294,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final chosenItems = ref.watch(narociloNotifierProvider);
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
+    final numbers2String = ref.watch(searchQueryProvider);
+    print("numbers2string $numbers2String");
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppStyles.white,

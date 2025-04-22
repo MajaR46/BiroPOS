@@ -77,7 +77,7 @@ class Utils {
           await sunmiPrinterPlus.printText(
               text: line,
               style:
-                  SunmiTextStyle(bold: isBold, fontSize: vecjiPrint ? 26 : 24));
+                  SunmiTextStyle(bold: isBold, fontSize: vecjiPrint ? 32 : 24));
         }
 
         // Check if the line contains "Podpis"

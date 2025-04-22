@@ -4,6 +4,7 @@ import 'package:BiroPOS/components/vracilo_denarja.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
+import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
@@ -423,7 +424,7 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
   }
 }
 
-class KeyboardC extends StatelessWidget {
+class KeyboardC extends ConsumerWidget {
   final TextEditingController controller;
 
   const KeyboardC({super.key, required this.controller});
@@ -433,7 +434,7 @@ class KeyboardC extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       width: 80,
       height: 50,
@@ -446,6 +447,7 @@ class KeyboardC extends StatelessWidget {
                   borderRadius: BorderRadius.circular(15))),
           onPressed: () {
             HapticFeedback.vibrate();
+
             _clearText();
           },
           child: Center(

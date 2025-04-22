@@ -67,7 +67,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool isManualSearch = false;
   List<Map<String, String>> _tables = [];
   bool _tablesFetched = false;
-
+// V _BlagajnaScreenState class
+  final Debouncer _searchDebouncer =
+      Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
   @override
   void initState() {
     print("init state");
@@ -78,12 +80,20 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       _handleData();
     }
     _fetchTables();
-    searchController.addListener(_searchListener);
-    searchController.addListener(_searchListener2);
+
+    searchController.addListener(() {
+      _searchDebouncer.debouce(_onSearchChanged);
+    });
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
     });
+  }
+
+  void _onSearchChanged() {
+    _searchListener();
+
+    _searchListener2();
   }
 
   void _searchListener() {
@@ -99,8 +109,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void _searchListener2() {
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
-
-    print('Filtriran Search: $filtriranSearch');
 
     if (filtriranSearch.length == 3 ||
         filtriranSearch.length == 6 && searchController.text.isNotEmpty) {
@@ -320,11 +328,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
         ref.read(selectedItemProvider.notifier).state = newNarociloItem;
       }
-
       _updateFinalSum();
-      searchController.clear();
-      numbers2String = '';
-      isSearching = false;
     });
   }
 
@@ -357,8 +361,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _searchByName() {
+    print("izvedeno");
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    ref.read(searchQueryProvider.notifier).state = searchController.text;
+
     setState(() {
       isManualSearch = true;
       if (searchController.text.isNotEmpty) {
@@ -380,10 +388,16 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<dynamic> _getFilteredItems() {
+    String searchText = searchController.text;
+
+    final iskalniNizString = ref.watch(iskalniNiz);
+
     final stateSelectedCategory = ref.read(selectedCategoryProvider);
     String filtriranSearch =
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
     var orientation = MediaQuery.of(context).orientation;
+
+    final numbers2String = ref.watch(searchQueryProvider);
 
     generatePairs(searchController);
 
@@ -397,15 +411,13 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       filteredItems = categorizedItems[stateSelectedCategory] ?? [];
     }
 
-    String searchText = searchController.text;
     RegExp regExp = RegExp(r'\d+');
     Iterable<Match> matches = regExp.allMatches(searchText);
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
-    String numbers2String = numbers2.join();
 
-    if (searchController.text.length >= 3) {
-      if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
-        final searchQueries = searchQuery.toLowerCase().split('|');
+    if (numbers2String.length >= 3) {
+      if (numbers2String.length == 3 && iskalniNizString.isNotEmpty) {
+        final searchQueries = iskalniNizString.toLowerCase().split('|');
         filteredItems = filteredItems.where((item) {
           String itemName =
               item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
@@ -414,8 +426,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           return searchQueries
               .any((query) => words.any((word) => word.startsWith(query)));
         }).toList();
-      } else if (joinedNumbers.length == 6 && searchQuery.isNotEmpty) {
-        final searchQueries = searchQuery.toLowerCase().split('|');
+      } else if (numbers2String.length == 6 && iskalniNizString.isNotEmpty) {
+        print("izvedeno 3");
+
+        final searchQueries = iskalniNizString.toLowerCase().split('|');
         List<String> finalSearchQueries = [];
 
         for (var query in searchQueries) {
@@ -444,7 +458,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           return firstWordMatches && secondWordMatches;
         }).toList();
       }
-    } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
+    } else if (numbers2String.length <= 5 && iskalniNizString.isNotEmpty) {
+      print("izvedeno 4");
+
       filteredItems = filteredItems.where((item) {
         return int.tryParse(item['itemId']) == int.tryParse(numbers2String);
       }).toList();
@@ -452,7 +468,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     Future(() {
       ref.read(filteredItemsProvider.notifier).state = filteredItems;
     });
-    print("filtereditems $filteredItems");
     return filteredItems;
   }
 
@@ -540,9 +555,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     if (isCheckedUsbPrinting) {
       UsbPrint.connectUsbPrinter();
     }
-
     final numbers2String =
         ref.watch(searchQueryProvider); // Get value from provider
+
+    print("numbers2string screen $numbers2String");
+
     final isSearching = ref.watch(isSearchingProvider);
 
     orderService = ref.read(orderProvider);
@@ -612,7 +629,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                             }
                                           }
                                         : null,
-                                child: BlagajnaBanner()),
+                                child: BlagajnaBanner(
+                                  controller: searchController,
+                                )),
                           ),
                           Align(
                             alignment: Alignment.bottomCenter,
@@ -636,13 +655,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                       }),
                                 ).then((_) {
                                   _updateFinalSum();
-                                  ref.read(searchQueryProvider.notifier).state =
-                                      '';
-                                  ref.read(isSearchingProvider.notifier).state =
-                                      false;
-                                  searchController.clear();
-
-                                  // Update final sum on return
+                                  _searchByName();
                                 });
                               },
                               navigateToMizaScreen: _navigateToMizaScreen,

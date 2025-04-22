@@ -69,15 +69,37 @@ List<String> combineLetters(List<List<String>> letterGroups) {
 
 void updateNumbersString(
     TextEditingController searchController, WidgetRef ref) {
+  String generatedQuery = ''; // Define it here to ensure it's always available
+
   if (searchController.text.isNotEmpty) {
     RegExp regExp = RegExp(r'[\d.]+');
     Iterable<Match> matches = regExp.allMatches(searchController.text);
     List<String> numbers2 = matches.map((match) => match.group(0)!).toList();
     numbers2String = numbers2.join();
+
+    if (numbers2String.length == 3 ||
+        numbers2String.length == 6 ||
+        numbers2String.length <= 5) {
+      // Ensure iskalniNiz and searchQuery are generated in the same way
+      generatedQuery = numbers2String.isNotEmpty
+          ? generateQueryFromNumbers(numbers2String)
+          : '';
+    }
+    ref.read(iskalniNiz.notifier).state = generatedQuery;
     ref.read(searchQueryProvider.notifier).state = numbers2String;
     ref.read(isSearchingProvider.notifier).state = true;
   } else {
+    ref.read(iskalniNiz.notifier).state = '';
     ref.read(searchQueryProvider.notifier).state = '';
     ref.read(isSearchingProvider.notifier).state = false;
   }
+}
+
+// Generate a query based on number input
+String generateQueryFromNumbers(String numbers) {
+  List<int> numberList = numbers.split('').map((e) => int.parse(e)).toList();
+  List<List<String>> letterGroups =
+      numberList.map((n) => numberToLetters[n]!).toList();
+  List<String> combinations = combineLetters(letterGroups);
+  return combinations.join('|');
 }
