@@ -58,12 +58,16 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       String apiKey = prefs.getString('apiKey') ?? '';
       String ip = prefs.getString('IP') ?? '';
       String port = prefs.getString('Port') ?? '';
+      String textIzdelki = prefs.getString('touchKey') ?? '';
+      String textSkupine = prefs.getString('groupsSize') ?? '';
 
       // Set default values if any of them are empty
-      if (apiKey.isEmpty || ip.isEmpty || port.isEmpty) {
+      if (apiKey.isEmpty || ip.isEmpty || port.isEmpty || textIzdelki.isEmpty) {
         await prefs.setString('apiKey', 'test');
         await prefs.setString('IP', '194.247.162.115');
         await prefs.setString('Port', '11111');
+        await prefs.setString('touchKey', '12');
+        await prefs.setString('groupsSize', '16');
       }
 
       setState(() {

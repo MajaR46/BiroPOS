@@ -3,6 +3,7 @@ import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
 import 'package:BiroPOS/components/racun_list_banner.dart';
 import 'package:BiroPOS/components/seznam_racun.dart';
+import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/nacinPlacila.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
@@ -15,6 +16,7 @@ import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/edit_item_screen.dart';
 import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
 import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
+import 'package:BiroPOS/screens/mize/prostori_screen.dart';
 import 'package:BiroPOS/screens/nacin_placila_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
@@ -34,12 +36,15 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   double _totalDiscount = 0.0;
   final TextEditingController discountController = TextEditingController();
   List<NacinPlacila> naciniPlacila = [];
+  List<Map<String, String>> _tables = [];
+
   String itemOpis = '';
   double itemPrice = 0.0;
   late OrderService orderService;
   final TextEditingController searchController = TextEditingController();
   bool _isSearchMode = false;
   bool _isKeyboardListenerEnabled = false;
+  bool _tablesFetched = false;
 
   // NEW: Barcode scanner implementation
   final FocusNode _barcodeFocusNode = FocusNode();
@@ -50,6 +55,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void initState() {
     super.initState();
+    _fetchTables();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
@@ -104,6 +110,22 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         productId, description, newQuantity, itemPrice, oldQuantity);
     _updateTotalDiscount();
     print("TUKI PROBLEM 1");
+  }
+
+  Future<void> _fetchTables() async {
+    if (_tablesFetched) return;
+
+    _tablesFetched = true;
+
+    try {
+      List<Map<String, String>> tables = await TableService.fetchTables();
+      setState(() {
+        _tables = tables;
+      });
+    } catch (e) {
+      print("Napaka pri pridobivanju tabel: $e");
+      // Lahko dodaš logiko za napako, če želiš
+    }
   }
 
   void _removeItem(
@@ -375,21 +397,48 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-
+    final table = _tables.firstWhere(
+      (table) => table['prostor'] != '',
+      orElse: () => {},
+    );
     if (currentChosenItems.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const AddToTableScreen(),
-        ),
-      );
+      // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
+
+      if (table['prostor'] == null ||
+          table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
+        // Če je 'prostor' prazen, preusmeri na AddToTableScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AddToTableScreen()),
+        );
+      } else {
+        // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ProstoriScreen(
+                    whereTo: "DodajNaMizo",
+                  )),
+        );
+      }
     } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const OpenTablesScreen(),
-        ),
-      );
+      if (table['prostor'] == null ||
+          table['prostor']!.isEmpty && table['prostor'] != "Miza") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const OpenTablesScreen(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const ProstoriScreen(
+                    whereTo: "VrniPrazneMize",
+                  )),
+        );
+      }
     }
   }
 
