@@ -5,6 +5,7 @@ import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/components/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
+import 'package:BiroPOS/controllers/save_to_txt.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
@@ -76,6 +77,10 @@ class Print {
           );
           return;
         }
+      } else if (Platform.isWindows) {
+        List<String> cleanLines = ocistiVrstice(text);
+        String finalReceiptLines = cleanLines.join('\n');
+        saveFileNextToExe(finalReceiptLines, context, ref);
       } else {
         try {
           await Future.delayed(Duration(seconds: 2));

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/hive_adaprters/blagajna.dart';
 import 'package:BiroPOS/hive_adaprters/osebje.dart';
@@ -8,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path/path.dart' as path;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +27,19 @@ void main() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
 
+  if (Platform.isWindows) {
+    final appDirectory = path.dirname(Platform.resolvedExecutable);
+
+    print("appdirectory $appDirectory");
+    final biroPosPrinterPath =
+        path.join(appDirectory, 'BiroPOSPrintServer.exe');
+
+    Process.start(biroPosPrinterPath, []).then((process) {
+      print("aplikacija je zagnana");
+    }).catchError((e) {
+      print("napaka pri zagonu $e");
+    });
+  }
   runApp(const ProviderScope(child: MyApp()));
 }
 

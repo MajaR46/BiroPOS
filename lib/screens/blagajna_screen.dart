@@ -80,10 +80,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       _handleData();
     }
     _fetchTables();
-
     searchController.addListener(() {
       _searchDebouncer.debouce(_onSearchChanged);
     });
+
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
@@ -91,32 +91,33 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _onSearchChanged() {
-    _searchListener();
-
-    _searchListener2();
-  }
-
-  void _searchListener() {
     var orientation = MediaQuery.of(context).orientation;
 
     if (orientation == Orientation.portrait) {
-      ref.read(isSearchingProvider.notifier).state =
-          searchController.text.isNotEmpty;
-      updateNumbersString(searchController, ref);
+      _searchListener();
+      _searchListener2();
     }
+    // V landscape načinu ne naredimo nič, ker bo iskanje ročno sproženo z gumbom
+  }
+
+  void _searchListener() {
+    ref.read(isSearchingProvider.notifier).state =
+        searchController.text.isNotEmpty;
+    updateNumbersString(searchController, ref);
   }
 
   void _searchListener2() {
-    String filtriranSearch =
-        searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    final numbers2String1 = ref.watch(searchQueryProvider);
+    String filtriranSearch = numbers2String1.replaceAll(RegExp(r'[^0-9]'), '');
+    final iskalniNizString = ref.watch(iskalniNiz);
 
     if (filtriranSearch.length == 3 ||
-        filtriranSearch.length == 6 && searchController.text.isNotEmpty) {
+        filtriranSearch.length == 6 && iskalniNizString.isNotEmpty) {
       final selectedCategory = ref.read(selectedCategoryProvider.notifier);
 
       if (selectedCategory.state != 'Iskanje') {
         selectedCategory.state = 'Iskanje';
-        print("Nastavljeno na iskanje");
+        print("Nastavljeno na iskanje 1");
       }
     } else if (filtriranSearch.length < 6) {
       final selectedCategory = ref.read(selectedCategoryProvider.notifier);
@@ -137,6 +138,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void dispose() {
     searchController.removeListener(_searchListener);
     searchController.removeListener(_searchListener2);
+    searchController.removeListener(_onSearchChanged);
+
     searchController.dispose();
 
     super.dispose();
@@ -361,30 +364,26 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _searchByName() {
-    print("izvedeno");
-    String filtriranSearch =
-        searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
+    updateNumbersString(searchController, ref);
 
-    ref.read(searchQueryProvider.notifier).state = searchController.text;
-
+    final iskalniNizString = ref.watch(iskalniNiz);
+    final numbers2String1 = ref.watch(searchQueryProvider);
+    final filtriranSearch = numbers2String1.replaceAll(RegExp(r'[^0-9]'), '');
     setState(() {
       isManualSearch = true;
-      if (searchController.text.isNotEmpty) {
+
+      if (iskalniNizString.isNotEmpty) {
         if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
           ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
-          print("nastavjeno na iskanje");
-        } else if (filtriranSearch.length < 6) {
-          // If less than 6 characters, keep the previous category if it's "Iskanje"
-          if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {
-            ref.read(selectedCategoryProvider.notifier).state = 'Vse';
-          }
+          print("nastavjeno na iskanje 2");
         }
-      } // Označimo, da je iskanje sproženo ročno
+      } else if (iskalniNizString.isEmpty) {
+        ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+      }
 
       print("filtriran search $filtriranSearch");
     });
-
-    _getFilteredItems(); // Pokličemo iskanje
+    _getFilteredItems();
   }
 
   List<dynamic> _getFilteredItems() {
@@ -397,12 +396,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         searchController.text.replaceAll(RegExp(r'[^0-9]'), '');
     var orientation = MediaQuery.of(context).orientation;
 
-    final numbers2String = ref.watch(searchQueryProvider);
-
+    final numbers2String1 = ref.watch(searchQueryProvider);
+    final numbers2String = numbers2String1.replaceAll(RegExp(r'[^0-9]'), '');
     generatePairs(searchController);
 
     List<dynamic> filteredItems = [];
-
+    print("selectedCategroy $selectedCategory");
     if (stateSelectedCategory == "Vse" || stateSelectedCategory == "Iskanje") {
       for (var categoryItems in categorizedItems.values) {
         filteredItems.addAll(categoryItems);

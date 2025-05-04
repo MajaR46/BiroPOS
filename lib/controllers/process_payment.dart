@@ -7,6 +7,7 @@ import 'package:BiroPOS/components/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
 import 'package:BiroPOS/controllers/print.dart';
+import 'package:BiroPOS/controllers/save_to_txt.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
@@ -55,6 +56,10 @@ class ProcessPayment {
               addEmptyLines: false, context: context, showDialog: false);
         } else if (usbPrintanje) {
           await UsbPrint.sendDataUsb([besteronRacun]);
+        } else if (Platform.isWindows) {
+          List<String> cleanLines = ocistiVrstice([besteronRacun]);
+          String finalReceiptLines = cleanLines.join('\n');
+          saveFileNextToExe(finalReceiptLines, context, ref);
         } else {
           await Utils.printTextWithIntegratedSunmi(context, besteronRacun, ref);
         }
@@ -72,11 +77,11 @@ class ProcessPayment {
             duration: const Duration(seconds: 5),
           ),
         );
-        return; // Prepreči ustvarjanje naročila v primeru napake
+        return;
       }
     }
 
-    // Če smo prišli do sem, pomeni, da je Besteron transakcija uspela ali pa ni bila potrebna
+    // Gotovina
     try {
       final response = await ref
           .read(orderProvider)
@@ -95,6 +100,10 @@ class ProcessPayment {
             context, response, paymentType, finalSum);
       } else if (usbPrintanje) {
         await _processUsbPrinting(response);
+      } else if (Platform.isWindows) {
+        List<String> cleanLines = ocistiVrstice(response);
+        String finalReceiptLines = cleanLines.join('\n');
+        saveFileNextToExe(finalReceiptLines, context, ref);
       } else {
         await _processInnerPrinting(context, response, paymentType, finalSum);
       }

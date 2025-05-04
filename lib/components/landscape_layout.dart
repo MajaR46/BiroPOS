@@ -303,7 +303,10 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
                           removeItem: _removeItem,
                           handleQuantityChange: _handleQuantityChange)),
                   RacunListBanner(
-                      totalDiscount: _totalDiscount, totalSum: totalSum),
+                    totalDiscount: _totalDiscount,
+                    totalSum: totalSum,
+                    controller: widget.keyboardController,
+                  ),
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Keyboard(

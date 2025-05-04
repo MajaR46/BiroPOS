@@ -9,6 +9,7 @@ import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,16 +58,12 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
       List<String> posljiNaStreznik =
           await sendRequest(userId, narociloItems.join('\r\n'));
 
-      ref.read(narociloNotifierProvider.notifier).clearChosenItems();
-
       if (tiskajNarocilo == true) {
         await Narocilo.createNarocilo(ref, true, context, tableNumber);
       }
+      ref.read(narociloNotifierProvider.notifier).clearChosenItems();
 
       clearSelectedItem(ref);
-
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     }
   }
 
@@ -129,6 +126,11 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               child: OKButton(
                 onPressed: () {
                   _addToNewTable(_newTableController.text);
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BlagajnaScreen()));
+                  HapticFeedback.vibrate();
                 },
                 text: 'OK',
               ),

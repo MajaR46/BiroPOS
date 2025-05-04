@@ -363,7 +363,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                 openDialog: openDialog,
                 removeItem: _removeItem,
                 handleQuantityChange: _handleQuantityChange),
-            RacunListBanner(totalDiscount: _totalDiscount, totalSum: totalSum),
+            RacunListBanner(
+              totalDiscount: _totalDiscount,
+              totalSum: totalSum,
+              controller: searchController,
+            ),
             Align(
               alignment: Alignment.bottomCenter,
               child: Keyboard(
@@ -402,17 +406,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       orElse: () => {},
     );
     if (currentChosenItems.isNotEmpty) {
-      // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
-
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-        // Če je 'prostor' prazen, preusmeri na AddToTableScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => AddToTableScreen()),
         );
       } else {
-        // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

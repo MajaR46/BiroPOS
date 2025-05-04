@@ -1,5 +1,6 @@
 import 'package:BiroPOS/components/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
+import 'package:BiroPOS/components/search_items.dart';
 import 'package:BiroPOS/components/vracilo_denarja.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
@@ -334,18 +335,25 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                       backgroundColor: AppStyles.brightOrange,
                       text: "GOT",
-                      onPressed: _paymentGotovina),
+                      onPressed: () {
+                        _paymentGotovina();
+                        widget.controller.clear();
+                      }),
                 ),
               if (!prikazujSamoNarocila)
                 Padding(
-                    padding: const EdgeInsets.all(2.0),
-                    child: KeyboardRedirect(
-                      backgroundColor: AppStyles.brightRed,
-                      text: "KAR",
-                      onPressed: obstajaKarPlacilo
-                          ? _paymentKartica
-                          : () {}, // Posredujemo prazno funkcijo namesto null
-                    )),
+                  padding: const EdgeInsets.all(2.0),
+                  child: KeyboardRedirect(
+                    backgroundColor: AppStyles.brightRed,
+                    text: "KAR",
+                    onPressed: obstajaKarPlacilo
+                        ? () {
+                            _paymentKartica();
+                            widget.controller.clear();
+                          }
+                        : () {}, // Empty function if not available
+                  ),
+                ),
               if (!prikazujSamoRacune)
                 Padding(
                   padding: const EdgeInsets.all(2.0),
@@ -429,7 +437,7 @@ class KeyboardC extends ConsumerWidget {
 
   const KeyboardC({super.key, required this.controller});
 
-  void _clearText() {
+  void _clearText(WidgetRef ref) {
     controller.clear();
   }
 
@@ -448,7 +456,14 @@ class KeyboardC extends ConsumerWidget {
           onPressed: () {
             HapticFeedback.vibrate();
 
-            _clearText();
+            _clearText(ref);
+            ref.read(selectedCategoryProvider.notifier).state = 'Vse';
+            ref.read(isSearchingProvider.notifier).state = false;
+            Future(() {
+              ref.read(filteredItemsProvider.notifier).state =
+                  []; // ali: naloži vse
+              updateNumbersString(controller, ref);
+            });
           },
           child: Center(
             child: Text(
