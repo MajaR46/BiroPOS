@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
@@ -53,55 +55,59 @@ class _CategoryListState extends State<CategoryList> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
         height: categorySize + 20,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: sortedCategories.length,
-          itemBuilder: (context, index) {
-            String category = sortedCategories[index];
+        child: ScrollConfiguration(
+          behavior: const MaterialScrollBehavior().copyWith(
+              dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse}),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: sortedCategories.length,
+            itemBuilder: (context, index) {
+              String category = sortedCategories[index];
 
-            int categoryIndex =
-                widget.categorizedItems.keys.toList().indexOf(category);
+              int categoryIndex =
+                  widget.categorizedItems.keys.toList().indexOf(category);
 
-            Color assignedBackgroundColor = widget.backgroundColors[
-                categoryIndex % widget.backgroundColors.length];
-            Color assignedTextColor = AppStyles.black;
+              Color assignedBackgroundColor = widget.backgroundColors[
+                  categoryIndex % widget.backgroundColors.length];
+              Color assignedTextColor = AppStyles.black;
 
-            Color textColor;
-            Color backgroundColor;
+              Color textColor;
+              Color backgroundColor;
 
-            backgroundColor = assignedBackgroundColor;
-            textColor = assignedTextColor;
+              backgroundColor = assignedBackgroundColor;
+              textColor = assignedTextColor;
 
-            return GestureDetector(
-              onTap: () {
-                widget.ref.read(selectedCategoryProvider.notifier).state =
-                    category;
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 4.0,
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20.0),
-                      color: backgroundColor),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                    child: Center(
-                      child: Text(
-                        category,
-                        style: AppStyles.paragraph1.copyWith(
-                            fontSize: categorySize,
-                            color: AppStyles.black,
-                            fontWeight: FontWeight.bold),
+              return GestureDetector(
+                onTap: () {
+                  widget.ref.read(selectedCategoryProvider.notifier).state =
+                      category;
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4.0,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.0),
+                        color: backgroundColor),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 2, horizontal: 8),
+                      child: Center(
+                        child: Text(
+                          category,
+                          style: AppStyles.paragraph1.copyWith(
+                              fontSize: categorySize,
+                              color: AppStyles.black,
+                              fontWeight: FontWeight.bold),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -35,7 +35,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
           onKey: (RawKeyEvent event) {
             if (event is RawKeyDownEvent) {
               if (event.physicalKey == PhysicalKeyboardKey.enter) {
-                print('ENTER');
                 setState(() {
                   _message = _controller;
                   _controller = '';
@@ -45,8 +44,6 @@ class _MyStatefulWidgetState extends State<MyStatefulWidget> {
                     '_handleKeyEvent Event data keyLabel ${event.data.keyLabel}');
                 _controller += event.data.keyLabel;
               }
-
-              print('controller: $_controller');
             }
           },
           child: Column(

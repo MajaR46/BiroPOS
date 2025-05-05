@@ -65,8 +65,6 @@ final filteredItemsProvider2 = Provider<List<dynamic>>((ref) {
           // Remove empty strings from the list of words
           words = words.where((word) => word.isNotEmpty).toList();
 
-          print("Words: $words");
-
           // Ensure there are at least two words in `itemName`
           if (words.length < 2) {
             return false; // If there are less than two words, return false
@@ -82,9 +80,6 @@ final filteredItemsProvider2 = Provider<List<dynamic>>((ref) {
           // Both words must match the search queries
           return firstWordMatches && secondWordMatches;
         }).toList();
-
-        print("search queries: $searchQueries");
-        print("final search queries: $finalSearchQueries");
       }
     } else if (numbers2String.length <= 5 && searchQuery.isNotEmpty) {
       filteredItems = filteredItems.where((item) {

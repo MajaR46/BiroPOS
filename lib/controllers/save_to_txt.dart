@@ -25,8 +25,6 @@ void saveFileNextToExe(
     await file.writeAsString(txtContent);
     ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
     clearSelectedItem(ref);
-
-    print('Shranjeno v: $filePath');
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Napaka pri windows tiskanju: $e")));

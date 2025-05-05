@@ -123,7 +123,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       final settings = ref.watch(settingsProvider);
       final tiskajNarociloPriRacunu =
           settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
-      print("tiskaj : $tiskajNarociloPriRacunu");
       double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
       try {
@@ -131,8 +130,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         String filtriranQuery = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
         final vnesenZnesek = double.tryParse(filtriranQuery);
-        print("vnesen znesek $vnesenZnesek");
-        print(ref.watch(searchQueryProvider));
 
         // Calculate the change
         double vracilo = Vracilo.izracunVracila(ref, vnesenZnesek ?? 0.0);
@@ -190,8 +187,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
           factor,
           selectedItem.product.price,
           selectedItem.quantity);
-
-      print("tuki problem");
 
       ref.read(selectedItemProvider.notifier).state =
           selectedItem.copyWith(quantity: factor);

@@ -96,9 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _initializeBluetooth() async {
     try {
       await _bluetoothService.initializeBluetooth();
-      print("inicializacija uspešna");
       await _bluetoothService.checkBluetoothPermissions();
-      print("check bluetooth permissions uspešno");
 
       // Fetch bonded devices
       List<BondedDevice> devices = await _bluetoothService.getBondedDevices();
@@ -338,7 +336,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: TextField(
                           obscureText: _isHidden,
                           controller: _logininputcontroller,
-                          readOnly: true,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+
                           style: const TextStyle(
                               fontSize: 20), // Make input text larger
                           decoration: InputDecoration(

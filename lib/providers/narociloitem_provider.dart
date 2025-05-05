@@ -9,7 +9,6 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
-    print("dodano na račun");
 
     // Poiščemo obstoječi izdelek z enakim ID-jem izdelka, ceno IN opisom
     final existingItemIndex = state.indexWhere((item) =>

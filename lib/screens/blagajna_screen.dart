@@ -72,7 +72,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
   @override
   void initState() {
-    print("init state");
     super.initState();
 
     if (izdelki.isEmpty) {
@@ -116,7 +115,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
       if (selectedCategory.state != 'Iskanje') {
         selectedCategory.state = 'Iskanje';
-        print("Nastavljeno na iskanje 1");
       }
     } else if (filtriranSearch.length < 6) {
       final selectedCategory = ref.read(selectedCategoryProvider.notifier);
@@ -311,9 +309,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         // Item already exists
         // Update quantity
 
-        if (itemQuantity % 1 != 0) {
-          print("PROBLEM");
-        }
+        if (itemQuantity % 1 != 0) {}
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
@@ -323,7 +319,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       } else {
         // Item doesn't exist yet
         //Add item to cart
-        print("PROBLEM EEPR PROE PREO ");
         ref
             .read(narociloNotifierProvider.notifier)
             .addToRacun(newNarociloItem, fromTable: false);
@@ -374,13 +369,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       if (iskalniNizString.isNotEmpty) {
         if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
           ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
-          print("nastavjeno na iskanje 2");
         }
       } else if (iskalniNizString.isEmpty) {
         ref.read(selectedCategoryProvider.notifier).state = 'Vse';
       }
-
-      print("filtriran search $filtriranSearch");
     });
     _getFilteredItems();
   }
@@ -400,7 +392,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     generatePairs(searchController);
 
     List<dynamic> filteredItems = [];
-    print("selectedCategroy $selectedCategory");
     if (stateSelectedCategory == "Vse" || stateSelectedCategory == "Iskanje") {
       for (var categoryItems in categorizedItems.values) {
         filteredItems.addAll(categoryItems);
@@ -425,8 +416,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
               .any((query) => words.any((word) => word.startsWith(query)));
         }).toList();
       } else if (numbers2String.length == 6 && iskalniNizString.isNotEmpty) {
-        print("izvedeno 3");
-
         final searchQueries = iskalniNizString.toLowerCase().split('|');
         List<String> finalSearchQueries = [];
 
@@ -457,8 +446,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         }).toList();
       }
     } else if (numbers2String.length <= 5 && iskalniNizString.isNotEmpty) {
-      print("izvedeno 4");
-
       filteredItems = filteredItems.where((item) {
         return int.tryParse(item['itemId']) == int.tryParse(numbers2String);
       }).toList();
@@ -557,8 +544,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
     final numbers2String =
         ref.watch(searchQueryProvider); // Get value from provider
-
-    print("numbers2string screen $numbers2String");
 
     final isSearching = ref.watch(isSearchingProvider);
 

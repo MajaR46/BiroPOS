@@ -27,12 +27,10 @@ class Print {
     final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
 
     final paymentMethods = ref.watch(paymentMethodProvider);
-    print(
-        "Bluetooth printanje: $bluetoothPrintanje"); // <- DODANO ZA PREVERJANJE
+
     BluetoothService bluetoothService = BluetoothService();
 
     if (text.any((line) => line.contains("#NAPAKA#"))) {
-      print("response contains napaka");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(text
@@ -48,17 +46,13 @@ class Print {
             await bluetoothService.connectToDevice(context);
           }
 
-          print("Attempting to print via Bluetooth...");
-
           // Add new line before every item
           await BluetoothService.sendData(text, ref,
               context: context, addEmptyLines: true);
 
-          print("Data sent to Bluetooth printer.");
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
-          print("PRINTANO Z BLUETOOTH");
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Napaka $e")),
@@ -90,7 +84,6 @@ class Print {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
-          print("PRINTANO Z INTEGRIRANIM");
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Napaka $e")),

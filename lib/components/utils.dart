@@ -38,7 +38,6 @@ class Utils {
           SnackBar(content: Text("Napaka pri uporabi vgrajenega tiskalnika")),
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
-        print("PRINT 5");
 
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);
@@ -90,8 +89,6 @@ class Utils {
             );
           }
         }
-
-        print("PRINT 6");
       }
       const int extraBlankLines = 3;
       for (int i = 0; i < extraBlankLines; i++) {
@@ -104,7 +101,6 @@ class Utils {
           .toString()
           .contains('kotlin.UninitializedPropertyAccessException')) {
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
-        print("PRINT 7");
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -122,7 +118,6 @@ class Utils {
                   Text("Napaka pri tiskanju z integriranim tiskalnikom: $e")),
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
-        print("PRINT 8");
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("Problem $e"),
         ));

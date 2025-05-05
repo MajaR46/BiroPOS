@@ -60,9 +60,6 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
         List<Map<String, String>> filteredTables =
             mize.where((table) => table['prostor'] == widget.prostor).toList();
 
-        print("prostor $prostor");
-
-        print("filteredTables $filteredTables");
         setState(() {
           if (prostor != '' && prostor != 'Miza') {
             odprteMize = filteredTables;
@@ -76,7 +73,6 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
       setState(() {
         _isLoading = true;
       });
-      print("error $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Ni vzpostavljene povezave")),
       );

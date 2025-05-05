@@ -19,8 +19,6 @@ class BlagajnaBanner extends ConsumerWidget {
     final cartItems =
         ref.watch(narociloNotifierProvider); // Odkomentiraj, če potrebuješ
 
-    print("izvedeno");
-
     // Uporabi ValueListenableBuilder za del, ki prikazuje vnos
     return Container(
       color: AppStyles.lightGrey,

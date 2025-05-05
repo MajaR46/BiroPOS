@@ -17,18 +17,14 @@ class BluetoothService {
 
   Future<List<BondedDevice>> getBondedDevices() async {
     try {
-      print('BluetoothService: Getting bonded devices...');
       final result =
           await platform.invokeMethod<List<dynamic>>('getBondedDevices');
-      print('BluetoothService: Bonded devices raw result: $result');
       bondedDevices = result
               ?.map((device) => BondedDevice.fronRawString(device as String))
               .toList() ??
           [];
-      print('BluetoothService: Bonded devices parsed: $bondedDevices');
       return bondedDevices;
     } on PlatformException catch (e) {
-      print('BluetoothService: Error fetching devices: $e');
       return [];
     }
   }
@@ -36,7 +32,6 @@ class BluetoothService {
   Future<void> initializeBluetooth() async {
     try {
       final String result = await platform.invokeMethod('initializeBluetooth');
-      print('BluetoothService: Bluetooth initialization result: $result');
     } on PlatformException catch (e) {
       print(
           'BluetoothService: Error during Bluetooth initialization: ${e.message}');

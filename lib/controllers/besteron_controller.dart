@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Map<String, dynamic>> callBesteron(double finalSum) async {
   final prefs = await SharedPreferences.getInstance();
-  print("final sum sent to besteron $finalSum");
   final roundedFinalSum = double.parse(finalSum.toStringAsFixed(2));
 
   String? posUrlNastavitve = prefs.getString('POS');
@@ -25,9 +24,6 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
 
   String? TID = prefs.getString('TID');
   String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
-
-  print("TID: $TID");
-  print("Podjetje Davčna: $podjetjeDavcna");
 
   if (TID == null || podjetjeDavcna == null) {
     throw Exception("TID or podjetjeDavcna is missing.");
@@ -63,8 +59,6 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
     }
   };
 
-  print("Request Body: ${jsonEncode(requestBody)}");
-
   try {
     final response = await http.post(
       Uri.parse('$baseUrl/$path'),
@@ -75,16 +69,12 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
       body: jsonEncode(requestBody),
     );
 
-    print("Response Status Code: ${response.statusCode}");
-    print("Response Body: ${response.body}");
-
     if (response.statusCode != 200) {
       throw Exception(
           "POS terminal error: HTTP ${response.statusCode} - ${response.reasonPhrase}");
     }
 
     var decodedJson = jsonDecode(response.body);
-    print("Decoded JSON: $decodedJson");
 
     var saleToPOIResponse = decodedJson['SaleToPOIResponse'];
     if (saleToPOIResponse == null) {
@@ -97,7 +87,6 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
     }
 
     var result = paymentResponse['Response']?['Result'] ?? 'Failure';
-    print("Payment Result: $result");
 
     var receipt = "";
 
@@ -159,8 +148,6 @@ Future<List<String>> besteronPorocilo() async {
     }
   };
 
-  print("RequestBody: ${jsonEncode(requestBody.toString())}");
-
   try {
     final response = await http.post(Uri.parse('$baseUrl/$path'),
         headers: {
@@ -176,7 +163,6 @@ Future<List<String>> besteronPorocilo() async {
 
     List<String> porocilo = [];
     var decodedResponse = jsonDecode(response.body);
-    print("Response body $decodedResponse");
 
     DateTime currentDate = DateTime.now();
     String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
@@ -193,7 +179,6 @@ Future<List<String>> besteronPorocilo() async {
       porocilo.add("Stevilo: ${transaction["TransactionCount"]}");
       porocilo.add("--------------------------------");
     }
-    print("porocilo $porocilo");
     return porocilo;
   } catch (e, stackTrace) {
     print("Error: $e");
@@ -209,7 +194,6 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
   String? TID = prefs.getString('TID');
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
   final roundedVracilo = double.parse(vraciloAmount.toStringAsFixed(2));
-  print("rounded $roundedVracilo");
 
   String? posUrlNastavitve = prefs.getString('POS');
 

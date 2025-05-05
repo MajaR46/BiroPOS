@@ -104,7 +104,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
               child: TextField(
                 autofocus: true,
                 showCursor: true,
-                readOnly: true,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 controller: _dobController,
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(

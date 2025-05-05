@@ -30,15 +30,10 @@ void main() async {
   if (Platform.isWindows) {
     final appDirectory = path.dirname(Platform.resolvedExecutable);
 
-    print("appdirectory $appDirectory");
     final biroPosPrinterPath =
         path.join(appDirectory, 'BiroPOSPrintServer.exe');
 
-    Process.start(biroPosPrinterPath, []).then((process) {
-      print("aplikacija je zagnana");
-    }).catchError((e) {
-      print("napaka pri zagonu $e");
-    });
+    Process.start(biroPosPrinterPath, []).then((process) {}).catchError((e) {});
   }
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -49,7 +44,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool loggedIn = SessionManager().isLoggedIn();
-    print(loggedIn);
+
     return const MaterialApp(
       home: LoginScreen(),
       debugShowCheckedModeBanner: false,

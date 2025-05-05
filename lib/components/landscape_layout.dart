@@ -249,7 +249,6 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
     ref.read(narociloNotifierProvider.notifier).updateQuantity(
         uniqueId, productId, description, newQuantity, itemPrice, oldQuantity);
     _updateTotalDiscount();
-    print("TUKI PROBLEM 1");
   }
 
   @override

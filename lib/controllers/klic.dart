@@ -12,8 +12,6 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   String port = prefs.getString('Port') ?? '';
   String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
 
-  print("podjetje davcna $podjetjeDavcna");
-
   String url = 'http://$ip:$port/api/biropos';
 
   final Map<String, String> headers = {
@@ -69,7 +67,6 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
         return ['Result field not found in response'];
       }
     } else if (response.statusCode == 400) {
-      print("bad request");
       throw Exception('Request failed with status 400: Bad Request');
     } else {
       return [

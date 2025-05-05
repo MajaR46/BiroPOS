@@ -85,7 +85,6 @@ void updateNumbersString(
     ref.read(iskalniNiz.notifier).state = generatedQuery;
     ref.read(searchQueryProvider.notifier).state = numbers2String;
     ref.read(isSearchingProvider.notifier).state = true;
-    print("searchqueryprovider searchitems $numbers2String");
   } else {
     ref.read(iskalniNiz.notifier).state = '';
     ref.read(searchQueryProvider.notifier).state = '';

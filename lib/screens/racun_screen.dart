@@ -114,7 +114,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     ref.read(narociloNotifierProvider.notifier).updateQuantity(
         uniqueId, productId, description, newQuantity, itemPrice, oldQuantity);
     _updateTotalDiscount();
-    print("TUKI PROBLEM 1");
   }
 
   Future<void> _fetchTables() async {
@@ -172,7 +171,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   item.product.price.toString().replaceAll(',', '.')) ??
               0;
           double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
-          print("discountedprice $discountedPrice");
 
           ref
               .read(narociloNotifierProvider.notifier)
@@ -316,7 +314,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     final numbers2String = ref.watch(searchQueryProvider);
-    print("numbers2string $numbers2String");
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
@@ -336,7 +333,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           if (event.runtimeType == KeyDownEvent) {
             // Changed RawKeyDownEvent to KeyDownEvent
             if (event.physicalKey == PhysicalKeyboardKey.enter) {
-              print('ENTER');
               // Process the scanned barcode here
               if (_scannedBarcode.isNotEmpty) {
                 _searchByEan(
@@ -355,13 +351,15 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         },
         child: Column(
           children: [
-            SeznamRacun(
-                chosenItems: chosenItems,
-                totalSum: totalSum,
-                totalDiscount: _totalDiscount,
-                openDialog: openDialog,
-                removeItem: _removeItem,
-                handleQuantityChange: _handleQuantityChange),
+            Expanded(
+              child: SeznamRacun(
+                  chosenItems: chosenItems,
+                  totalSum: totalSum,
+                  totalDiscount: _totalDiscount,
+                  openDialog: openDialog,
+                  removeItem: _removeItem,
+                  handleQuantityChange: _handleQuantityChange),
+            ),
             RacunListBanner(
               totalDiscount: _totalDiscount,
               totalSum: totalSum,

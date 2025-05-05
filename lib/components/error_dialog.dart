@@ -91,7 +91,6 @@ class ErrorDialogs {
       if (match != null || match2 != null) {
         String racunSt = match?.group(1)?.trim() ?? '';
 
-        print("Racun: $racunSt");
         int povezanIndex =
             response.indexWhere((item) => item.contains("Povezan dokument:"));
 
@@ -108,11 +107,6 @@ class ErrorDialogs {
           }
         }
         povezanDokument = povezanDokument.replaceAll(",", "").trim();
-        print("Final Povezan dokument: '$povezanDokument'"); // Debugging output
-
-        print("Povezan dokument: $povezanDokument");
-
-        print("Showing AlertDialog for povezanDokument: '$povezanDokument'");
 
         // Show the modal dialog with extracted Racun st.
         await showDialog(

@@ -219,7 +219,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                             textAlignVertical: TextAlignVertical.bottom,
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 5.0, horizontal: 10.0),
+                                  vertical: 10.0, horizontal: 10.0),
                               enabledBorder: const UnderlineInputBorder(
                                 borderSide:
                                     BorderSide(color: AppStyles.blue, width: 1),

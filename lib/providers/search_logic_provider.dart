@@ -15,7 +15,6 @@ class SearchLogic {
     if (searchText.length == 2 && controllerText.isNotEmpty) {
       if (ref.read(selectedCategoryProvider.notifier).state != 'Iskanje') {
         ref.read(selectedCategoryProvider.notifier).state = 'Iskanje';
-        print("nastavljeno na iskanje");
       }
     } else if (searchText.length < 6) {
       if (ref.read(selectedCategoryProvider.notifier).state == 'Iskanje') {

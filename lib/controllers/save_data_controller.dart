@@ -18,8 +18,6 @@ Future<bool> handleData(WidgetRef ref) async {
   try {
     List<String> apiResponseList = await sendRequest(userId!, "BiroPOS.txt");
 
-    print("API Response: $apiResponseList");
-
     await _saveBiroPosData(apiResponseList, box);
 
     // Categorize and store responses
@@ -139,8 +137,6 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
   List<Podjetje> podjetjeList =
       (box.get('podjetje', defaultValue: <Podjetje>[]) as List)
           .cast<Podjetje>();
-
-  print("podjetje list $podjetjeList");
 
   if (podjetjeList.isNotEmpty) {
     // Access the 'podjetjeDavcna' field of the first 'Podjetje' object

@@ -50,14 +50,11 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
         tables.where((table) => table['prostor'] == widget.prostor).toList();
 
     setState(() {
-      print("widget prostore ${widget.prostor}");
       if (widget.prostor != null &&
           widget.prostor != '' &&
           widget.prostor != 'Miza') {
-        print("tututut");
         _tables = filteredTables;
       } else {
-        print("gegegeg");
         _tables = tables;
       }
 

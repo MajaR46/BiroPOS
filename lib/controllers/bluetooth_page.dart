@@ -44,7 +44,6 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
           await platform.invokeMethod('getDiscoveredDevices');
 
       // Log the raw response to debug
-      print('Raw Discovered Devices: $devices');
 
       setState(() {
         // Convert raw string to List<Map<String, String>>
@@ -137,7 +136,6 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
         filteredResponse.map((line) => line.trim()).toList();
     try {
       final result = await sendData(dataLines);
-      print('Send Data Result: $result');
     } catch (e) {
       print('Error: $e');
     }

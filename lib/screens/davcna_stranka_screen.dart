@@ -2,6 +2,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -58,8 +59,8 @@ class DavcnaStrankaScreen extends ConsumerWidget {
               child: TextField(
                 autofocus: true,
                 showCursor: true,
-                readOnly: true,
                 controller: _strankaController,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(
                   filled: true,

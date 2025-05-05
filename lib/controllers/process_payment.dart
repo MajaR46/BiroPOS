@@ -31,8 +31,6 @@ class ProcessPayment {
     final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
     final paymentMethods = ref.watch(paymentMethodProvider);
     final prefs = await SharedPreferences.getInstance();
-    print("bluetooth printanje $bluetoothPrintanje");
-    print("usb printanje $usbPrintanje");
 
     String? posUrlNastavitve = prefs.getString('POS') ?? "";
     String? tid = prefs.getString('TID');
@@ -65,11 +63,9 @@ class ProcessPayment {
         }
 
         if (result != "Success") {
-          print("Transakcija ni uspela, naročilo ne bo ustvarjeno.");
           return; // Prepreči ustvarjanje naročila
         }
       } catch (e) {
-        print("Napaka pri komunikaciji z Besteronom: ${e.toString()}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
@@ -88,7 +84,6 @@ class ProcessPayment {
           .createOrder(context, paymentType, davcnaSt);
 
       if (response.any((line) => line.contains("#NAPAKA#"))) {
-        print("response contains napaka");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response.toString())),
         );
@@ -139,10 +134,8 @@ class ProcessPayment {
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);
         clearSearchQuery(ref);
-        print("PRINT TUKAJ TUKAJ TUKAJ");
       } catch (e) {
         // Napaka pri pošiljanju podatkov preko Bluetootha
-        print("Bluetooth data send failed: ${e.toString()}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -157,7 +150,6 @@ class ProcessPayment {
       }
     } catch (e) {
       // Splošna napaka pri obdelavi plačila
-      print("Napaka pri obdelavi plačila: ${e.toString()}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
@@ -181,13 +173,11 @@ class ProcessPayment {
       if (!bluetoothConnected || !bluetoothEnabled) {
         // await ErrorDialogs.showBluetoothErrorDialog(context, response);
         // await ErrorDialogs.showResponseDialog(response, context!);
-        print("PRINT 11");
         return false; // Bluetooth is not connected or enabled
       }
       return true; // Bluetooth is connected and enabled
     } catch (e) {
       // Handle any errors during the Bluetooth check
-      print("Error checking Bluetooth status: $e");
       return false; // Consider Bluetooth not connected in case of an error
     }
   }
@@ -217,13 +207,10 @@ class ProcessPayment {
     ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
     clearSelectedItem(ref);
     clearSearchQuery(ref);
-    print("PRINT TUKAJ TUKAJ SUNMI");
   }
 
   void _updateFinalSum() {
     double total = ref.watch(narociloNotifierProvider.notifier).totalSum();
-    if (total == null) {
-      print("Warning: totalSum() returned null");
-    }
+    if (total == null) {}
   }
 }

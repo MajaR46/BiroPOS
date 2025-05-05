@@ -656,7 +656,7 @@ class ApiKeyTextfield extends StatelessWidget {
           obscureText: isHidden,
           textAlignVertical: TextAlignVertical.bottom,
           decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+            contentPadding: EdgeInsets.symmetric(vertical: 10.0),
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: AppStyles.blue, width: 1),
             ),

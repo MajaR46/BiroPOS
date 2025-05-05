@@ -67,12 +67,9 @@ class TableNotifier extends Notifier<List<TableItem>> {
 
       String opis = item.description;
       String artikelSkupina = item.product.categoryID.toString();
-      print(
-          '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\t$opis\t$artikelSkupina');
 
       return '$userId\t$tableNumber\t$productCode\t$quantity\t$price\t$discount\t$opis\t$artikelSkupina';
     }).toList();
-    print(tableItems);
 
     List<String> serverResponse =
         await sendRequest(userId, tableItems.join('\r\n'));

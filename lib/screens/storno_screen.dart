@@ -34,7 +34,6 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
 
       String txtData = 'StornoRacuna\t$userSifra\t$stRacuna';
       List<String> apiResponse = await sendRequest(userSifra ?? '', txtData);
-      print('api response $apiResponse');
 
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
       final printableResponse = filteredResponse.join("\r\n");
