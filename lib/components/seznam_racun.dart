@@ -16,7 +16,8 @@ class SeznamRacun extends ConsumerWidget {
   final double totalDiscount;
   final Function(String?, String, double, bool, [double?]) openDialog;
   final Function(String, double, String, double) removeItem;
-  final Function(double, String, String, double, double) handleQuantityChange;
+  final Function(String, String, String, double, double, double)
+      handleQuantityChange;
 
   const SeznamRacun({
     Key? key,
@@ -82,6 +83,7 @@ class SeznamRacun extends ConsumerWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => EditItemScreen(
+                                    narociloItemUniqueId: item.uniqueId,
                                     itemName: item.product.name,
                                     itemCategory: item.product.categoryID,
                                     itemPrice: item.product.price,
@@ -122,9 +124,10 @@ class SeznamRacun extends ConsumerWidget {
                             quantity: item.quantity,
                             onQuantityChanged: (newQuantity) {
                               handleQuantityChange(
-                                newQuantity,
+                                item.uniqueId,
                                 item.product.id,
                                 item.description,
+                                newQuantity,
                                 item.product.price,
                                 item.quantity,
                               );

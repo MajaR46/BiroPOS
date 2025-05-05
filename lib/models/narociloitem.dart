@@ -1,6 +1,10 @@
 import 'package:BiroPOS/models/item.dart';
+import 'package:uuid/uuid.dart'; // <-- Dodaj import
+
+var _uuid = Uuid(); // Instanca generatorja UUID
 
 class NarociloItem {
+  final String uniqueId; // <-- Dodaj unikatni ID
   final Item product;
   double quantity;
   double discount;
@@ -17,9 +21,9 @@ class NarociloItem {
     this.davcnaSt = '',
     this.isFromTable = false,
     this.tableNumber = '',
-  });
+    String? uniqueId, // <-- Opcijski parameter za copyWith
+  }) : uniqueId = uniqueId ?? _uuid.v4(); // <-- Generiraj ID, če ni podan
 
-  // The updated copyWith method
   NarociloItem copyWith({
     Item? product,
     double? quantity,
@@ -28,11 +32,14 @@ class NarociloItem {
     String? davcnaSt,
     bool? isFromTable,
     String? tableNumber,
-    double? price, // Adding the price parameter here
+    double? price, // Cena se posodablja znotraj product.copyWith
   }) {
     return NarociloItem(
+      uniqueId: this.uniqueId, // <-- PRENESI obstoječi ID
       product: product?.copyWith(price: price) ??
-          this.product, // Update product's price if passed
+          this.product.copyWith(
+              price: price ??
+                  this.product.price), // Posodobi ceno izdelka, če je podana
       quantity: quantity ?? this.quantity,
       discount: discount ?? this.discount,
       description: description ?? this.description,
@@ -40,5 +47,12 @@ class NarociloItem {
       isFromTable: isFromTable ?? this.isFromTable,
       tableNumber: tableNumber ?? this.tableNumber,
     );
+  }
+
+  // Metoda za primerjavo (lahko koristiš v Notifierju, če je potrebno)
+  bool matchesProductAndDescription(NarociloItem other) {
+    return product.id == other.product.id &&
+        product.price == other.product.price &&
+        description == other.description;
   }
 }

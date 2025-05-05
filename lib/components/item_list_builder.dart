@@ -319,7 +319,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
 
           final sortedItems = filteredItems
             ..sort((item1, item2) => item1['name'].compareTo(item2['name']));
-          print("st stolpcev ${widget.columnNum}");
           return SingleChildScrollView(
             child: Wrap(
               spacing: 4.0, // Razmik med karticami horizontalno

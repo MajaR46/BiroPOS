@@ -97,7 +97,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       _searchListener();
       _searchListener2();
     }
-    // V landscape načinu ne naredimo nič, ker bo iskanje ročno sproženo z gumbom
   }
 
   void _searchListener() {
@@ -475,6 +474,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     if (selectedItem != null) {
       //Use provider to update
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.uniqueId,
           selectedItem.product.id,
           selectedItem.description,
           selectedItem.quantity + 1,
@@ -493,6 +493,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
       //Use provider to update
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.uniqueId,
           selectedItem.product.id,
           selectedItem.description,
           selectedItem.quantity - 1,
@@ -757,6 +758,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => EditItemScreen(
+            narociloItemUniqueId: selectedItem.uniqueId,
             itemName: selectedItem.product.name,
             itemCategory: selectedItem.product.categoryID,
             itemPrice: selectedItem.product.price,

@@ -10,33 +10,38 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
     print("dodano na račun");
-    // Preverimo, ali količina vsebuje decimalno vrednost
-    bool isDecimalQuantity = narociloItem.quantity % 1 != 0;
 
-    // Poiščemo obstoječi izdelek, če ima celo količino
-    final existingItemIndex = isDecimalQuantity
-        ? -1 // Če je decimalna količina, vedno dodamo kot nov izdelek
-        : state.indexWhere((item) =>
+    // Poiščemo obstoječi izdelek z enakim ID-jem izdelka, ceno IN opisom
+    final existingItemIndex = state.indexWhere((item) =>
             item.product.id == narociloItem.product.id &&
             item.product.price == narociloItem.product.price &&
-            item.description == narociloItem.description);
+            item.description ==
+                narociloItem.description // <-- Primerjaj tudi opis
+        );
 
     if (existingItemIndex != -1) {
-      // Posodobimo količino, če je celotna količina
-      state[existingItemIndex] = state[existingItemIndex].copyWith(
-        quantity: state[existingItemIndex].quantity + narociloItem.quantity,
-        discount: state[existingItemIndex].discount,
-        davcnaSt: davcnaSt ?? state[existingItemIndex].davcnaSt,
-        isFromTable: fromTable,
+      // Če obstaja popolno ujemanje (vključno z opisom), posodobi količino
+      final existingItem = state[existingItemIndex];
+      final updatedItem = existingItem.copyWith(
+        quantity: existingItem.quantity + narociloItem.quantity,
+        // Ohranimo popust in ostale lastnosti obstoječega, razen če jih eksplicitno spreminjamo
+        davcnaSt: davcnaSt ?? existingItem.davcnaSt,
+        isFromTable: fromTable, // Posodobi glede na novo dodajanje
       );
+      // Zamenjaj element v listi
+      final newState = List<NarociloItem>.from(state);
+      newState[existingItemIndex] = updatedItem;
+      state = newState;
     } else {
-      // Dodamo kot nov izdelek
+      // Če ni popolnega ujemanja (ali je opis drugačen), dodaj kot novo postavko
+      // NarociloItem konstruktor bo sam generiral nov uniqueId
       state = [
         ...state,
         narociloItem.copyWith(
-          discount: narociloItem.discount,
+          // Uporabi copyWith za nastavitev davcnaSt itd.
           davcnaSt: davcnaSt,
           isFromTable: fromTable,
+          // Opis in ostalo pride iz `narociloItem` parametra
         ),
       ];
     }
@@ -65,13 +70,10 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     });
   }
 
-  void updateQuantity(String productId, String description, double newQuantity,
-      double itemPrice, double oldQuantity) {
+  void updateQuantity(String uniqueId, String productId, String description,
+      double newQuantity, double itemPrice, double oldQuantity) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId &&
-          item.description == description &&
-          item.product.price == itemPrice &&
-          item.quantity == oldQuantity) {
+      if (item.uniqueId == uniqueId) {
         return item.copyWith(quantity: newQuantity);
       }
       return item;
@@ -79,12 +81,10 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
-  void updateDiscount(String productId, String description, double itemPrice,
-      double discountedPrice, double discountPercentage) {
+  void updateDiscount(
+      String uniqueItemId, double discountedPrice, double discountPercentage) {
     final updatedItems = state.map((item) {
-      if (item.product.id == productId &&
-          item.description == description &&
-          item.product.price == itemPrice) {
+      if (item.uniqueId == uniqueItemId) {
         return item.copyWith(
           product: item.product.copyWith(discountedPrice: discountedPrice),
           discount: discountPercentage,
@@ -96,17 +96,14 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
-  void updateOpis(String productId, double productPrice, String newOpis) {
-    final updatedItems = state.map((item) {
-      if (item.product.id == productId &&
-          item.product.price == productPrice &&
-          item.description.isEmpty) {
+  void updateOpis(String uniqueItemId, String newOpis) {
+    state = state.map((item) {
+      if (item.uniqueId == uniqueItemId) {
+        // Odstranjen pogoj item.description.isEmpty
         return item.copyWith(description: newOpis);
       }
       return item;
     }).toList();
-
-    state = updatedItems;
   }
 
   void updatePrice(String productId, double newPrice) {

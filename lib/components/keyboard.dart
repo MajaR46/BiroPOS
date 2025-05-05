@@ -73,6 +73,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       });
       if (selectedItem != null) {
         ref.read(narociloNotifierProvider.notifier).updateQuantity(
+            selectedItem.uniqueId,
             selectedItem.product.id,
             selectedItem.description,
             itemQuantity,
@@ -183,6 +184,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 
       // Update the quantity in the provider
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
+          selectedItem.uniqueId,
           selectedItem.product.id,
           selectedItem.description,
           factor,

@@ -103,11 +103,16 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     });
   }
 
-  void _handleQuantityChange(double newQuantity, String productId,
-      String description, double itemPrice, double oldQuantity) {
+  void _handleQuantityChange(
+      String uniqueId,
+      String productId,
+      String description,
+      double newQuantity,
+      double itemPrice,
+      double oldQuantity) {
     //Change from int index to item ID
     ref.read(narociloNotifierProvider.notifier).updateQuantity(
-        productId, description, newQuantity, itemPrice, oldQuantity);
+        uniqueId, productId, description, newQuantity, itemPrice, oldQuantity);
     _updateTotalDiscount();
     print("TUKI PROBLEM 1");
   }
@@ -169,12 +174,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           double discountedPrice = itemPrice * (1 - finalDiscountPercentage);
           print("discountedprice $discountedPrice");
 
-          ref.read(narociloNotifierProvider.notifier).updateDiscount(
-              item.product.id,
-              item.description,
-              item.product.price,
-              discountedPrice,
-              discount ?? 0);
+          ref
+              .read(narociloNotifierProvider.notifier)
+              .updateDiscount(item.uniqueId, discountedPrice, discount ?? 0);
         }
         _updateTotalDiscount();
       });
@@ -198,12 +200,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             0;
         double discountedPrice = itemPrice * (1 - itemDiscount);
 
-        ref.read(narociloNotifierProvider.notifier).updateDiscount(
-            item.product.id,
-            item.description,
-            item.product.price,
-            discountedPrice,
-            discount ?? 0);
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .updateDiscount(item.uniqueId, discountedPrice, discount ?? 0);
       }
 
       _updateTotalDiscount();

@@ -29,7 +29,6 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   final String uniqueUid = 'android_${userSifra}_abcdef_$formattedDate';
 
   final String body = '{"uid":"$uniqueUid","txt_data":"$txtData"}';
-  print("body $body");
 
   try {
     final response = await http
@@ -42,7 +41,6 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
       throw TimeoutException("Connection timed out: ni povezave");
     });
 
-    print("response $response");
     var newHeader = response.headers
       ..["content-type"] = "application/json; text=plain; *=*";
 

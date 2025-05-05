@@ -10,13 +10,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Define your screen as ConsumerStatefulWidget to access Riverpod providers
 class EditItemScreen extends ConsumerStatefulWidget {
+  final String narociloItemUniqueId;
+
   final String itemName;
   final String itemCategory;
   final double itemPrice;
   const EditItemScreen(
       {super.key,
+      required this.narociloItemUniqueId,
       required this.itemName,
       required this.itemCategory,
       required this.itemPrice});
@@ -30,41 +32,64 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
   List<String> itemOpis = [];
   List<Dodatek> dodatki = [];
   List<Dodatek> filteredDodatki = [];
+  NarociloItem? _currentItem; // Za shranjevanje trenutne postavke
 
-  @override
   void initState() {
     super.initState();
-    _handleData();
+    _loadItemData(); // Naloži podatke o postavki
+    _handleData(); // Naloži dodatke
     WidgetsBinding.instance.addPostFrameCallback((_) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
     });
+  }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final narociloItems = ref.read(narociloNotifierProvider);
+  void _loadItemData() {
+    // Najdi postavko v providerju na podlagi uniqueId
+    final narociloItems = ref.read(narociloNotifierProvider);
+    try {
       final currentItem = narociloItems.firstWhere(
-        (item) => item.product.name == widget.itemName,
-        orElse: () => NarociloItem(
-          product: Item(name: '', price: 0.0),
-          description: '',
-        ),
+        (item) => item.uniqueId == widget.narociloItemUniqueId,
       );
-
-      if (currentItem != null && currentItem.description != null) {
-        setState(() {
-          _opisController.text = currentItem.description;
-        });
-      }
-    });
+      setState(() {
+        _currentItem = currentItem;
+        _opisController.text =
+            currentItem.description; // Nastavi obstoječi opis
+        // Filtriraj dodatke glede na kategorijo najdene postavke
+        if (_currentItem != null && _currentItem!.product.categoryID != null) {
+          _filterDodatki(_currentItem!.product.categoryID!);
+        }
+      });
+    } catch (e) {
+      // Če postavka ni najdena (napaka ali je bila medtem odstranjena)
+      print(
+          "Error finding item with uniqueId ${widget.narociloItemUniqueId}: $e");
+      // Morda zapri zaslon ali prikaži napako
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pop();
+        }
+      });
+    }
   }
 
+  // Funkcija za posodobitev text fielda ostane podobna
   void _updateTextField(String text) {
+    // Namesto dodajanja v seznam, direktno manipuliraj z _opisController.text
+    final currentText = _opisController.text;
+    final selection = _opisController.selection;
+    final newText =
+        currentText.isEmpty ? text : '$currentText $text'; // Dodaj presledek
+
     setState(() {
-      print(itemOpis);
-      itemOpis.add(text);
-      _opisController.text = itemOpis.join(' ');
+      _opisController.text = newText;
+      // Premakni kurzor na konec
+      _opisController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _opisController.text.length),
+      );
     });
   }
 
+  // _handleData, _categorizeResponseItems ostanejo enaki
   Future<void> _handleData() async {
     try {
       final box = Hive.box('biroposData');
@@ -72,11 +97,11 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
           List<String>.from(box.get('biroPosData', defaultValue: []));
       _categorizeResponseItems(apiResponseList);
 
-      print("edit item ${apiResponseList.toString}");
-
-      if (apiResponseList == null) {
-        print("No data");
-        return;
+      // Ponovno filtriraj dodatke, če item kategorija še ni bila znana ob prvem klicu
+      if (_currentItem != null &&
+          _currentItem!.product.categoryID != null &&
+          filteredDodatki.isEmpty) {
+        _filterDodatki(_currentItem!.product.categoryID!);
       }
     } catch (e) {
       print("error loading data $e");
@@ -85,24 +110,24 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   void _categorizeResponseItems(List<String> items) {
     List<Dodatek> dodatki2 = [];
-
     for (String item in items) {
+      // ... logika ostane enaka ...
       if (item.startsWith('D')) {
         List<String> parts = item.split('|');
-        String imeDodatka = parts[1];
-        List<String> pripadajoceKategorije = parts[2].split(',');
-
-        dodatki2.add(Dodatek(
-          ime: imeDodatka,
-          pripadajoceKategorije: pripadajoceKategorije,
-        ));
+        if (parts.length >= 3) {
+          // Preveri dolžino
+          String imeDodatka = parts[1];
+          List<String> pripadajoceKategorije = parts[2].split(',');
+          dodatki2.add(Dodatek(
+            ime: imeDodatka,
+            pripadajoceKategorije: pripadajoceKategorije,
+          ));
+        }
       }
     }
-
-    setState(() {
-      dodatki = dodatki2;
-      _filterDodatki(widget.itemCategory);
-    });
+    // Ne kličemo setState tukaj, ker morda še nimamo kategorije izdelka
+    dodatki = dodatki2;
+    // Filtriranje se zgodi v _loadItemData ali _handleData, ko imamo kategorijo
   }
 
   void _filterDodatki(String categoryId) {
@@ -264,8 +289,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                 final resultOpis = _opisController.text.trim();
 
                 narociloNotifier.updateOpis(
-                  currentItem.product.id,
-                  currentItem.product.price,
+                  widget.narociloItemUniqueId, // <-- Pošlji uniqueId
                   resultOpis,
                 );
                 SystemChrome.setEnabledSystemUIMode(
