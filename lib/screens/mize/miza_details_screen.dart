@@ -151,7 +151,6 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
     _dodajNaRacun(itemsToProcess);
 
-    // Navigate to PrenosMizeScreen, passing the current table number
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -163,6 +162,20 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   void onQuantityChanged(double newQuantity, int index) {
     setState(() {
       izdelki[index] = izdelki[index].copyWith(quantity: newQuantity);
+    });
+  }
+
+  void _disableItems([int? index]) {
+    setState(() {
+      if (index != null) {
+        final item = izdelki[index];
+        izdelki[index] = item.copyWith(disabled: !(item.disabled ?? false));
+      } else {
+        final allDisabled = izdelki.every((item) => item.disabled == true);
+        izdelki = izdelki
+            .map((item) => item.copyWith(disabled: !allDisabled))
+            .toList();
+      }
     });
   }
 
@@ -180,6 +193,20 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         title: Text("Miza: $imeMize",
             style: AppStyles.heading3.copyWith(color: AppStyles.black)),
         centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: IconButton.filled(
+                style: IconButton.styleFrom(
+                    backgroundColor: AppStyles.brightRed,
+                    foregroundColor: AppStyles.white),
+                onPressed: () {
+                  HapticFeedback.vibrate();
+                  _disableItems();
+                },
+                icon: const Icon(Icons.delete)),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -201,100 +228,111 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                         itemBuilder: (context, index) {
                           final item = izdelki[index];
                           bool isSelected = izbraniIzdelki.contains(item);
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  izbraniIzdelki.add(item);
-                                });
-                                HapticFeedback.vibrate();
-                              },
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(item.productName,
-                                                style:
-                                                    AppStyles.boldanparagraph1),
-                                          ],
+                          return Container(
+                            color: (item.disabled ?? false)
+                                ? AppStyles.grey.withOpacity(0.5)
+                                : AppStyles.white,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    izbraniIzdelki.add(item);
+                                  });
+                                  HapticFeedback.vibrate();
+                                },
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(item.productName,
+                                                  style: AppStyles
+                                                      .boldanparagraph1),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 8),
-                                        child: Text('${item.price.toString()}€',
-                                            style: AppStyles.heading3),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      IconButton.filled(
-                                          style: IconButton.styleFrom(
-                                              backgroundColor:
-                                                  AppStyles.brightRed),
-                                          onPressed: () {
-                                            _deleteFromRacun(index);
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(right: 8),
+                                          child: Text(
+                                              '${item.price.toString()}€',
+                                              style: AppStyles.heading3),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        IconButton.filled(
+                                            style: IconButton.styleFrom(
+                                                backgroundColor:
+                                                    (item.disabled ?? false)
+                                                        ? AppStyles.grey
+                                                        : AppStyles.brightRed),
+                                            onPressed: () {
+                                              _disableItems(index);
+                                              HapticFeedback.vibrate();
+                                            },
+                                            icon: const Icon(Icons.delete)),
+                                        const Spacer(),
+                                        QuantityIncrease(
+                                          quantity: item.quantity,
+                                          onQuantityChanged: (newQuantity) {
+                                            onQuantityChanged(
+                                                newQuantity, index);
                                             HapticFeedback.vibrate();
                                           },
-                                          icon: const Icon(Icons.delete)),
-                                      const Spacer(),
-                                      QuantityIncrease(
-                                        quantity: item.quantity,
-                                        onQuantityChanged: (newQuantity) {
-                                          onQuantityChanged(newQuantity, index);
-                                          HapticFeedback.vibrate();
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-
-                              /* Card(
-                                color: isSelected
-                                    ? Colors.blue.withOpacity(0.1)
-                                    : AppStyles.silver.withOpacity(0.1),
-                                elevation: 0,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 120,
-                                        child: Text(
-                                          item.productName,
-                                          style: AppStyles.paragraph2.copyWith(
-                                              fontWeight: FontWeight.bold),
                                         ),
-                                      ),
-                                      const Spacer(),
-                                      IconButton.filled(
-                                          style: IconButton.styleFrom(
-                                              backgroundColor: AppStyles.red),
-                                          onPressed: () => _deleteFromRacun(
-                                              index), // Pass the index here
-                                          icon: const Icon(Icons.delete)),
-                                      QuantityIncrease(
-                                        quantity: item.quantity,
-                                        onQuantityChanged: (newQuantity) =>
-                                            onQuantityChanged(
-                                                newQuantity, index),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    )
+                                  ],
                                 ),
-                              ), */
+
+                                /* Card(
+                                  color: isSelected
+                                      ? Colors.blue.withOpacity(0.1)
+                                      : AppStyles.silver.withOpacity(0.1),
+                                  elevation: 0,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                    child: Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 120,
+                                          child: Text(
+                                            item.productName,
+                                            style: AppStyles.paragraph2.copyWith(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        IconButton.filled(
+                                            style: IconButton.styleFrom(
+                                                backgroundColor: AppStyles.red),
+                                            onPressed: () => _deleteFromRacun(
+                                                index), // Pass the index here
+                                            icon: const Icon(Icons.delete)),
+                                        QuantityIncrease(
+                                          quantity: item.quantity,
+                                          onQuantityChanged: (newQuantity) =>
+                                              onQuantityChanged(
+                                                  newQuantity, index),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ), */
+                              ),
                             ),
                           );
                         },
