@@ -124,7 +124,10 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _ok() {
-    final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
+    final itemsToProcess =
+        (izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki)
+            .where((item) => item.disabled != true)
+            .toList();
     _dodajNaRacun(itemsToProcess);
     clearSelectedItem(ref);
 

@@ -25,11 +25,20 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
   List<String> narocila = [];
   late Timer _timer;
   int stMinut = 1;
+  late String textSize = '';
 
   @override
   void initState() {
     super.initState();
     _refreshPage();
+    _getPreferences();
+  }
+
+  Future<void> _getPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      textSize = prefs.getString('velikostNarocila') ?? '';
+    });
   }
 
   Future<void> _refreshPage() async {
@@ -113,6 +122,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final narociloTextSize = double.tryParse(textSize) ?? 16.0;
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: AppBar(
@@ -149,7 +159,9 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
                           alignment: Alignment.centerLeft,
                           child: Text(
                             order,
-                            style: const TextStyle(fontSize: 16),
+                            style: TextStyle(
+                                fontSize: narociloTextSize,
+                                fontFamily: 'FiraMono'),
                           ),
                         ),
                       ),
