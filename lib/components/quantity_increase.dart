@@ -57,6 +57,7 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -77,9 +78,15 @@ class QuantityIncreaseState extends State<QuantityIncrease> {
               ),
             ),
           ),
-          Text(
-            '${_currentQuantity.toStringAsFixed(1)}',
-            style: AppStyles.heading4.copyWith(fontWeight: FontWeight.normal),
+          IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                '${_currentQuantity.toStringAsFixed(1)}',
+                style:
+                    AppStyles.heading4.copyWith(fontWeight: FontWeight.normal),
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),

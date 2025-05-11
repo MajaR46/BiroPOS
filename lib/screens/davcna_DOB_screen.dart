@@ -1,6 +1,6 @@
-import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/numpad.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';

@@ -1,5 +1,5 @@
 import 'package:BiroPOS/components/ok_button.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/print.dart';

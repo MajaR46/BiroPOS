@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/generate_receipt_code.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
 import 'package:BiroPOS/controllers/print.dart';
-import 'package:BiroPOS/controllers/save_to_txt.dart';
+import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
@@ -90,17 +91,20 @@ class ProcessPayment {
         return;
       }
 
+      final modifiedResponse = insertCodeInReceipt(response);
+
       if (bluetoothPrintanje) {
         await _processBluetoothPrinting(
-            context, response, paymentType, finalSum);
+            context, modifiedResponse, paymentType, finalSum);
       } else if (usbPrintanje) {
-        await _processUsbPrinting(response);
+        await _processUsbPrinting(modifiedResponse);
       } else if (Platform.isWindows) {
-        List<String> cleanLines = ocistiVrstice(response);
+        List<String> cleanLines = ocistiVrstice(modifiedResponse);
         String finalReceiptLines = cleanLines.join('\n');
         saveFileNextToExe(finalReceiptLines, context, ref);
       } else {
-        await _processInnerPrinting(context, response, paymentType, finalSum);
+        await _processInnerPrinting(
+            context, modifiedResponse, paymentType, finalSum);
       }
       _updateFinalSum();
     } catch (e) {

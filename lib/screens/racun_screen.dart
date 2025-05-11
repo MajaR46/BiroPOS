@@ -1,4 +1,4 @@
-import 'package:BiroPOS/components/id_ean_search.dart';
+import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
 import 'package:BiroPOS/components/racun_list_banner.dart';
@@ -113,6 +113,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     //Change from int index to item ID
     ref.read(narociloNotifierProvider.notifier).updateQuantity(
         uniqueId, productId, description, newQuantity, itemPrice, oldQuantity);
+
     _updateTotalDiscount();
   }
 

@@ -6,7 +6,7 @@ import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/racun_list_banner.dart';
 import 'package:BiroPOS/components/seznam_racun.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';

@@ -66,6 +66,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         izdelki = fetchedItems;
         _isLoading = false;
       });
+      ref.read(tableNotifierProvider.notifier).clearTable(); // nova vrstica
 
       for (var item in fetchedItems) {
         ref.read(tableNotifierProvider.notifier).addToTable(item);
@@ -151,7 +152,10 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _prenosMize() {
-    final itemsToProcess = izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki;
+    final itemsToProcess =
+        (izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki)
+            .where((item) => item.disabled != true)
+            .toList();
     _dodajNaRacun(itemsToProcess);
 
     Navigator.push(
@@ -238,103 +242,55 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    izbraniIzdelki.add(item);
-                                  });
-                                  HapticFeedback.vibrate();
-                                },
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(item.productName,
-                                                  style: AppStyles
-                                                      .boldanparagraph1),
-                                            ],
-                                          ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(item.productName,
+                                                style:
+                                                    AppStyles.boldanparagraph1),
+                                          ],
                                         ),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(right: 8),
-                                          child: Text(
-                                              '${item.price.toString()}€',
-                                              style: AppStyles.heading3),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        IconButton.filled(
-                                            style: IconButton.styleFrom(
-                                                backgroundColor:
-                                                    (item.disabled ?? false)
-                                                        ? AppStyles.grey
-                                                        : AppStyles.brightRed),
-                                            onPressed: () {
-                                              _disableItems(index);
-                                              HapticFeedback.vibrate();
-                                            },
-                                            icon: const Icon(Icons.delete)),
-                                        const Spacer(),
-                                        QuantityIncrease(
-                                          quantity: item.quantity,
-                                          onQuantityChanged: (newQuantity) {
-                                            onQuantityChanged(
-                                                newQuantity, index);
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8),
+                                        child: Text('${item.price.toString()}€',
+                                            style: AppStyles.heading3),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      IconButton.filled(
+                                          style: IconButton.styleFrom(
+                                              backgroundColor:
+                                                  (item.disabled ?? false)
+                                                      ? AppStyles.grey
+                                                      : AppStyles.brightRed),
+                                          onPressed: () {
+                                            _disableItems(index);
                                             HapticFeedback.vibrate();
                                           },
-                                        ),
-                                      ],
-                                    )
-                                  ],
-                                ),
-
-                                /* Card(
-                                  color: isSelected
-                                      ? Colors.blue.withOpacity(0.1)
-                                      : AppStyles.silver.withOpacity(0.1),
-                                  elevation: 0,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 8),
-                                    child: Row(
-                                      children: [
-                                        SizedBox(
-                                          width: 120,
-                                          child: Text(
-                                            item.productName,
-                                            style: AppStyles.paragraph2.copyWith(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        IconButton.filled(
-                                            style: IconButton.styleFrom(
-                                                backgroundColor: AppStyles.red),
-                                            onPressed: () => _deleteFromRacun(
-                                                index), // Pass the index here
-                                            icon: const Icon(Icons.delete)),
-                                        QuantityIncrease(
-                                          quantity: item.quantity,
-                                          onQuantityChanged: (newQuantity) =>
-                                              onQuantityChanged(
-                                                  newQuantity, index),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ), */
+                                          icon: const Icon(Icons.delete)),
+                                      const Spacer(),
+                                      QuantityIncrease(
+                                        quantity: item.quantity,
+                                        onQuantityChanged: (newQuantity) {
+                                          onQuantityChanged(newQuantity, index);
+                                          HapticFeedback.vibrate();
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                ],
                               ),
                             ),
                           );

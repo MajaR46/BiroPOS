@@ -1,7 +1,7 @@
-import 'package:BiroPOS/components/debouncer.dart';
+import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
-import 'package:BiroPOS/components/search_items.dart';
-import 'package:BiroPOS/components/vracilo_denarja.dart';
+import 'package:BiroPOS/utils/search_items.dart';
+import 'package:BiroPOS/utils/vracilo_denarja.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';

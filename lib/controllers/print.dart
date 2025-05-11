@@ -2,10 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:BiroPOS/components/usb_printer.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/generate_receipt_code.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
-import 'package:BiroPOS/controllers/save_to_txt.dart';
+import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
@@ -32,22 +33,21 @@ class Print {
 
     if (text.any((line) => line.contains("#NAPAKA#"))) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(text
-                .toString())), // Lahko tudi izpišeš celoten seznam za boljši vpogled
+        SnackBar(content: Text(text.toString())),
       );
-      return; // Prepreči nadaljnje obdelave in tiskanje
+      return;
     } else {
+      final modifiedResponse = insertCodeInReceipt(text);
+
       if (bluetoothPrintanje == true) {
         try {
-          bool isConnected =
-              await ProcessPayment.isBluetoothConnected(context, text);
+          bool isConnected = await ProcessPayment.isBluetoothConnected(
+              context, modifiedResponse);
           if (isConnected == false) {
             await bluetoothService.connectToDevice(context);
           }
 
-          // Add new line before every item
-          await BluetoothService.sendData(text, ref,
+          await BluetoothService.sendData(modifiedResponse, ref,
               context: context, addEmptyLines: true);
 
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
@@ -61,7 +61,7 @@ class Print {
         }
       } else if (usbPrintanje) {
         try {
-          await UsbPrint.sendDataUsb(text);
+          await UsbPrint.sendDataUsb(modifiedResponse);
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
@@ -72,7 +72,7 @@ class Print {
           return;
         }
       } else if (Platform.isWindows) {
-        List<String> cleanLines = ocistiVrstice(text);
+        List<String> cleanLines = ocistiVrstice(modifiedResponse);
         String finalReceiptLines = cleanLines.join('\n');
         saveFileNextToExe(finalReceiptLines, context, ref);
       } else {
@@ -80,7 +80,7 @@ class Print {
           await Future.delayed(Duration(seconds: 2));
 
           await Utils.printTextWithIntegratedSunmi(
-              context, text.join('\n'), ref);
+              context, modifiedResponse.join('\n'), ref);
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);

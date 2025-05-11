@@ -1,6 +1,6 @@
-import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/ok_button.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';

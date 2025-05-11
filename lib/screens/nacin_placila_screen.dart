@@ -1,6 +1,6 @@
-import 'package:BiroPOS/components/debouncer.dart';
+import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';

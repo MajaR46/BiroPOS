@@ -1,12 +1,12 @@
 import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
-import 'package:BiroPOS/components/debouncer.dart';
-import 'package:BiroPOS/components/id_ean_search.dart';
+import 'package:BiroPOS/utils/debouncer.dart';
+import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/components/item_list_builder.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/landscape_layout.dart';
-import 'package:BiroPOS/components/search_items.dart';
+import 'package:BiroPOS/utils/search_items.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/models/item.dart';
@@ -293,38 +293,44 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
-    setState(() {
-      Item originalItem = Item.fromMap(outputtedItem); // Create from the map
-      Item newItem = originalItem.copyWith(); // <----  Create a copy here
+    print("selected");
 
+    setState(() {
+      // Pretvori mapo v artikel
+      Item originalItem = Item.fromMap(outputtedItem);
+      Item newItem = originalItem.copyWith();
+
+      // Pripravimo artikel za naročilo (default količina 1)
       NarociloItem newNarociloItem =
-          NarociloItem(product: newItem, quantity: 1); // Always create the item
-      final currentItems = ref.watch(narociloNotifierProvider);
+          NarociloItem(product: newItem, quantity: 1);
+
+      // Preverimo obstoječe artikle
+      final currentItems = ref.read(narociloNotifierProvider); // NE watch
 
       final existingItemIndex = currentItems.indexWhere((item) =>
           item.product.id == newNarociloItem.product.id &&
           item.description == newNarociloItem.description);
 
-      if (existingItemIndex != -1) {
-        // Item already exists
-        // Update quantity
+      // Dodaj artikel (ali posodobi količino)
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(newNarociloItem, fromTable: false);
 
-        if (itemQuantity % 1 != 0) {}
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false);
+      // Po posodobitvi ponovno preberi posodobljeno stanje
+      final updatedItems = ref.read(narociloNotifierProvider);
 
-        final existingItem = currentItems[existingItemIndex];
-        ref.read(selectedItemProvider.notifier).state = existingItem;
-      } else {
-        // Item doesn't exist yet
-        //Add item to cart
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false);
+      // Pridobi posodobljen artikel iz stanja
+      final updatedItem = updatedItems.firstWhere(
+        (item) =>
+            item.product.id == newNarociloItem.product.id &&
+            item.description == newNarociloItem.description,
+        orElse: () => newNarociloItem,
+      );
 
-        ref.read(selectedItemProvider.notifier).state = newNarociloItem;
-      }
+      // Nastavi izbran artikel
+      ref.read(selectedItemProvider.notifier).state = updatedItem;
+
+      // Posodobi končni znesek
       _updateFinalSum();
     });
   }

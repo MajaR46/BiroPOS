@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:BiroPOS/components/utils.dart';
+import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/models/bondedBlutetoothDevice.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';

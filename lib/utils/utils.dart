@@ -1,5 +1,5 @@
 import 'dart:typed_data';
-import 'package:BiroPOS/components/error_dialog.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';

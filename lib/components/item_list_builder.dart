@@ -1,5 +1,5 @@
 import 'package:BiroPOS/app_styles.dart';
-import 'package:BiroPOS/components/debouncer.dart';
+import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';

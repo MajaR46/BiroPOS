@@ -1,4 +1,4 @@
-import 'package:BiroPOS/components/debouncer.dart';
+import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

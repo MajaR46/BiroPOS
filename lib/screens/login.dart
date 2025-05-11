@@ -5,7 +5,8 @@ import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
-import 'package:BiroPOS/controllers/save_to_txt.dart';
+import 'package:BiroPOS/utils/generate_receipt_code.dart';
+import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/hive_adaprters/blagajna.dart';
 import 'package:BiroPOS/hive_adaprters/osebje.dart';
@@ -53,7 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.22.0';
+  String verzijaPrograma = '5.22.4';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
