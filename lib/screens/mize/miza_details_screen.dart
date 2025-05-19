@@ -101,8 +101,6 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _dodajNaRacun(List<TableItem> items) {
-    final uuid = const Uuid();
-
     final narociloItems = items.map((tableItem) {
       final item = Item(
         id: tableItem.productCode,
@@ -116,7 +114,6 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         tableNumber: imeMize,
         quantity: tableItem.quantity,
         description: '',
-        uniqueId: uuid.v4(),
         isFromTable: true,
       );
     }).toList();

@@ -9,10 +9,22 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
+    int existingItemIndex = -1;
 
-    // Poiščemo obstoječi izdelek z enakim ID-jem izdelka, ceno IN opisom
-    final existingItemIndex =
-        state.indexWhere((item) => item.uniqueId == narociloItem.uniqueId);
+    if (narociloItem.quantity % 1 != 0) {
+      existingItemIndex =
+          state.indexWhere((item) => item.uniqueId == narociloItem.uniqueId);
+    } else {
+      existingItemIndex = state.indexWhere((item) {
+        bool isExistingItemIntegerQuantity = (item.quantity % 1 == 0);
+
+        return isExistingItemIntegerQuantity &&
+            item.product.id == narociloItem.product.id &&
+            item.product.price == narociloItem.product.price &&
+            item.description == narociloItem.description &&
+            item.discount == narociloItem.discount;
+      });
+    }
 
     if (existingItemIndex != -1) {
       // Če obstaja popolno ujemanje (vključno z opisom), posodobi količino
