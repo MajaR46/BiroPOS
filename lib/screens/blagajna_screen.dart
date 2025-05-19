@@ -543,6 +543,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String formattedTime = DateFormat("HH:mm").format(currentDate);
 
     final String? user = SessionManager().getLoggedInUserName();
+    print("user $user");
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
     final settings = ref.watch(settingsProvider);
@@ -565,29 +566,32 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
     return Scaffold(
         backgroundColor: AppStyles.lightGrey,
-        appBar: AppBar(
-          centerTitle: true,
-          toolbarHeight: 32.0,
-          backgroundColor: AppStyles.white,
-          iconTheme: const IconThemeData(color: AppStyles.blue),
-          title: GestureDetector(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(32.0),
+          child: GestureDetector(
             onDoubleTap: _hideKeyboard,
-            child: Text(
-              user ?? '',
-              style: AppStyles.paragraph3
-                  .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
-            ),
-          ),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Text(
-                formattedTime,
+            child: AppBar(
+              centerTitle: true,
+              toolbarHeight: 32.0,
+              backgroundColor: AppStyles.white,
+              iconTheme: const IconThemeData(color: AppStyles.blue),
+              title: Text(
+                user ?? '',
                 style: AppStyles.paragraph3.copyWith(
                     color: AppStyles.blue, fontWeight: FontWeight.bold),
               ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Text(
+                    formattedTime,
+                    style: AppStyles.paragraph3.copyWith(
+                        color: AppStyles.blue, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
         drawer: const CustomDrawer(),
         body: isLoading

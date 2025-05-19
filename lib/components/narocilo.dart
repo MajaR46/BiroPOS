@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 
 class Narocilo {
   static int stNarocila = 1;
-  static String? user = SessionManager().getLoggedInUserName();
 
   static Future<void> createNarocilo(
       WidgetRef ref, bool isFromTable, BuildContext context,
@@ -20,6 +19,9 @@ class Narocilo {
     String orderNumberTime = DateFormat("mmss").format(currentDate);
     final narociloItems = ref.watch(narociloNotifierProvider);
     int orderNumber = ref.watch(orderNumberProvider);
+    String? user = SessionManager().getLoggedInUserName();
+
+    print("user narocilo $user");
 
     narocilo.add("NAROCILO");
     narocilo.add("Datum: $formattedDate  $formattedTime");
