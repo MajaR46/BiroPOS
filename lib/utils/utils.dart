@@ -19,8 +19,8 @@ class Utils {
         .toList();
   }
 
-  static Future<void> printTextWithIntegratedSunmi(
-      BuildContext context, String text, WidgetRef ref) async {
+  static Future<void> printTextWithIntegratedSunmi(BuildContext context,
+      String text, WidgetRef ref, bool isBesteronSucess) async {
     final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
     final settings = ref.watch(settingsProvider);
     final vecjiPrint = settings['isCheckedVecjiPrint'] ?? false;
@@ -39,8 +39,10 @@ class Utils {
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
 
-        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-        clearSelectedItem(ref);
+        if (isBesteronSucess) {
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+          clearSelectedItem(ref);
+        }
 
         return;
       } else {

@@ -46,7 +46,6 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
 
       String txtData = 'VrniSeznamMiz';
       List<String> apiResponseList = await sendRequest(userId!, txtData);
-      print(apiResponseList);
       List<Map<String, String>> parsedTables = [];
 
       for (String line in apiResponseList) {

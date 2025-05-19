@@ -11,12 +11,8 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     final String? davcnaSt = ref.read(taxNumberProvider);
 
     // Poiščemo obstoječi izdelek z enakim ID-jem izdelka, ceno IN opisom
-    final existingItemIndex = state.indexWhere((item) =>
-            item.product.id == narociloItem.product.id &&
-            item.product.price == narociloItem.product.price &&
-            item.description ==
-                narociloItem.description // <-- Primerjaj tudi opis
-        );
+    final existingItemIndex =
+        state.indexWhere((item) => item.uniqueId == narociloItem.uniqueId);
 
     if (existingItemIndex != -1) {
       // Če obstaja popolno ujemanje (vključno z opisom), posodobi količino

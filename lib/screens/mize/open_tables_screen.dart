@@ -40,6 +40,8 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
       List<String> apiResponseList = await sendRequest(userId!, txtData);
 
+      print("apiResponselist $apiResponseList");
+
       List<Map<String, String>> mize = [];
 
       for (String line in apiResponseList) {

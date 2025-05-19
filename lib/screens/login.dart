@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/klic.dart';
@@ -54,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.22.4';
+  String verzijaPrograma = '5.23.2';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -336,6 +337,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: 250,
                         child: TextField(
                           obscureText: _isHidden,
+                          readOnly: Platform.isWindows ? false : true,
+
                           controller: _logininputcontroller,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly

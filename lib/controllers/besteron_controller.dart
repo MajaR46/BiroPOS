@@ -104,9 +104,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
       "receipt": receipt,
     };
   } catch (e, stackTrace) {
-    print("Error: $e");
-    print("StackTrace: $stackTrace");
-    throw Exception("Besteron call error: $e");
+    throw Exception("Besteron napaka: $e");
   }
 }
 
@@ -181,9 +179,7 @@ Future<List<String>> besteronPorocilo() async {
     }
     return porocilo;
   } catch (e, stackTrace) {
-    print("Error: $e");
-    print("StackTrace: $stackTrace");
-    throw Exception("Besteron call error: $e");
+    throw Exception("Besteron napaka: $e");
   }
 }
 
@@ -264,7 +260,6 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
     }
 
     var result = paymentResponse['Response']?['Result'] ?? 'Failure';
-    print("Payment Result: $result");
 
     var receipt = "";
     var paymentReceipt = paymentResponse['PaymentReceipt'];
@@ -281,8 +276,6 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
       "receipt": receipt,
     };
   } catch (e, stackTrace) {
-    print("Error: $e");
-    print("StackTrace: $stackTrace");
-    throw Exception("Besteron call error: $e");
+    throw Exception("Besteron napaka: $e");
   }
 }

@@ -40,6 +40,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   String itemOpis = '';
   double itemPrice = 0.0;
+  String uniqueId = '';
   late OrderService orderService;
   final TextEditingController searchController = TextEditingController();
   bool _isSearchMode = false;
@@ -208,8 +209,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     }
   }
 
-  Future openDialog(String? productId, String itemDescription, double itemPrice,
-      bool isFinalDiscount,
+  Future openDialog(String? uniqueId, String? productId, String itemDescription,
+      double itemPrice, bool isFinalDiscount,
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
     discountController.clear();
@@ -219,10 +220,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     FocusScope.of(context).unfocus();
 
     if (productId != null && !isFinalDiscount) {
-      var item = chosenItems.firstWhere((element) =>
-          element.product.id == productId &&
-          element.description == itemDescription &&
-          element.product.price == itemPrice);
+      var item = chosenItems.firstWhere(
+        (element) => element.uniqueId == uniqueId,
+      );
       double originalPrice =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0;
@@ -388,7 +388,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                     }
                   },
                   navigateToOpisDiscountScreen: () =>
-                      openDialog(null, itemOpis, itemPrice, true),
+                      openDialog(uniqueId, null, itemOpis, itemPrice, true),
                   navigateToRacun: _navigateToBlagajnaScreen),
             )
           ],

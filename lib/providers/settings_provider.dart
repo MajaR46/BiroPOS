@@ -14,7 +14,9 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
           'isCheckedBarve': false,
           'isCheckedTiskajNarociloPriRacunu': false,
           'isCheckedTiskajNarocilo': false,
-          'isCheckedUsbPrintanje': false
+          'isCheckedUsbPrintanje': false,
+          'isCheckedEthernetPrint': false,
+          'isCheckedReceiptCode': false
         }) {
     _loadSettings();
   }
@@ -38,6 +40,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
     final tiskajNarocilo = prefs.getBool('isCheckedTiskajNarocilo') ?? false;
     final prikaziCene = prefs.getBool('isCheckedPrikazCene') ?? false;
     final usbPrintanje = prefs.getBool('isCheckedUsbPrintanje') ?? false;
+    final ethernetPrint = prefs.getBool('isCheckedEthernetPrint') ?? false;
+    final receiptCode = prefs.getBool('isCheckedReceiptCode') ?? false;
 
     // Update the state with both values
     state = {
@@ -52,7 +56,9 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedTiskajNarociloPriRacunu': tiskajNarociloPriRacunu,
       'isCheckedTiskajNarocilo': tiskajNarocilo,
       'isCheckedPrikazCene': prikaziCene,
-      'isCheckedUsbPrintanje': usbPrintanje
+      'isCheckedUsbPrintanje': usbPrintanje,
+      'isCheckedEthernetPrint': ethernetPrint,
+      'isCheckedReceiptCode': receiptCode
     };
   }
 
@@ -127,6 +133,16 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void toggleVecjiPrint(bool isEnabled) {
     state = {...state, 'isCheckedVecjiPrint': isEnabled};
     _saveSetting('isCheckedVecjiPrint', isEnabled);
+  }
+
+  void toggleEthernetPrint(bool isEnabled) {
+    state = {...state, 'isCheckedEthernetPrint': isEnabled};
+    _saveSetting('isCheckedEthernetPrint', isEnabled);
+  }
+
+  void toggleReceiptCode(bool isEnabled) {
+    state = {...state, 'isCheckedReceiptCode': isEnabled};
+    _saveSetting('isCheckedReceiptCode', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

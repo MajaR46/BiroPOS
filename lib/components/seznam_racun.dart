@@ -14,7 +14,7 @@ class SeznamRacun extends ConsumerWidget {
   final List<NarociloItem> chosenItems;
   final double totalSum;
   final double totalDiscount;
-  final Function(String?, String, double, bool, [double?]) openDialog;
+  final Function(String?, String?, String, double, bool, [double?]) openDialog;
   final Function(String, double, String, double) removeItem;
   final Function(String, String, String, double, double, double)
       handleQuantityChange;
@@ -97,8 +97,8 @@ class SeznamRacun extends ConsumerWidget {
                               backgroundColor: AppStyles.green),
                           onPressed: () {
                             HapticFeedback.vibrate();
-                            openDialog(item.product.id, item.description,
-                                item.product.price, false);
+                            openDialog(item.uniqueId, item.product.id,
+                                item.description, item.product.price, false);
                           },
                           icon: const Icon(Icons.percent),
                         ),

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:BiroPOS/components/usb_printer.dart';
+import 'package:BiroPOS/utils/ethernet_print.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
@@ -26,8 +27,11 @@ class Print {
     final settings = ref.watch(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
     final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
-
+    final ethernetPrintanje = settings['isCheckedEthernetPrint'] ?? false;
+    final receiptCode = settings['isCheckedReceiptCode'] ?? false;
+    bool isBesteronSucess = true;
     final paymentMethods = ref.watch(paymentMethodProvider);
+    List<String> modifiedResponse;
 
     BluetoothService bluetoothService = BluetoothService();
 
@@ -37,7 +41,11 @@ class Print {
       );
       return;
     } else {
-      final modifiedResponse = insertCodeInReceipt(text);
+      if (receiptCode == true) {
+        modifiedResponse = insertCodeInReceipt(text);
+      } else {
+        modifiedResponse = text;
+      }
 
       if (bluetoothPrintanje == true) {
         try {
@@ -49,6 +57,7 @@ class Print {
 
           await BluetoothService.sendData(modifiedResponse, ref,
               context: context, addEmptyLines: true);
+          print("printano z bluetooth");
 
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
@@ -62,6 +71,7 @@ class Print {
       } else if (usbPrintanje) {
         try {
           await UsbPrint.sendDataUsb(modifiedResponse);
+          print("prinatno z usb");
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
@@ -71,16 +81,22 @@ class Print {
           );
           return;
         }
+      } else if (ethernetPrintanje) {
+        print("printano z ethenet");
+        printReceipt(
+            modifiedResponse.join('\n'), context, ref, isBesteronSucess);
       } else if (Platform.isWindows) {
+        print("printano z windows app");
         List<String> cleanLines = ocistiVrstice(modifiedResponse);
         String finalReceiptLines = cleanLines.join('\n');
-        saveFileNextToExe(finalReceiptLines, context, ref);
+        saveFileNextToExe(finalReceiptLines, context, ref, isBesteronSucess);
       } else {
         try {
+          print("printano z integiranim");
           await Future.delayed(Duration(seconds: 2));
 
           await Utils.printTextWithIntegratedSunmi(
-              context, modifiedResponse.join('\n'), ref);
+              context, modifiedResponse.join('\n'), ref, isBesteronSucess);
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);

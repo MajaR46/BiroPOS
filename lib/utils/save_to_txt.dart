@@ -8,8 +8,8 @@ import 'package:path/path.dart' as path;
 
 int stevecRacunov = 0;
 
-void saveFileNextToExe(
-    String txtContent, BuildContext context, WidgetRef ref) async {
+void saveFileNextToExe(String txtContent, BuildContext context, WidgetRef ref,
+    bool isBesteronSucess) async {
   final exePath = Platform.resolvedExecutable;
   final exeDir = path.dirname(exePath);
   try {
@@ -23,8 +23,12 @@ void saveFileNextToExe(
 
     final file = File(filePath);
     await file.writeAsString(txtContent);
-    ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-    clearSelectedItem(ref);
+
+    if (isBesteronSucess) {
+      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+      clearSelectedItem(ref);
+    }
+    ;
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Napaka pri windows tiskanju: $e")));

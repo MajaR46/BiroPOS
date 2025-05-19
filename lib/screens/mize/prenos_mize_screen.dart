@@ -33,7 +33,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
 
     if (newTableNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a new table number")),
+        const SnackBar(content: Text("Vnesi številko mize")),
       );
       return;
     }

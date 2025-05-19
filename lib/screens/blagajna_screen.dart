@@ -67,6 +67,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool isManualSearch = false;
   List<Map<String, String>> _tables = [];
   bool _tablesFetched = false;
+  bool _isKeyboardVisible = true;
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
@@ -293,8 +294,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _ouputselectedItem(dynamic outputtedItem) {
-    print("selected");
-
     setState(() {
       // Pretvori mapo v artikel
       Item originalItem = Item.fromMap(outputtedItem);
@@ -532,6 +531,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         searchText); // Use the function from search_ean.dart
   }
 
+  void _hideKeyboard() {
+    setState(() {
+      _isKeyboardVisible = !_isKeyboardVisible;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
@@ -565,10 +570,13 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           toolbarHeight: 32.0,
           backgroundColor: AppStyles.white,
           iconTheme: const IconThemeData(color: AppStyles.blue),
-          title: Text(
-            user ?? '',
-            style: AppStyles.paragraph3
-                .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
+          title: GestureDetector(
+            onDoubleTap: _hideKeyboard,
+            child: Text(
+              user ?? '',
+              style: AppStyles.paragraph3
+                  .copyWith(color: AppStyles.blue, fontWeight: FontWeight.bold),
+            ),
           ),
           actions: [
             Padding(
@@ -626,36 +634,39 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                           ),
                           Align(
                             alignment: Alignment.bottomCenter,
-                            child: Keyboard(
-                              search: () {},
-                              opisDiscountButton: "OPIS",
-                              racunArtikliButton: "RAČUN",
-                              navigateToRacun: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  PageRouteBuilder(
-                                      pageBuilder: (context, animation,
-                                              secondaryAnimation) =>
-                                          const RacunScreen(),
-                                      transitionsBuilder: (context, animation,
-                                          secondaryAnimation, child) {
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: child,
-                                        );
-                                      }),
-                                ).then((_) {
-                                  _updateFinalSum();
-                                  _searchByName();
-                                });
-                              },
-                              navigateToMizaScreen: _navigateToMizaScreen,
-                              navigateToNacinPlacilaScreen:
-                                  _navigateToNacinPlacilaScreen,
-                              controller: searchController,
-                              navigateToOpisDiscountScreen:
-                                  _navigateToOpisScreen,
-                              icon: Icons.arrow_back,
+                            child: Visibility(
+                              visible: _isKeyboardVisible,
+                              child: Keyboard(
+                                search: () {},
+                                opisDiscountButton: "OPIS",
+                                racunArtikliButton: "RAČUN",
+                                navigateToRacun: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    PageRouteBuilder(
+                                        pageBuilder: (context, animation,
+                                                secondaryAnimation) =>
+                                            const RacunScreen(),
+                                        transitionsBuilder: (context, animation,
+                                            secondaryAnimation, child) {
+                                          return FadeTransition(
+                                            opacity: animation,
+                                            child: child,
+                                          );
+                                        }),
+                                  ).then((_) {
+                                    _updateFinalSum();
+                                    _searchByName();
+                                  });
+                                },
+                                navigateToMizaScreen: _navigateToMizaScreen,
+                                navigateToNacinPlacilaScreen:
+                                    _navigateToNacinPlacilaScreen,
+                                controller: searchController,
+                                navigateToOpisDiscountScreen:
+                                    _navigateToOpisScreen,
+                                icon: Icons.arrow_back,
+                              ),
                             ),
                           ),
                         ],

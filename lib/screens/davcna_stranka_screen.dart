@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
@@ -58,6 +60,7 @@ class DavcnaStrankaScreen extends ConsumerWidget {
               width: 300,
               child: TextField(
                 autofocus: true,
+                readOnly: Platform.isWindows ? false : true,
                 showCursor: true,
                 controller: _strankaController,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],

@@ -29,6 +29,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   final TextEditingController _controllerGroups = TextEditingController();
   final TextEditingController _controllerVelikostNarocila =
       TextEditingController();
+  final TextEditingController _controllerPrinterIP = TextEditingController();
+  final TextEditingController _controllerEthernetEmptyLines =
+      TextEditingController();
 
   bool _isCheckedMoney = false;
   bool _isCheckedOrders = false;
@@ -47,6 +50,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedPrikazCene = false;
   bool _isCheckedUsbPrintanje = false;
   bool _isCheckedVecjiPrint = false;
+  bool _isCheckedEthernetPrint = false;
+  bool _isCheckedReceiptCode = false;
 
   @override
   void initState() {
@@ -91,6 +96,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _controllerGroups.text = prefs.getString('groupsSize') ?? '';
         _controllerVelikostNarocila.text =
             prefs.getString('velikostNarocila') ?? '';
+        _controllerPrinterIP.text = prefs.getString('printerIp') ?? '';
+        _controllerEthernetEmptyLines.text =
+            prefs.getString('ethernetEmptyRows') ?? '';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -121,6 +129,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedUsbPrintanje =
             prefs.getBool('isCheckedUsbPrintanje') ?? false;
         _isCheckedVecjiPrint = prefs.getBool('isCheckedVecjiPrint') ?? false;
+        _isCheckedEthernetPrint =
+            prefs.getBool('isCheckedEthernetPrint') ?? false;
+        _isCheckedReceiptCode = prefs.getBool('isCheckedReceiptCode') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -142,6 +153,9 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setString('stStolpcev', _controllerStStolpcev.text);
     await prefs.setString('groupsSize', _controllerGroups.text);
     await prefs.setString('velikostNarocila', _controllerVelikostNarocila.text);
+    await prefs.setString('printerIp', _controllerPrinterIP.text);
+    await prefs.setString(
+        'ethernetEmptyRows', _controllerEthernetEmptyLines.text);
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
@@ -166,6 +180,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedPrikazCene', _isCheckedPrikazCene);
     await prefs.setBool('isCheckedUsbPrintanje', _isCheckedUsbPrintanje);
     await prefs.setBool('isCheckedVecjiPrint', _isCheckedVecjiPrint);
+    await prefs.setBool('isCheckedEthernetPrint', _isCheckedEthernetPrint);
+    await prefs.setBool('isCheckedReceiptCode', _isCheckedReceiptCode);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -341,6 +357,59 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ),
                       ],
                     ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Ethernet printanje:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedEthernetPrint,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedEthernetPrint = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleEthernetPrint(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
+                    if (_isCheckedEthernetPrint == true)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Align(
+                            alignment: Alignment.center,
+                            child: Text('Ip naslov tiskalnika:',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyTextfield(
+                            inputwidth: 500,
+                            controller: _controllerPrinterIP,
+                            isHidden: false,
+                          ),
+                        ],
+                      ),
+                    if (_isCheckedEthernetPrint == true)
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text("Število praznih vrstic:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyTextfield(
+                            controller: _controllerEthernetEmptyLines,
+                            inputwidth: 150,
+                            isHidden: false,
+                          ),
+                        ],
+                      ),
                     const SizedBox(
                       height: 32,
                     ),
@@ -685,6 +754,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Koda na računu:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedReceiptCode,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedReceiptCode = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleReceiptCode(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

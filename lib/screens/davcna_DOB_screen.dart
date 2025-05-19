@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -103,6 +105,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
               width: 300,
               child: TextField(
                 autofocus: true,
+                readOnly: Platform.isWindows ? false : true,
                 showCursor: true,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 controller: _dobController,

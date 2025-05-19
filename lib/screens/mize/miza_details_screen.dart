@@ -17,6 +17,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class MizaDetailsScreen extends ConsumerStatefulWidget {
   final String imeMize;
@@ -100,6 +101,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _dodajNaRacun(List<TableItem> items) {
+    final uuid = const Uuid();
+
     final narociloItems = items.map((tableItem) {
       final item = Item(
         id: tableItem.productCode,
@@ -113,6 +116,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         tableNumber: imeMize,
         quantity: tableItem.quantity,
         description: '',
+        uniqueId: uuid.v4(),
         isFromTable: true,
       );
     }).toList();
@@ -203,15 +207,32 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: IconButton.filled(
-                style: IconButton.styleFrom(
-                    backgroundColor: AppStyles.brightRed,
-                    foregroundColor: AppStyles.white),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppStyles.green, AppStyles.grey],
+                  stops: [0.5, 0.5],
+                  begin: Alignment.bottomRight,
+                  end: Alignment.topLeft,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                iconSize: 24,
                 onPressed: () {
                   HapticFeedback.vibrate();
                   _disableItems();
                 },
-                icon: const Icon(Icons.delete)),
+                icon: const Icon(
+                  Icons.check_rounded,
+                  color: Colors.white,
+                  size: 24, // Spremeni barvo ikone po potrebi
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -271,15 +292,16 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                                     children: [
                                       IconButton.filled(
                                           style: IconButton.styleFrom(
-                                              backgroundColor:
-                                                  (item.disabled ?? false)
-                                                      ? AppStyles.grey
-                                                      : AppStyles.brightRed),
+                                              backgroundColor: item.disabled
+                                                  ? AppStyles.grey
+                                                  : AppStyles.green),
                                           onPressed: () {
                                             _disableItems(index);
                                             HapticFeedback.vibrate();
                                           },
-                                          icon: const Icon(Icons.delete)),
+                                          icon: Icon(
+                                            Icons.check_rounded,
+                                          )),
                                       const Spacer(),
                                       QuantityIncrease(
                                         quantity: item.quantity,

@@ -78,8 +78,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
     });
   }
 
-  void _submit(String? productId, String itemDescription, double itemPrice,
-      bool isFinalDiscount,
+  void _submit(String uniquId, String? productId, String itemDescription,
+      double itemPrice, bool isFinalDiscount,
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
 
@@ -106,12 +106,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
     if (productId != null) {
       double itemDiscount = (discount ?? 0) / 100;
 
-      var itemsToUpdate = chosenItems
-          .where((item) =>
-              item.product.id == productId &&
-              item.description == itemDescription &&
-              item.product.price == itemPrice)
-          .toList();
+      var itemsToUpdate =
+          chosenItems.where((item) => item.uniqueId == uniquId).toList();
 
       for (var item in itemsToUpdate) {
         double itemPrice = double.tryParse(
@@ -128,8 +124,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
     }
   }
 
-  Future openDialog(String? productId, String itemDescription, double itemPrice,
-      bool isFinalDiscount,
+  Future openDialog(String? uniqueId, String? productId, String itemDescription,
+      double itemPrice, bool isFinalDiscount,
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
     discountController.clear();
@@ -139,10 +135,9 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
     FocusScope.of(context).unfocus();
 
     if (productId != null && !isFinalDiscount) {
-      var item = chosenItems.firstWhere((element) =>
-          element.product.id == productId &&
-          element.description == itemDescription &&
-          element.product.price == itemPrice);
+      var item = chosenItems.firstWhere(
+        (element) => element.uniqueId == uniqueId,
+      );
       double originalPrice =
           double.tryParse(item.product.price.toString().replaceAll(',', '.')) ??
               0;
@@ -193,8 +188,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
               onPressed: () {
                 HapticFeedback.vibrate();
 
-                _submit(productId, itemDescription, itemPrice, isFinalDiscount,
-                    double.tryParse(discountController.text));
+                _submit(uniqueId ?? '', productId, itemDescription, itemPrice,
+                    isFinalDiscount, double.tryParse(discountController.text));
                 SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();
@@ -313,7 +308,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
                       navigateToNacinPlacilaScreen:
                           widget.navigateToNacinPlacilaScreen,
                       navigateToOpisDiscountScreen: widget.navigateToOpis,
-                      navigateToRacun: () => openDialog(null, "", 0, true, 0),
+                      navigateToRacun: () =>
+                          openDialog("", null, "", 0, true, 0),
                       opisDiscountButton: "OPIS",
                       racunArtikliButton: "%",
                       icon: Icons.search,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BiroPOS/components/landscape_layout.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
@@ -184,7 +186,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
             Padding(
               padding: const EdgeInsets.only(left: 16.0, bottom: 16.0),
               child: SizedBox(
-                width: 160,
+                width: Platform.isWindows ? 180 : 160,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
