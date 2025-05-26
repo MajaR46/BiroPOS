@@ -1,5 +1,4 @@
 import 'package:BiroPOS/utils/utils.dart';
-import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/models/bondedBlutetoothDevice.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class BluetoothScreen extends ConsumerStatefulWidget {
+  const BluetoothScreen({super.key});
+
   @override
   _BluetoothScreenState createState() => _BluetoothScreenState();
 }
@@ -66,13 +67,10 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
           }
         }).toList();
       });
-
-      print('Processed Discovered Devices: $_discoveredDevices');
     } on PlatformException catch (e) {
       setState(() {
         _status = 'Failed to get discovered devices: ${e.message}';
       });
-      print('Error: ${e.message}');
     }
   }
 
@@ -87,7 +85,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
             [];
       });
     } catch (e) {
-      print('Error fetching devices: $e');
+      throw Exception(e);
     }
   }
 
@@ -137,14 +135,14 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
     try {
       final result = await sendData(dataLines);
     } catch (e) {
-      print('Error: $e');
+      throw Exception(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Bluetooth Example')),
+      appBar: AppBar(title: const Text('Bluetooth Example')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -152,11 +150,11 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
             Text(_status),
             ElevatedButton(
               onPressed: startDiscovery,
-              child: Text('Start Discovery'),
+              child: const Text('Start Discovery'),
             ),
             ElevatedButton(
               onPressed: getDiscoveredDevices,
-              child: Text('Get Discovered Devices'),
+              child: const Text('Get Discovered Devices'),
             ),
             Expanded(
               child: ListView.builder(
@@ -172,7 +170,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
             ),
             TextField(
               controller: _dataController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Data to send (newline-separated)',
                 border: OutlineInputBorder(),
               ),
@@ -180,7 +178,7 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
             ),
             ElevatedButton(
               onPressed: sendBluetoothData,
-              child: Text('Send Data'),
+              child: const Text('Send Data'),
             ),
           ],
         ),

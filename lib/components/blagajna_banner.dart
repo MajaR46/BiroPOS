@@ -1,4 +1,3 @@
-import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:BiroPOS/app_styles.dart';
@@ -16,8 +15,6 @@ class BlagajnaBanner extends ConsumerWidget {
     final selectedItem = ref.watch(selectedItemProvider);
     final itemQuantity = selectedItem?.quantity ?? 0.0;
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
-    final cartItems =
-        ref.watch(narociloNotifierProvider); // Odkomentiraj, če potrebuješ
 
     // Uporabi ValueListenableBuilder za del, ki prikazuje vnos
     return Container(

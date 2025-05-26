@@ -1,6 +1,5 @@
 // preferences_helper.dart
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart'; // Required for setState if you update UI
 
 class PreferencesHelper {
   static Future<Map<String, dynamic>> loadPreferences() async {
@@ -46,7 +45,6 @@ class PreferencesHelper {
 
       return preferences;
     } catch (e) {
-      print('Error loading preferences: $e');
       return {}; // Or handle the error as appropriate
     }
   }

@@ -4,6 +4,7 @@ import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart'; // Import Material package
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sunmi_printer_plus/core/enums/enums.dart';
 import 'package:sunmi_printer_plus/core/styles/sunmi_qrcode_style.dart';
 import 'package:sunmi_printer_plus/core/styles/sunmi_text_style.dart';
@@ -19,6 +20,12 @@ class Utils {
         .toList();
   }
 
+  Future<String> getPreferencesTextSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    final textSize = prefs.getString('velikostPrintanegaTeksta') ?? '';
+    return textSize;
+  }
+
   static Future<void> printTextWithIntegratedSunmi(BuildContext context,
       String text, WidgetRef ref, bool isBesteronSucess) async {
     final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
@@ -28,6 +35,7 @@ class Utils {
     final cleanedText = text.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final lines = cleanedText.split('\n');
     final filteredLines = filterEmptyLines(lines);
+    final textSize = await Utils().getPreferencesTextSize();
 
     try {
       // Store the printer status
@@ -77,8 +85,9 @@ class Utils {
         } else {
           await sunmiPrinterPlus.printText(
               text: line,
-              style:
-                  SunmiTextStyle(bold: isBold, fontSize: vecjiPrint ? 32 : 24));
+              style: SunmiTextStyle(
+                  bold: isBold,
+                  fontSize: vecjiPrint ? int.tryParse(textSize) ?? 32 : 24));
         }
 
         // Check if the line contains "Podpis"

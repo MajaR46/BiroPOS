@@ -112,7 +112,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
                 cursorColor: AppStyles.blue,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: AppStyles.silver.withOpacity(0.1),
+                  fillColor: AppStyles.silver.withAlpha((0.1 * 255).round()),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20.0),
                     borderSide: BorderSide.none,

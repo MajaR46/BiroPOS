@@ -7,7 +7,6 @@ import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
-import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,6 +62,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       finalSum = newSum;
     });
   }
+  /*
 
   void _decreaseQuantity() {
     final selectedItem = ref.watch(selectedItemProvider);
@@ -83,6 +83,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       }
     }
   }
+  */
 
   /*  Future<void> _processPayment(BuildContext context, String paymentType) async {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
@@ -136,7 +137,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 
         if (vnesenZnesek != null && vnesenZnesek > 0.0) {
           await Vracilo.showReturnDialog(
-              context, vnesenZnesek ?? 0.0, finalSum, vracilo);
+              context, vnesenZnesek, finalSum, vracilo);
         }
 
         // Process the payment
@@ -174,10 +175,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     final selectedItem = ref.read(selectedItemProvider.notifier).state;
     if (selectedItem != null) {
       // Get the current quantity of the selected item
-      double currentQuantity = selectedItem.quantity;
+      //double currentQuantity = selectedItem.quantity;
 
-      // Multiply the current quantity by the factor
-      double newQuantity = currentQuantity * factor;
+      //double newQuantity = currentQuantity * factor;
 
       // Update the quantity in the provider
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
@@ -576,7 +576,7 @@ class KeyboardBack extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final chosenItems = ref.watch(narociloNotifierProvider);
+    //final chosenItems = ref.watch(narociloNotifierProvider);
 
     final orientation = MediaQuery.of(context).orientation;
     final isLandscape = orientation == Orientation.landscape;

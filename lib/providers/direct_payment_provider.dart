@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final paymentMethodProvider = StateProvider<List<NacinPlacila>>((ref) => []);
 
@@ -31,9 +30,7 @@ class OrderService {
       if (apiResponseList.isEmpty) {
         return;
       }
-    } catch (e) {
-      print("error loading data $e");
-    }
+    } catch (e) {}
   }
 
   void _kategorizirajNacinePlacila(List<String> items) {

@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/bluetooth_controller.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
-import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/providers/direct_payment_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
@@ -232,7 +230,7 @@ class ProcessPayment {
     final filteredResponse = Utils.filterEmptyLines(response);
     final prefs = await SharedPreferences.getInstance();
 
-    String? posUrlNastavitve = prefs.getString('POS') ?? "";
+    // String? posUrlNastavitve = prefs.getString('POS') ?? "";
 
     final printableResponse = filteredResponse.join("\r\n");
 

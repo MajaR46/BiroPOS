@@ -28,7 +28,6 @@ Future<bool> handleData(WidgetRef ref) async {
 
     return true;
   } catch (e) {
-    print("Error in handleData: $e");
     rethrow; // Propagate the error upwards
   }
 }
@@ -113,7 +112,7 @@ Future<void> getOpenTables() async {
           await sendRequest(userId, "VrniOdprteMize\t$userId");
       await box.put('open_table_data', apiResponseList);
     } else {
-      print("Error: User ID not found in SharedPreferences.");
+      throw Exception("User ID ni najden v nastavitvah");
     }
   } catch (e) {
     throw Exception("Napaka pri vzpostavljanju povezave: $e");
@@ -145,11 +144,7 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
     // Save the 'podjetjeDavcna' value to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('podjetjeDavcna', podjetjeDavcna);
-
-    print("Saved podjetjeDavcna to SharedPreferences: $podjetjeDavcna");
-  } else {
-    print("No podjetje data found.");
-  }
+  } else {}
 }
 
 Future<void> saveOrderNumber(int orderNumber) async {

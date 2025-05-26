@@ -1,14 +1,9 @@
 import 'package:BiroPOS/app_styles.dart';
-import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
 import 'package:BiroPOS/components/item_list_builder.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/racun_list_banner.dart';
 import 'package:BiroPOS/components/seznam_racun.dart';
-import 'package:BiroPOS/components/usb_printer.dart';
-import 'package:BiroPOS/utils/utils.dart';
-import 'package:BiroPOS/controllers/klic.dart';
-import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,7 +23,7 @@ class LandscapeLayout extends ConsumerStatefulWidget {
   final int columnNum;
   final TextEditingController keyboardController;
   const LandscapeLayout(
-      {Key? key,
+      {super.key,
       required this.categorizedItems,
       required this.getFilteredItems,
       required this.selectedCategory,
@@ -40,15 +35,14 @@ class LandscapeLayout extends ConsumerStatefulWidget {
       required this.navigateToOpis,
       required this.navigateToNacinPlacilaScreen,
       required this.searchByName,
-      required this.keyboardController})
-      : super(key: key);
+      required this.keyboardController});
 
   @override
   ConsumerState<LandscapeLayout> createState() => _LandscapeLayoutState();
 }
 
 class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
-  final TextEditingController _keyboardController = TextEditingController();
+  // final TextEditingController _keyboardController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
   bool _isDiscountDialogOpen = false;
 
@@ -172,7 +166,7 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               filled: true,
-              fillColor: AppStyles.silver.withOpacity(0.1),
+              fillColor: AppStyles.silver.withAlpha((0.1 * 255).round()),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(20.0),
                 borderSide: BorderSide.none,
@@ -281,8 +275,8 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
               child: Container(
                 decoration: BoxDecoration(color: AppStyles.white, boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    offset: Offset(-4, 0), // Senčka na levi strani
+                    color: AppStyles.black.withAlpha((0.1 * 255).round()),
+                    offset: const Offset(-4, 0), // Senčka na levi strani
                     blurRadius: 6,
                   ),
                 ]),

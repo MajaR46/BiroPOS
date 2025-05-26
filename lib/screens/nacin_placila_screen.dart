@@ -39,7 +39,11 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   @override
   Widget build(BuildContext context) {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
-    final paymentMethods = ref.watch(paymentMethodProvider);
+    final allpaymentMethods = ref.watch(paymentMethodProvider);
+    final paymentMethods = finalSum == 0.0
+        ? allpaymentMethods.where((pm) => pm.kodaNacinaPlacila != '02').toList()
+        : allpaymentMethods;
+
     final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
     orderService = ref.watch(orderProvider);
     final settings = ref.watch(settingsProvider);
@@ -87,7 +91,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                    color: AppStyles.silver.withOpacity(0.1),
+                    color: AppStyles.silver.withAlpha((0.1 * 255).round()),
                     borderRadius: BorderRadius.circular(15)),
                 child: Padding(
                   padding: const EdgeInsets.only(top: 16, bottom: 16),
@@ -141,8 +145,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 200, // Nastavite največjo širino gumba
-                    childAspectRatio: 2.5, // Ohranite ustrezno razmerje
+                    maxCrossAxisExtent: 200,
+                    childAspectRatio: 2.5,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -150,6 +154,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                   itemBuilder: ((context, index) {
                     final String nacinPlacila;
                     final paymentMethod = paymentMethods[index];
+
                     if (paymentMethod.kodaNacinaPlacila == "01") {
                       nacinPlacila = "GOT";
                     } else if (paymentMethod.kodaNacinaPlacila == "02") {

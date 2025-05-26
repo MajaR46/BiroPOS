@@ -331,7 +331,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                           HapticFeedback.vibrate();
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.silver.withOpacity(0.1),
+                          backgroundColor:
+                              AppStyles.silver.withAlpha((0.1 * 255).round()),
                           elevation: 0,
                         ),
                         child: Text(

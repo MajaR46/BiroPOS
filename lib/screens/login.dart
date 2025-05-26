@@ -55,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.23.3';
+  String verzijaPrograma = '5.23.4';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -348,7 +348,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               fontSize: 20), // Make input text larger
                           decoration: InputDecoration(
                               filled: true,
-                              fillColor: AppStyles.silver.withOpacity(0.1),
+                              fillColor: AppStyles.silver
+                                  .withAlpha((0.1 * 255).round()),
                               suffixIconColor: AppStyles.blue,
                               suffixIcon: IconButton(
                                 icon: const Icon(Icons.clear),

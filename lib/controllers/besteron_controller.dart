@@ -22,10 +22,10 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
   String path = posurl[0];
   String authCredentials = posurl[2];
 
-  String? TID = prefs.getString('TID');
+  String? tid = prefs.getString('TID');
   String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
 
-  if (TID == null || podjetjeDavcna == null) {
+  if (tid == null || podjetjeDavcna == null) {
     throw Exception("TID or podjetjeDavcna is missing.");
   }
 
@@ -39,7 +39,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
         "MessageClass": "Service",
         "MessageCategory": "Payment",
         "SaleID": podjetjeDavcna,
-        "POIID": TID,
+        "POIID": tid,
         "ProtocolVersion": "3.1",
         "ServiceID": guid
       },
@@ -103,7 +103,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
       "result": result,
       "receipt": receipt,
     };
-  } catch (e, stackTrace) {
+  } catch (e) {
     throw Exception("Besteron napaka: $e");
   }
 }
@@ -111,7 +111,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
 Future<List<String>> besteronPorocilo() async {
   final prefs = await SharedPreferences.getInstance();
   String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
-  String? TID = prefs.getString('TID');
+  String? tid = prefs.getString('TID');
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
 
   String? posUrlNastavitve = prefs.getString('POS');
@@ -138,7 +138,7 @@ Future<List<String>> besteronPorocilo() async {
         "MessageClass": "Service",
         "MessageCategory": "Reconciliation",
         "SaleID": podjetjeDavcna,
-        "POIID": TID,
+        "POIID": tid,
         "ProtocolVersion": "3.1",
         "ServiceID": guid
       },
@@ -178,7 +178,7 @@ Future<List<String>> besteronPorocilo() async {
       porocilo.add("--------------------------------");
     }
     return porocilo;
-  } catch (e, stackTrace) {
+  } catch (e) {
     throw Exception("Besteron napaka: $e");
   }
 }
@@ -187,7 +187,7 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
   final prefs = await SharedPreferences.getInstance();
 
   String? podjetjeDavcna = prefs.getString('podjetjeDavcna');
-  String? TID = prefs.getString('TID');
+  String? tid = prefs.getString('TID');
   String guid = DateTime.now().millisecondsSinceEpoch.toString();
   final roundedVracilo = double.parse(vraciloAmount.toStringAsFixed(2));
 
@@ -214,7 +214,7 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
         "MessageClass": "Service",
         "MessageCategory": "Payment",
         "SaleID": podjetjeDavcna,
-        "POIID": TID,
+        "POIID": tid,
         "ProtocolVersion": "3.1",
         "ServiceID": guid
       },
@@ -275,7 +275,7 @@ Future<Map<String, dynamic>> besteronVracilo(double vraciloAmount) async {
       "result": result,
       "receipt": receipt,
     };
-  } catch (e, stackTrace) {
+  } catch (e) {
     throw Exception("Besteron napaka: $e");
   }
 }

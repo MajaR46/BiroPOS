@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
@@ -15,7 +14,6 @@ import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 class Print {
   final WidgetRef ref;
@@ -57,7 +55,6 @@ class Print {
 
           await BluetoothService.sendData(modifiedResponse, ref,
               context: context, addEmptyLines: true);
-          print("printano z bluetooth");
 
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
@@ -71,7 +68,6 @@ class Print {
       } else if (usbPrintanje) {
         try {
           await UsbPrint.sendDataUsb(modifiedResponse);
-          print("prinatno z usb");
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
@@ -82,17 +78,14 @@ class Print {
           return;
         }
       } else if (ethernetPrintanje) {
-        print("printano z ethenet");
         printReceipt(
             modifiedResponse.join('\n'), context, ref, isBesteronSucess);
       } else if (Platform.isWindows) {
-        print("printano z windows app");
         List<String> cleanLines = ocistiVrstice(modifiedResponse);
         String finalReceiptLines = cleanLines.join('\n');
         saveFileNextToExe(finalReceiptLines, context, ref, isBesteronSucess);
       } else {
         try {
-          print("printano z integiranim");
           await Future.delayed(Duration(seconds: 2));
 
           await Utils.printTextWithIntegratedSunmi(

@@ -7,15 +7,13 @@ String generateCode() {
 
   int? code = int.tryParse(formattedDate);
 
-  if (code == null) {
-    code = 0;
-  }
+  code ??= 0;
 
   code = code * 13;
 
   String codeString = code.toString().substring(0, 4);
 
-  String finalCodeString = codeString + "#";
+  String finalCodeString = "$codeString#";
 
   return finalCodeString;
 }

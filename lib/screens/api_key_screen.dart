@@ -4,7 +4,6 @@ import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,6 +30,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       TextEditingController();
   final TextEditingController _controllerPrinterIP = TextEditingController();
   final TextEditingController _controllerEthernetEmptyLines =
+      TextEditingController();
+  final TextEditingController _controllerVelikostPrintanegaTeksta =
       TextEditingController();
 
   bool _isCheckedMoney = false;
@@ -66,21 +67,25 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       String ip = prefs.getString('IP') ?? '';
       String port = prefs.getString('Port') ?? '';
       String textIzdelki = prefs.getString('touchKey') ?? '';
-      String textSkupine = prefs.getString('groupsSize') ?? '';
+      //String textSkupine = prefs.getString('groupsSize') ?? '';
       String velikostNarocila = prefs.getString('velikostNarocila') ?? '';
+      String velikostPrintanegaTeksta =
+          prefs.getString('velikostPrintanegaTeksta') ?? '';
 
       // Set default values if any of them are empty
       if (apiKey.isEmpty ||
           ip.isEmpty ||
           port.isEmpty ||
           textIzdelki.isEmpty ||
-          velikostNarocila.isEmpty) {
+          velikostNarocila.isEmpty ||
+          velikostPrintanegaTeksta.isEmpty) {
         await prefs.setString('apiKey', 'test');
         await prefs.setString('IP', '194.247.162.115');
         await prefs.setString('Port', '11111');
         await prefs.setString('touchKey', '12');
         await prefs.setString('groupsSize', '16');
         await prefs.setString('velikostNarocila', '16');
+        await prefs.setString('velikostPrintanegaTeksta', '32');
       }
 
       setState(() {
@@ -99,6 +104,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _controllerPrinterIP.text = prefs.getString('printerIp') ?? '';
         _controllerEthernetEmptyLines.text =
             prefs.getString('ethernetEmptyRows') ?? '';
+        _controllerVelikostPrintanegaTeksta.text =
+            prefs.getString('velikostPrintanegaTeksta') ?? '';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -156,6 +163,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setString('printerIp', _controllerPrinterIP.text);
     await prefs.setString(
         'ethernetEmptyRows', _controllerEthernetEmptyLines.text);
+    await prefs.setString(
+        'velikostPrintanegaTeksta', _controllerVelikostPrintanegaTeksta.text);
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
@@ -619,6 +628,21 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                   .read(settingsProvider.notifier)
                                   .toggleVecjiPrint(value ?? false);
                             },
+                          ),
+                        ],
+                      ),
+                    if (_isCheckedVecjiPrint == true)
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text("Velikost:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyTextfield(
+                            controller: _controllerVelikostPrintanegaTeksta,
+                            inputwidth: 150,
+                            isHidden: false,
                           ),
                         ],
                       ),

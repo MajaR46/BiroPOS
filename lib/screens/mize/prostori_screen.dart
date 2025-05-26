@@ -152,7 +152,8 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
                                   HapticFeedback.vibrate();
                                 },
                                 child: Card(
-                                  color: AppStyles.silver.withOpacity(0.1),
+                                  color: AppStyles.silver
+                                      .withAlpha((0.1 * 255).round()),
                                   elevation: 0,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(

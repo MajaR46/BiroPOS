@@ -40,7 +40,7 @@ class ErrorDialogs {
               children: [
                 Text(
                   response.join('\n'),
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontFamily: 'Courier',
                       fontSize: 10,
                       fontWeight: FontWeight.w700),

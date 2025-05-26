@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/hive_adaprters/blagajna.dart';
 import 'package:BiroPOS/hive_adaprters/osebje.dart';
 import 'package:BiroPOS/hive_adaprters/podjetje.dart';
 import 'package:BiroPOS/screens/login.dart';
-import 'package:BiroPOS/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,8 +41,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool loggedIn = SessionManager().isLoggedIn();
-
     return const MaterialApp(
       home: LoginScreen(),
       debugShowCheckedModeBanner: false,

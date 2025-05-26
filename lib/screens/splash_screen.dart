@@ -50,10 +50,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     try {
       await BluetoothService.sendData(["Programska oprema BiroPOS"], ref,
           context: context, addEmptyLines: false);
-      print("Printing triggered successfully on startup.");
-    } catch (e) {
-      print("Failed to print on startup: $e");
-    }
+    } catch (e) {}
   }
 
   Future<void> _initializeBluetooth() async {
@@ -75,13 +72,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             device.name == "TimPOS" ||
             device.name == "NT barcode scanner") {
           await _bluetoothService.connectToDevice(context);
-          print("Connected to ${device.adress}");
           break;
         }
       }
-    } catch (e) {
-      print("Error initializing Bluetooth: $e");
-    }
+    } catch (e) {}
   }
 
   @override

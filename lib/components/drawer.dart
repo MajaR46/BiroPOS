@@ -1,15 +1,12 @@
 import 'dart:io';
 
-import 'package:BiroPOS/components/landscape_layout.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/kopija_screen.dart';
 import 'package:BiroPOS/screens/login.dart';
-import 'package:BiroPOS/screens/meni_screen.dart';
 import 'package:BiroPOS/screens/porocila_screen.dart';
 import 'package:BiroPOS/screens/pregled_narocil_screen.dart';
 import 'package:BiroPOS/screens/storno_screen.dart';
-import 'package:BiroPOS/screens/testbluetooth.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
@@ -48,8 +45,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
         toggleHHCene = prefs.getBool('isCheckedHHCene') ?? false;
       });
     } catch (e) {
-      print('Error loading preferences: $e');
-      // Handle the error gracefully, perhaps show a message or fallback state
+      throw Exception("Ne moram pridobiti preferences");
     }
   }
 
@@ -123,7 +119,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => StornoScreen()));
+                            builder: (context) => const StornoScreen()));
                   },
                   style:
                       ElevatedButton.styleFrom(backgroundColor: AppStyles.blue),

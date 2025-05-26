@@ -1,16 +1,12 @@
 import 'package:BiroPOS/app_styles.dart';
-import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
-import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:flutter/material.dart';
 
 class ItemListBuilder extends ConsumerStatefulWidget {
   final Map<String, List<dynamic>> categorizedItems;
@@ -22,7 +18,7 @@ class ItemListBuilder extends ConsumerStatefulWidget {
   final WidgetRef ref;
 
   const ItemListBuilder({
-    Key? key,
+    super.key,
     required this.categorizedItems,
     required this.getFilteredItems,
     required this.selectedCategory,
@@ -30,7 +26,7 @@ class ItemListBuilder extends ConsumerStatefulWidget {
     required this.backgroundColors,
     required this.columnNum,
     required this.ref,
-  }) : super(key: key);
+  });
 
   @override
   _ItemListBuilderState createState() => _ItemListBuilderState();
@@ -42,7 +38,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
   late double selectedTextSize;
   late double minCardHeight = 50.0;
   final TextEditingController priceController = TextEditingController();
-  final Debouncer _debouncer = Debouncer(miliseconds: 2000);
   bool showSearchResults = false;
 
   @override
@@ -78,7 +73,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             filled: true,
-            fillColor: AppStyles.silver.withOpacity(0.1),
+            fillColor: AppStyles.silver.withAlpha((0.1 * 255).round()),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20.0),
               borderSide: BorderSide.none,
@@ -202,7 +197,6 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                         Color assignedBackgroundColor = widget.backgroundColors[
                             categoryIndex % widget.backgroundColors.length];
 
-                        Color assignedTextColor = AppStyles.black;
                         final String itemColor = item['itemColor'];
 
                         return GestureDetector(

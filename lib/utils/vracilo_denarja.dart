@@ -34,7 +34,7 @@ class Vracilo {
                     "Za plačilo : ${finalSum.toStringAsFixed(2)} €",
                     style: AppStyles.paragraph1,
                   ),
-                  Text(""),
+                  const Text(""),
                   Text("Vračilo: ${vracilo.toStringAsFixed(2)} €",
                       style: AppStyles.boldanparagraph1),
                 ],

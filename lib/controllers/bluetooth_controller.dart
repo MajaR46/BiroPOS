@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'package:BiroPOS/utils/error_dialog.dart';
-import 'package:BiroPOS/providers/narociloitem_provider.dart';
-import 'package:BiroPOS/providers/searchquery_provider.dart';
-import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -33,8 +30,7 @@ class BluetoothService {
     try {
       final String result = await platform.invokeMethod('initializeBluetooth');
     } on PlatformException catch (e) {
-      print(
-          'BluetoothService: Error during Bluetooth initialization: ${e.message}');
+      throw Exception(e);
     }
   }
 
@@ -44,7 +40,6 @@ class BluetoothService {
       if (status != PermissionStatus.granted) {
         final result = await Permission.bluetoothConnect.request();
         if (result != PermissionStatus.granted) {
-          print('BluetoothService: Bluetooth permission not granted.');
           return false;
         }
       }
@@ -53,7 +48,6 @@ class BluetoothService {
       if (statusScan != PermissionStatus.granted) {
         final result = await Permission.bluetoothScan.request();
         if (result != PermissionStatus.granted) {
-          print('BluetoothService: Bluetooth scan permission not granted.');
           return false;
         }
       }
@@ -81,11 +75,9 @@ class BluetoothService {
         ].contains(device.name)) {
           final String result = await platform.invokeMethod(
               'connectToDevice', {'deviceAddress': device.adress});
-          print('BluetoothService: Connected to ${device.name}: $result');
         }
       }
     } on PlatformException catch (e) {
-      print('Failed to connect: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to connect: ${e.message}")));
     }
@@ -114,9 +106,6 @@ class BluetoothService {
         ['', '', ' ', ' '],
       );
 
-      print(
-          'BluetoothService: sendData with dataLines before processing: $dataLines');
-
       int podpisIndex =
           dataLines.indexWhere((line) => line.toLowerCase().contains("podpis"));
 
@@ -132,16 +121,13 @@ class BluetoothService {
           'sendData',
           {'dataLines': dataLines},
         );
-        print('BluetoothService: sendData success: $result');
         if (showDialog == true) {
           await ErrorDialogs.showResponseDialog(response, context!);
         }
-        print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
         // await ErrorDialogs.showBluetoothErrorDialog(context!, response);
         await ErrorDialogs.showResponseDialog(response, context!);
-        print("PRINT 1");
 
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
           errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
@@ -153,9 +139,7 @@ class BluetoothService {
       if (context != null) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(result)));
-      } else {
-        print("No context available for SnackBar");
-      }
+      } else {}
 
       return result; // Return success or error message
     } catch (e) {
@@ -164,19 +148,13 @@ class BluetoothService {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(errorMessage)));
         //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-        await ErrorDialogs.showResponseDialog(response, context!);
-        print("PRINT 2");
+        await ErrorDialogs.showResponseDialog(response, context);
       } else {
         //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
         await ErrorDialogs.showResponseDialog(response, context!);
-
-        print("PRINT 3");
-
-        print(errorMessage); // Print error if no context available
       }
       //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-      await ErrorDialogs.showResponseDialog(response, context!);
-      print("PRINT 4");
+      await ErrorDialogs.showResponseDialog(response, context);
 
       return errorMessage; // Return error message
     }
@@ -188,7 +166,6 @@ class BluetoothService {
           await platform.invokeMethod('isBluetoothConnected');
       return isConnected;
     } on PlatformException catch (e) {
-      print('Error checking Bluetooth connection: $e');
       return false;
     }
   }
@@ -198,7 +175,6 @@ class BluetoothService {
       final bool isEnabled = await platform.invokeMethod('isBluetoothEnabled');
       return isEnabled;
     } on PlatformException catch (e) {
-      print('Error checking Bluetooth connection: $e');
       return false;
     }
   }

@@ -1,6 +1,7 @@
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_network/flutter_esc_pos_network.dart';
@@ -22,6 +23,8 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
   CapabilityProfile profile;
   String? printerIp;
   int? emptyRows;
+  final settings = ref.watch(settingsProvider);
+  final vecjiPrint = settings['isCheckedVecjiPrint'] ?? false;
 
   try {
     profile = await CapabilityProfile.load();
@@ -34,7 +37,8 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
     return;
   }
 
-  final generator = Generator(PaperSize.mm80, profile);
+  final generator =
+      Generator(vecjiPrint ? PaperSize.mm80 : PaperSize.mm58, profile);
 
   try {
     final prefs = await SharedPreferences.getInstance();
@@ -58,6 +62,8 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
   }
 
   List<int> bytes = [];
+  PosTextSize height;
+  PosTextSize width;
   try {
     bool isLargeText = false;
     final lines = text.split('\n');

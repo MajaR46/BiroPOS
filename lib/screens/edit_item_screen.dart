@@ -190,7 +190,8 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                       if (narociloItems.isNotEmpty)
                         Container(
                           decoration: BoxDecoration(
-                            color: AppStyles.silver.withOpacity(0.1),
+                            color:
+                                AppStyles.silver.withAlpha((0.1 * 255).round()),
                             borderRadius: BorderRadius.circular(15),
                           ),
                           padding: const EdgeInsets.all(16.0),

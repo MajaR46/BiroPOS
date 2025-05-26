@@ -1,7 +1,7 @@
 import 'package:BiroPOS/models/item.dart';
 import 'package:uuid/uuid.dart'; // <-- Dodaj import
 
-var _uuid = Uuid(); // Instanca generatorja UUID
+var _uuid = const Uuid(); // Instanca generatorja UUID
 
 class NarociloItem {
   final String uniqueId; // <-- Dodaj unikatni ID

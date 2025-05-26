@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/providers/selectedcategory_provider.dart';
-import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,11 +12,11 @@ class CategoryList extends StatefulWidget {
   final WidgetRef ref;
 
   const CategoryList({
-    Key? key,
+    super.key,
     required this.categorizedItems,
     required this.backgroundColors,
     required this.ref,
-  }) : super(key: key);
+  });
 
   @override
   State<CategoryList> createState() => _CategoryListState();
@@ -46,10 +45,6 @@ class _CategoryListState extends State<CategoryList> {
     List<String> preostaleKategorije = widget.categorizedItems.keys.toList()
       ..sort();
     List<String> sortedCategories = ["Vse", ...preostaleKategorije];
-
-    final settings = widget.ref.watch(settingsProvider);
-    final defaultColors = settings['isCheckedBarve'] ?? false;
-    final selectedCategoryState = widget.ref.watch(selectedCategoryProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

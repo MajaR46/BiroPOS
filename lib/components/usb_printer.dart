@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class UsbPrint {
@@ -17,7 +16,6 @@ class UsbPrint {
     try {
       await platform.invokeMethod('sendDataUsb', {'dataLines': dataLines});
     } on PlatformException catch (e) {
-      print("Failed to send data: '${e.message}'.");
       throw e; // Re-throw the exception to be handled by the caller
     }
   }
@@ -26,7 +24,6 @@ class UsbPrint {
     try {
       await platform.invokeMethod('printQrCodeUsb', {'qrCodeData': qrCodeData});
     } on PlatformException catch (e) {
-      print("Failed to print QR code: '${e.message}'.");
       throw e; // Re-throw the exception
     }
   }
@@ -36,7 +33,6 @@ class UsbPrint {
       await platform.invokeMethod('disconnectUsb');
       return 'Disconnected';
     } on PlatformException catch (e) {
-      print("Failed to disconnect: '${e.message}'.");
       return 'Failed to disconnect: ${e.message}';
     }
   }

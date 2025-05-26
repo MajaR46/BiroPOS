@@ -1,8 +1,5 @@
 import 'package:BiroPOS/components/quantity_increase.dart';
-import 'package:BiroPOS/components/racun_list_banner.dart';
-import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
-import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/screens/edit_item_screen.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +17,14 @@ class SeznamRacun extends ConsumerWidget {
       handleQuantityChange;
 
   const SeznamRacun({
-    Key? key,
+    super.key,
     required this.chosenItems,
     required this.totalSum,
     required this.totalDiscount,
     required this.openDialog,
     required this.removeItem,
     required this.handleQuantityChange,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +52,7 @@ class SeznamRacun extends ConsumerWidget {
                               Text(item.product.name,
                                   style: AppStyles.boldanparagraph1),
                               Text(
-                                item.description ?? '',
+                                item.description,
                                 style: AppStyles.paragraph4
                                     .copyWith(fontStyle: FontStyle.italic),
                               ),
