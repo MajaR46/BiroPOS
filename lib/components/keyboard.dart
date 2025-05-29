@@ -127,9 +127,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
       try {
+        ref.read(searchQueryProvider.notifier).state = widget.controller.text;
+
         String searchQuery = ref.watch(searchQueryProvider);
         String filtriranQuery = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
+        print("query $filtriranQuery");
         final vnesenZnesek = double.tryParse(filtriranQuery);
 
         // Calculate the change
@@ -146,6 +149,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         if (tiskajNarociloPriRacunu) {
           await Narocilo.createNarocilo(ref, false, context);
         }
+        widget.controller.clear();
       } catch (e) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
@@ -218,6 +222,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     String mizaButton;
 
     final chosenItems = ref.watch(narociloNotifierProvider);
+    final newSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
     if (chosenItems.isEmpty) {
       mizaButton = "MIZA";
@@ -334,7 +339,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                       text: "GOT",
                       onPressed: () {
                         _paymentGotovina();
-                        widget.controller.clear();
                       }),
                 ),
               if (!prikazujSamoNarocila)
@@ -343,7 +347,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                     backgroundColor: AppStyles.brightRed,
                     text: "KAR",
-                    onPressed: obstajaKarPlacilo
+                    onPressed: obstajaKarPlacilo && newSum > 0.00
                         ? () {
                             _paymentKartica();
                             widget.controller.clear();

@@ -132,7 +132,6 @@ class OrderService {
     // Send the request to the server
     List<String> serverResponse =
         await sendRequest(userId, allOrderItems.join('\r\n'));
-    print("all order items $allOrderItems");
 
     return serverResponse;
   }
