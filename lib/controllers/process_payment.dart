@@ -85,16 +85,12 @@ class ProcessPayment {
     // Gotovina
     try {
       List<String> modifiedResponse;
+      List<String> response = [];
 
-      final response = await ref
-          .read(orderProvider)
-          .createOrder(context, paymentType, davcnaSt);
-
-      if (response.any((line) => line.contains("#NAPAKA#"))) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response.toString())),
-        );
-        return;
+      if (isBesteronSucess) {
+        response = await ref
+            .read(orderProvider)
+            .createOrder(context, paymentType, davcnaSt);
       }
 
       if (receiptCode == true) {

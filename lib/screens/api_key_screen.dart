@@ -63,49 +63,25 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      String apiKey = prefs.getString('apiKey') ?? '';
-      String ip = prefs.getString('IP') ?? '';
-      String port = prefs.getString('Port') ?? '';
-      String textIzdelki = prefs.getString('touchKey') ?? '';
-      //String textSkupine = prefs.getString('groupsSize') ?? '';
-      String velikostNarocila = prefs.getString('velikostNarocila') ?? '';
-      String velikostPrintanegaTeksta =
-          prefs.getString('velikostPrintanegaTeksta') ?? '';
-
-      // Set default values if any of them are empty
-      if (apiKey.isEmpty ||
-          ip.isEmpty ||
-          port.isEmpty ||
-          textIzdelki.isEmpty ||
-          velikostNarocila.isEmpty ||
-          velikostPrintanegaTeksta.isEmpty) {
-        await prefs.setString('apiKey', 'test');
-        await prefs.setString('IP', '194.247.162.115');
-        await prefs.setString('Port', '11111');
-        await prefs.setString('touchKey', '12');
-        await prefs.setString('groupsSize', '16');
-        await prefs.setString('velikostNarocila', '16');
-        await prefs.setString('velikostPrintanegaTeksta', '32');
-      }
 
       setState(() {
-        _controllerApiKey.text = prefs.getString('apiKey') ?? '';
-        _controllerIP.text = prefs.getString('IP') ?? '';
-        _controllerPort.text = prefs.getString('Port') ?? '';
+        _controllerApiKey.text = prefs.getString('apiKey') ?? 'test';
+        _controllerIP.text = prefs.getString('IP') ?? '194.247.162.115';
+        _controllerPort.text = prefs.getString('Port') ?? '11111';
         _controllerPOS.text = prefs.getString('POS') ?? '';
         _controllerTID.text = prefs.getString('TID') ?? '';
-        _controllerTouchKey.text = prefs.getString('touchKey') ?? '';
-        _controllerTextSize.text = prefs.getString('textSize') ?? '';
-        _controllerRefresh.text = prefs.getString('refreshInterval') ?? '';
-        _controllerStStolpcev.text = prefs.getString('stStolpcev') ?? '';
-        _controllerGroups.text = prefs.getString('groupsSize') ?? '';
+        _controllerTouchKey.text = prefs.getString('touchKey') ?? '12';
+        _controllerTextSize.text = prefs.getString('textSize') ?? '14';
+        _controllerRefresh.text = prefs.getString('refreshInterval') ?? '5';
+        _controllerStStolpcev.text = prefs.getString('stStolpcev') ?? '2';
+        _controllerGroups.text = prefs.getString('groupsSize') ?? '16';
         _controllerVelikostNarocila.text =
-            prefs.getString('velikostNarocila') ?? '';
+            prefs.getString('velikostNarocila') ?? '16';
         _controllerPrinterIP.text = prefs.getString('printerIp') ?? '';
         _controllerEthernetEmptyLines.text =
             prefs.getString('ethernetEmptyRows') ?? '';
         _controllerVelikostPrintanegaTeksta.text =
-            prefs.getString('velikostPrintanegaTeksta') ?? '';
+            prefs.getString('velikostPrintanegaTeksta') ?? '32';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -129,7 +105,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedPrintService =
             prefs.getBool('isCheckedPrintService') ?? false;
         _isCheckedBluetoothPrintanje =
-            prefs.getBool('isCheckedBluetoothPrintanje') ?? false;
+            prefs.getBool('isCheckedBluetoothPrintanje') ?? true;
         _isCheckedEnojniKlik = prefs.getBool('isCheckedEnojniKlik') ?? false;
         _isCheckedBarve = prefs.getBool('isCheckedBarve') ?? false;
         _isCheckedPrikazCene = prefs.getBool('isCheckedPrikazCene') ?? false;
