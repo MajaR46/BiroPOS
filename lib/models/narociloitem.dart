@@ -32,7 +32,8 @@ class NarociloItem {
     String? davcnaSt,
     bool? isFromTable,
     String? tableNumber,
-    double? price, // Cena se posodablja znotraj product.copyWith
+    double? price,
+    String? uniqueId, // Cena se posodablja znotraj product.copyWith
   }) {
     return NarociloItem(
       uniqueId: this.uniqueId, // <-- PRENESI obstoječi ID

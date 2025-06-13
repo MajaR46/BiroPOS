@@ -2,6 +2,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selectedcategory_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

@@ -7,9 +7,22 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     return [];
   }
 
-  void addToRacun(NarociloItem narociloItem, {bool fromTable = false}) {
+  void addToRacun(NarociloItem narociloItem,
+      {bool fromTable = false, bool nastaviCeno = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
     int existingItemIndex = -1;
+    print("nastavi ceno provider $nastaviCeno");
+
+    if (nastaviCeno) {
+      state = [
+        ...state,
+        narociloItem.copyWith(
+          davcnaSt: davcnaSt,
+          isFromTable: fromTable,
+        ),
+      ];
+      return;
+    }
 
     if (narociloItem.quantity % 1 != 0) {
       existingItemIndex =

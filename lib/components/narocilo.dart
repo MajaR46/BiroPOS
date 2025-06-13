@@ -21,8 +21,6 @@ class Narocilo {
     int orderNumber = ref.watch(orderNumberProvider);
     String? user = SessionManager().getLoggedInUserName();
 
-    print("user narocilo $user");
-
     narocilo.add("NAROCILO");
     narocilo.add("Datum: $formattedDate  $formattedTime");
 

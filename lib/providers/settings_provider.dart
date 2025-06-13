@@ -16,7 +16,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
           'isCheckedTiskajNarocilo': false,
           'isCheckedUsbPrintanje': false,
           'isCheckedEthernetPrint': false,
-          'isCheckedReceiptCode': false
+          'isCheckedReceiptCode': false,
+          'isCheckedMoney': false
         }) {
     _loadSettings();
   }
@@ -42,6 +43,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
     final usbPrintanje = prefs.getBool('isCheckedUsbPrintanje') ?? false;
     final ethernetPrint = prefs.getBool('isCheckedEthernetPrint') ?? false;
     final receiptCode = prefs.getBool('isCheckedReceiptCode') ?? false;
+    final isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
 
     // Update the state with both values
     state = {
@@ -58,7 +60,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedPrikazCene': prikaziCene,
       'isCheckedUsbPrintanje': usbPrintanje,
       'isCheckedEthernetPrint': ethernetPrint,
-      'isCheckedReceiptCode': receiptCode
+      'isCheckedReceiptCode': receiptCode,
+      'isCheckedMoney': isCheckedMoney,
     };
   }
 
@@ -143,6 +146,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void toggleReceiptCode(bool isEnabled) {
     state = {...state, 'isCheckedReceiptCode': isEnabled};
     _saveSetting('isCheckedReceiptCode', isEnabled);
+  }
+
+  void toggleIsCheckedMoney(bool isEnabled) {
+    state = {...state, 'isCheckedMoney': isEnabled};
+    _saveSetting('isCheckedMoney', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

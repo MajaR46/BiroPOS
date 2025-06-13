@@ -638,11 +638,18 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                         ApiKeyCheckbox(
-                          value: _isCheckedMoney,
+                          value:
+                              ref.watch(settingsProvider)['isCheckedMoney'] ??
+                                  false,
                           onChanged: (bool? value) {
                             setState(() {
                               _isCheckedMoney = value ?? false;
                             });
+
+                            // Update provider state
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleIsCheckedMoney(value ?? false);
                           },
                         ),
                       ],

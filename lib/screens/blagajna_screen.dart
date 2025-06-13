@@ -68,6 +68,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   List<Map<String, String>> _tables = [];
   bool _tablesFetched = false;
   bool _isKeyboardVisible = true;
+
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
@@ -295,13 +296,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _ouputselectedItem(dynamic outputtedItem) {
     setState(() {
-      // Pretvori mapo v artikel
+      final settings = ref.watch(settingsProvider);
+      final nastaviCeno = settings['isCheckedMoney'];
+
       Item originalItem = Item.fromMap(outputtedItem);
       Item newItem = originalItem.copyWith();
 
       // Pripravimo artikel za naročilo (default količina 1)
       NarociloItem newNarociloItem =
-          NarociloItem(product: newItem, quantity: 1);
+          NarociloItem(product: newItem.copyWith(), quantity: 1);
 
       // Preverimo obstoječe artikle
       final currentItems = ref.read(narociloNotifierProvider); // NE watch
@@ -311,23 +314,34 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           item.description == newNarociloItem.description);
 
       // Dodaj artikel (ali posodobi količino)
-      ref
-          .read(narociloNotifierProvider.notifier)
-          .addToRacun(newNarociloItem, fromTable: false);
+
+      if (nastaviCeno == false) {
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
+      } else {
+        ref
+            .read(narociloNotifierProvider.notifier)
+            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
+      }
 
       // Po posodobitvi ponovno preberi posodobljeno stanje
       final updatedItems = ref.read(narociloNotifierProvider);
+      NarociloItem updatedItem;
+      print("nastavi ceno $nastaviCeno");
 
-      // Pridobi posodobljen artikel iz stanja
-      final updatedItem = updatedItems.firstWhere(
+      updatedItem = updatedItems.firstWhere(
         (item) =>
             item.product.id == newNarociloItem.product.id &&
-            item.description == newNarociloItem.description,
+            item.description == newNarociloItem.description &&
+            item.quantity % 1 == 0,
         orElse: () => newNarociloItem,
       );
+      ref.read(selectedItemProvider.notifier).state = updatedItem;
+
+      // Pridobi posodobljen artikel iz stanja
 
       // Nastavi izbran artikel
-      ref.read(selectedItemProvider.notifier).state = updatedItem;
 
       // Posodobi končni znesek
       _updateFinalSum();
@@ -543,7 +557,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String formattedTime = DateFormat("HH:mm").format(currentDate);
 
     final String? user = SessionManager().getLoggedInUserName();
-    print("user $user");
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
     final settings = ref.watch(settingsProvider);
