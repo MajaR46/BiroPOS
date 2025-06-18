@@ -1,3 +1,4 @@
+import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
@@ -299,8 +300,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   List<Item> matchingItems = [];
 
-  void _searchByEan(String input) {
-    searchByEan(input, ref, context, _updateTotalDiscount);
+  void _searchByEan(String input, {double? quantity}) {
+    searchByEan(input, ref, context, _updateTotalDiscount,
+        quantity: quantity ?? 1.0);
   }
 
   void _checkAndSetSearchMode() {
@@ -376,14 +378,25 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   controller: searchController,
                   navigateToMizaScreen: _navigateToMizaScreen,
                   navigateToNacinPlacilaScreen: () {
-                    _checkAndSetSearchMode(); // Update mode based on search text
+                    // <-- TUKAJ JE LOGIKA ZA GUMB "OK"
+                    // Preberemo vrednost iz providerja
+                    final multiplyFactor = ref.read(multiplyFactorProvider);
+                    _checkAndSetSearchMode(); // To ostane
 
-                    if (_isSearchMode) {
-                      // If in search mode, perform the EAN search using the text in the search box
+                    if (multiplyFactor != null) {
+                      // PRIMER 1: Imamo shranjen faktor. Uporabimo ga za dodajanje izdelka.
+                      _searchByEan(searchController.text,
+                          quantity: multiplyFactor);
+
+                      // Počistimo stanje
+                      searchController.clear();
+                      ref.read(multiplyFactorProvider.notifier).state = null;
+                    } else if (_isSearchMode) {
+                      // PRIMER 2: Ni faktorja, ampak je vklopljen način iskanja.
                       _searchByEan(searchController.text);
                       searchController.clear();
                     } else {
-                      // If in navigation mode, perform the navigation
+                      // PRIMER 3: Nič od zgoraj, navigiramo na plačilo.
                       _navigateToNacinPlacilaScreen();
                     }
                   },

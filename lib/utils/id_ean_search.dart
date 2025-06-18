@@ -7,7 +7,8 @@ import 'package:BiroPOS/providers/categoriseditems_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 
 void searchByEan(String input, WidgetRef ref, BuildContext context,
-    Function updateTotalDiscount) {
+    Function updateTotalDiscount,
+    {double quantity = 1.0}) {
   RegExp regExp = RegExp(r'\d+');
   Iterable<Match> matches = regExp.allMatches(input);
   List<String> numbers = matches.map((match) => match.group(0)!).toList();
@@ -22,7 +23,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
 
     if (matchingItems.isNotEmpty) {
       Item matchingItem = matchingItems.first;
-      NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
+      NarociloItem newNarociloItem =
+          NarociloItem(product: matchingItem, quantity: quantity);
 
       ref
           .read(narociloNotifierProvider.notifier)
@@ -40,7 +42,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
 
     if (matchingItems.isNotEmpty) {
       Item matchingItem = matchingItems.first;
-      NarociloItem newNarociloItem = NarociloItem(product: matchingItem);
+      NarociloItem newNarociloItem =
+          NarociloItem(product: matchingItem, quantity: quantity);
 
       ref
           .read(narociloNotifierProvider.notifier)

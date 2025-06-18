@@ -1,3 +1,4 @@
+import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/utils/search_items.dart';
@@ -174,16 +175,11 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     });
   }
 
-  void _handleMultiply(double factor) {
-    // Fetch the selected item from the provider
+  bool _handleMultiply(
+    double factor,
+  ) {
     final selectedItem = ref.read(selectedItemProvider.notifier).state;
     if (selectedItem != null) {
-      // Get the current quantity of the selected item
-      //double currentQuantity = selectedItem.quantity;
-
-      //double newQuantity = currentQuantity * factor;
-
-      // Update the quantity in the provider
       ref.read(narociloNotifierProvider.notifier).updateQuantity(
           selectedItem.uniqueId,
           selectedItem.product.id,
@@ -195,19 +191,17 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       ref.read(selectedItemProvider.notifier).state =
           selectedItem.copyWith(quantity: factor);
 
-      // Update the local state
       setState(() {
         itemQuantity = factor;
       });
 
-      // Update the final sum
-
       _updateFinalSum();
+      return true; // Vrnemo true, ker je bila akcija zaključena
     } else {
-      // Handle the case where no item is selected
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Izberi izdelek')),
-      );
+      ref.read(multiplyFactorProvider.notifier).state = factor;
+      widget.controller.clear();
+
+      return false; // Vrnemo false, ker pričakujemo nadaljnji vnos
     }
   }
 
@@ -510,8 +504,13 @@ class KeyboardMultiply extends StatelessWidget {
               controller.text.replaceAll(RegExp(r'[^\d.]'), '');
           double? number = double.tryParse(sanitizedText);
           if (number != null) {
-            multiply(number);
-            controller.clear();
+            // Kličemo funkcijo in shranimo njen rezultat
+            final bool shouldClear = multiply(number);
+
+            // Počistimo kontroler samo, če je funkcija vrnila true
+            if (shouldClear) {
+              controller.clear();
+            }
           }
         },
         child: Center(
