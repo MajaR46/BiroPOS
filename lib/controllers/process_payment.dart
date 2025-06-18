@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
@@ -15,13 +16,22 @@ import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/providers/totdal_sum_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_esc_pos_network/flutter_esc_pos_network.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sunmi_printer_plus/core/enums/enums.dart';
+import 'package:sunmi_printer_plus/core/sunmi/sunmi_printer.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 class ProcessPayment {
   final WidgetRef ref;
 
   ProcessPayment(this.ref);
+  bool bluetoothSucess = false;
+  bool usbSucess = false;
+  bool integratedPrinterSucess = false;
+  bool ethernetSucess = false;
+  bool windowsSucess = false;
 
   Future<void> processPayment(BuildContext context, String paymentType,
       [String? davcnaSt]) async {
@@ -52,9 +62,13 @@ class ProcessPayment {
         final besteronResponse = await callBesteron(finalSum);
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
+
+        print("BESTRON RAČUN $besteronRacun");
+
         if (result != "Success") {
           isBesteronSucess = false;
         }
+
         if (bluetoothPrintanje) {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
@@ -99,22 +113,63 @@ class ProcessPayment {
         modifiedResponse = response;
       }
 
+      if (modifiedResponse.any((line) => line.contains("#NAPAKA#"))) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(modifiedResponse.toString())),
+        );
+        return;
+      }
       if (isBesteronSucess == true) {
         if (bluetoothPrintanje) {
-          await _processBluetoothPrinting(context, modifiedResponse,
-              paymentType, finalSum, isBesteronSucess);
+          await _processBluetoothPrinting(
+            context,
+            modifiedResponse,
+            isBesteronSucess,
+            paymentType: paymentType,
+            finalSum: finalSum,
+          );
+          if (isBesteronSucess && bluetoothSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+            clearSearchQuery(ref);
+          }
         } else if (usbPrintanje) {
           await _processUsbPrinting(modifiedResponse, isBesteronSucess);
+          if (isBesteronSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+            clearSearchQuery(ref);
+          }
         } else if (ethernetPrintanje) {
-          printReceipt(
-              modifiedResponse.join('\n'), context, ref, isBesteronSucess);
+          await _processEthernetPrinting(
+              modifiedResponse, context, isBesteronSucess);
+          if (isBesteronSucess && ethernetSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+            clearSearchQuery(ref);
+          }
         } else if (Platform.isWindows) {
-          List<String> cleanLines = ocistiVrstice(modifiedResponse);
-          String finalReceiptLines = cleanLines.join('\n');
-          saveFileNextToExe(finalReceiptLines, context, ref, isBesteronSucess);
+          await _processWindowsPrinting(
+              modifiedResponse, context, isBesteronSucess);
+          if (isBesteronSucess && windowsSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+          }
+          ;
         } else {
-          await _processInnerPrinting(context, modifiedResponse, paymentType,
-              finalSum, isBesteronSucess);
+          await _processInnerPrinting(
+            context,
+            modifiedResponse,
+            isBesteronSucess,
+            paymentType: paymentType,
+            finalSum: finalSum,
+          );
+
+          if (isBesteronSucess && integratedPrinterSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+            clearSearchQuery(ref);
+          }
         }
         _updateFinalSum();
       }
@@ -139,25 +194,28 @@ class ProcessPayment {
   }
 
   Future<void> _processBluetoothPrinting(
-      BuildContext context,
-      List<String> response,
-      String paymentType,
-      double finalSum,
-      bool isBesteronSucess) async {
+      BuildContext context, List<String> response, bool isBesteronSucess,
+      {String? paymentType, double? finalSum}) async {
     try {
       try {
-        await isBluetoothConnected(
-            context, response); // Preverimo povezavo z Bluetoothom
-        await BluetoothService.sendData(response, ref,
+        await isBluetoothConnected(context, response);
+        final result = await BluetoothService.sendData(response, ref,
             context: context, addEmptyLines: true);
 
-        if (isBesteronSucess) {
-          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-          clearSelectedItem(ref);
-          clearSearchQuery(ref);
+        print("RESULT BLUETOOTH $result");
+
+        // Preveri če je rezultat vseboval napako
+        if (result.toLowerCase().contains("napaka") ||
+            result.toLowerCase().contains("error") ||
+            result.toLowerCase().contains("exception")) {
+          bluetoothSucess = false;
+        } else {
+          bluetoothSucess = true;
         }
       } catch (e) {
         // Napaka pri pošiljanju podatkov preko Bluetootha
+        bluetoothSucess = false;
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -209,36 +267,77 @@ class ProcessPayment {
     final filteredResponse = Utils.filterEmptyLines(response);
 
     await UsbPrint.sendDataUsb(filteredResponse);
-    if (isBesteronSucess) {
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
-      clearSearchQuery(ref);
+  }
+
+  Future<void> _processEthernetPrinting(List<String> modifiedResponse,
+      BuildContext context, bool isBesteronSucess) async {
+    try {
+      bool printResult = await printReceipt(
+        modifiedResponse.join('\n'),
+        context,
+        ref,
+        isBesteronSucess,
+      );
+
+      ethernetSucess = printResult;
+    } catch (e) {
+      ethernetSucess = false;
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+      }
+    }
+  }
+
+  Future<void> _processWindowsPrinting(List<String> modifiedResponse,
+      BuildContext context, bool isBesteronSucess) async {
+    try {
+      List<String> cleanLines = ocistiVrstice(modifiedResponse);
+      String finalReceiptLines = cleanLines.join('\n');
+      bool printResult = await saveFileNextToExe(
+          finalReceiptLines, context, ref, isBesteronSucess);
+      windowsSucess = printResult;
+    } catch (e) {
+      windowsSucess = false;
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+      }
     }
   }
 
   Future<void> _processInnerPrinting(
-      BuildContext context,
-      List<String> response,
-      String paymentType,
-      double finalSum,
-      bool isBesteronSucess,
-      {String? davcnaSt}) async {
+      BuildContext context, List<String> response, bool isBesteronSucess,
+      {String? paymentType, double? finalSum, String? davcnaSt}) async {
     final filteredResponse = Utils.filterEmptyLines(response);
     final prefs = await SharedPreferences.getInstance();
 
     // String? posUrlNastavitve = prefs.getString('POS') ?? "";
 
     final printableResponse = filteredResponse.join("\r\n");
+    final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
 
-    // Dodaj zamik 2 sekundi (lahko spremeniš trajanje)
+    final printerStatus = await sunmiPrinterPlus.getStatus();
 
-    await Utils.printTextWithIntegratedSunmi(
-        context, printableResponse, ref, isBesteronSucess);
+    if (printerStatus == PrinterStatus.COMM) {
+      integratedPrinterSucess = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Tiskalnik ni inicializiran.")),
+      );
+      return;
+    }
 
-    if (isBesteronSucess) {
-      ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-      clearSelectedItem(ref);
-      clearSearchQuery(ref);
+    try {
+      await Utils.printTextWithIntegratedSunmi(
+          context, printableResponse, ref, isBesteronSucess);
+      integratedPrinterSucess = true;
+    } catch (e) {
+      integratedPrinterSucess = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Napaka pri tiskanju: $e")),
+      );
     }
   }
 

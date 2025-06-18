@@ -11,7 +11,6 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       {bool fromTable = false, bool nastaviCeno = false}) {
     final String? davcnaSt = ref.read(taxNumberProvider);
     int existingItemIndex = -1;
-    print("nastavi ceno provider $nastaviCeno");
 
     if (nastaviCeno) {
       state = [

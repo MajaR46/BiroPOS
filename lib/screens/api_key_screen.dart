@@ -53,6 +53,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedVecjiPrint = false;
   bool _isCheckedEthernetPrint = false;
   bool _isCheckedReceiptCode = false;
+  bool _isCheckedREP = false;
 
   @override
   void initState() {
@@ -115,6 +116,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedEthernetPrint =
             prefs.getBool('isCheckedEthernetPrint') ?? false;
         _isCheckedReceiptCode = prefs.getBool('isCheckedReceiptCode') ?? false;
+        _isCheckedREP = prefs.getBool('isCheckedREP') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -167,6 +169,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedVecjiPrint', _isCheckedVecjiPrint);
     await prefs.setBool('isCheckedEthernetPrint', _isCheckedEthernetPrint);
     await prefs.setBool('isCheckedReceiptCode', _isCheckedReceiptCode);
+    await prefs.setBool('isCheckedREP', _isCheckedREP);
 
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
@@ -782,6 +785,28 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         ),
                       ],
                     ),
+                    if (widget.isDefaultPassword)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Expanded(
+                            child: Text("Reprezentanca:",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                          ApiKeyCheckbox(
+                            value: _isCheckedREP,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                _isCheckedREP = value ?? false;
+                              });
+                              ref
+                                  .read(settingsProvider.notifier)
+                                  .toggleREP(value ?? false);
+                            },
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),

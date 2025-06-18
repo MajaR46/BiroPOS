@@ -47,11 +47,6 @@ class Utils {
         );
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
 
-        if (isBesteronSucess) {
-          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-          clearSelectedItem(ref);
-        }
-
         return;
       } else {
         print("Printer is not in ERROR state.");

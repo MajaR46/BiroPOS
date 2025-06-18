@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BiroPOS/components/usb_printer.dart';
+import 'package:BiroPOS/providers/totdal_sum_provider.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -14,6 +15,9 @@ import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sunmi_printer_plus/core/enums/enums.dart';
+import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
 
 class Print {
   final WidgetRef ref;
@@ -30,10 +34,170 @@ class Print {
     bool isBesteronSucess = true;
     final paymentMethods = ref.watch(paymentMethodProvider);
     List<String> modifiedResponse;
+    bool bluetoothSucess = false;
+    bool usbSucess = false;
+    bool integratedPrinterSucess = false;
+    bool ethernetSucess = false;
+    bool windowsSucess = false;
 
     BluetoothService bluetoothService = BluetoothService();
 
+    Future<bool> _isBluetoothConnected(
+        BuildContext context, List<String> response) async {
+      // Added BuildContext
+      try {
+        final bluetoothConnected =
+            await BluetoothService.isBluetoothConnected();
+        final bluetoothEnabled = await BluetoothService.isBluetoothEnabled();
+
+        if (!bluetoothConnected || !bluetoothEnabled) {
+          // await ErrorDialogs.showBluetoothErrorDialog(context, response);
+          // await ErrorDialogs.showResponseDialog(response, context!);
+          return false; // Bluetooth is not connected or enabled
+        }
+        return true; // Bluetooth is connected and enabled
+      } catch (e) {
+        // Handle any errors during the Bluetooth check
+        return false; // Consider Bluetooth not connected in case of an error
+      }
+    }
+
+    Future<void> _processBluetoothPrinting(
+        BuildContext context, List<String> response, bool isBesteronSucess,
+        {String? paymentType, double? finalSum}) async {
+      try {
+        try {
+          await _isBluetoothConnected(context, response);
+          final result = await BluetoothService.sendData(response, ref,
+              context: context, addEmptyLines: true);
+
+          print("RESULT BLUETOOTH $result");
+
+          // Preveri če je rezultat vseboval napako
+          if (result.toLowerCase().contains("napaka") ||
+              result.toLowerCase().contains("error") ||
+              result.toLowerCase().contains("exception")) {
+            bluetoothSucess = false;
+          } else {
+            bluetoothSucess = true;
+          }
+        } catch (e) {
+          // Napaka pri pošiljanju podatkov preko Bluetootha
+          bluetoothSucess = false;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
+              duration: const Duration(seconds: 5), // Daljša prikaz napake
+            ),
+          );
+        } finally {
+          // Set total to zero in case of error or success
+          ref.read(totalSumProvider.notifier).state =
+              ref.read(narociloNotifierProvider.notifier).totalSum();
+        }
+      } catch (e) {
+        // Splošna napaka pri obdelavi plačila
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
+            duration: const Duration(seconds: 5), // Daljša prikaz napake
+          ),
+        );
+      } finally {
+        // Set total to zero in case of error or success
+        ref.read(totalSumProvider.notifier).state =
+            ref.read(narociloNotifierProvider.notifier).totalSum();
+      }
+    }
+
+    Future<void> _processUsbPrinting(
+        List<String> response, bool isBesteronSucess) async {
+      final filteredResponse = Utils.filterEmptyLines(response);
+
+      await UsbPrint.sendDataUsb(filteredResponse);
+    }
+
+    Future<void> _processEthernetPrinting(List<String> modifiedResponse,
+        BuildContext context, bool isBesteronSucess) async {
+      try {
+        bool printResult = await printReceipt(
+          modifiedResponse.join('\n'),
+          context,
+          ref,
+          isBesteronSucess,
+        );
+
+        ethernetSucess = printResult;
+      } catch (e) {
+        ethernetSucess = false;
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Napaka pri tiskanju: $e")),
+          );
+        }
+      }
+    }
+
+    Future<void> _processWindowsPrinting(List<String> modifiedResponse,
+        BuildContext context, bool isBesteronSucess) async {
+      try {
+        List<String> cleanLines = ocistiVrstice(modifiedResponse);
+        String finalReceiptLines = cleanLines.join('\n');
+        bool printResult = await saveFileNextToExe(
+            finalReceiptLines, context, ref, isBesteronSucess);
+        windowsSucess = printResult;
+      } catch (e) {
+        windowsSucess = false;
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Napaka pri tiskanju: $e")),
+          );
+        }
+      }
+    }
+
+    Future<void> _processInnerPrinting(
+        BuildContext context, List<String> response, bool isBesteronSucess,
+        {String? paymentType, double? finalSum, String? davcnaSt}) async {
+      final filteredResponse = Utils.filterEmptyLines(response);
+      final prefs = await SharedPreferences.getInstance();
+
+      // String? posUrlNastavitve = prefs.getString('POS') ?? "";
+
+      final printableResponse = filteredResponse.join("\r\n");
+      final SunmiPrinterPlus sunmiPrinterPlus = SunmiPrinterPlus();
+
+      final printerStatus = await sunmiPrinterPlus.getStatus();
+
+      if (printerStatus == PrinterStatus.COMM) {
+        integratedPrinterSucess = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Tiskalnik ni inicializiran.")),
+        );
+        return;
+      }
+
+      try {
+        await Utils.printTextWithIntegratedSunmi(
+            context, printableResponse, ref, isBesteronSucess);
+        integratedPrinterSucess = true;
+      } catch (e) {
+        integratedPrinterSucess = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+      }
+    }
+
+    void _updateFinalSum() {
+      double total = ref.watch(narociloNotifierProvider.notifier).totalSum();
+      if (total == null) {}
+    }
+
     if (text.any((line) => line.contains("#NAPAKA#"))) {
+      print("tukaj");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(text.toString())),
       );
@@ -46,53 +210,54 @@ class Print {
       }
 
       if (bluetoothPrintanje == true) {
-        try {
-          bool isConnected = await ProcessPayment.isBluetoothConnected(
-              context, modifiedResponse);
-          if (isConnected == false) {
-            await bluetoothService.connectToDevice(context);
-          }
-
-          await BluetoothService.sendData(modifiedResponse, ref,
-              context: context, addEmptyLines: true);
-
+        await _processBluetoothPrinting(
+          context,
+          modifiedResponse,
+          isBesteronSucess,
+        );
+        if (isBesteronSucess && bluetoothSucess) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka $e")),
-          );
-          return;
         }
       } else if (usbPrintanje) {
-        try {
-          await UsbPrint.sendDataUsb(modifiedResponse);
+        await _processUsbPrinting(modifiedResponse, isBesteronSucess);
+        if (isBesteronSucess) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka $e")),
-          );
-          return;
         }
       } else if (ethernetPrintanje) {
-        printReceipt(
-            modifiedResponse.join('\n'), context, ref, isBesteronSucess);
+        await _processEthernetPrinting(
+            modifiedResponse, context, isBesteronSucess);
+        if (isBesteronSucess && ethernetSucess) {
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+          clearSelectedItem(ref);
+          clearSearchQuery(ref);
+        }
       } else if (Platform.isWindows) {
-        List<String> cleanLines = ocistiVrstice(modifiedResponse);
-        String finalReceiptLines = cleanLines.join('\n');
-        saveFileNextToExe(finalReceiptLines, context, ref, isBesteronSucess);
+        await _processWindowsPrinting(
+            modifiedResponse, context, isBesteronSucess);
+        if (isBesteronSucess && windowsSucess) {
+          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+          clearSelectedItem(ref);
+        }
+        ;
       } else {
         try {
           await Future.delayed(Duration(seconds: 2));
 
-          await Utils.printTextWithIntegratedSunmi(
-              context, modifiedResponse.join('\n'), ref, isBesteronSucess);
-          ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-          clearSelectedItem(ref);
-          clearSearchQuery(ref);
+          await _processInnerPrinting(
+            context,
+            modifiedResponse,
+            isBesteronSucess,
+          );
+
+          if (isBesteronSucess && integratedPrinterSucess) {
+            ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
+            clearSelectedItem(ref);
+            clearSearchQuery(ref);
+          }
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Napaka $e")),

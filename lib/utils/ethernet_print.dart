@@ -18,7 +18,7 @@ String sanitizeText(String input) {
       .replaceAll('Ž', 'Z');
 }
 
-void printReceipt(String text, BuildContext context, WidgetRef ref,
+Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
     bool isBesteronSucess) async {
   CapabilityProfile profile;
   String? printerIp;
@@ -34,7 +34,7 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
         SnackBar(content: Text('NAPAKA pri nalaganju profila: $e')),
       );
     }
-    return;
+    return false;
   }
 
   final generator =
@@ -51,24 +51,23 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
         SnackBar(content: Text('NAPAKA pri branju nastavitev: $e')),
       );
     }
-    return;
+    return false;
   }
 
   if (printerIp == null || printerIp.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('IP naslov tiskalnika ni nastavljen')),
-    );
-    return;
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('IP naslov tiskalnika ni nastavljen')),
+      );
+    }
+    return false;
   }
 
   List<int> bytes = [];
-  PosTextSize height;
-  PosTextSize width;
   try {
     bool isLargeText = false;
     final lines = text.split('\n');
-    for (int i = 0; i < lines.length; i++) {
-      final line = lines[i];
+    for (final line in lines) {
       if (line.contains('#VELIKOST-START#')) {
         isLargeText = true;
       } else if (line.contains('#VELIKOST-END#')) {
@@ -78,7 +77,6 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
         if (qrCodeData.endsWith('#')) {
           qrCodeData = qrCodeData.substring(0, qrCodeData.length - 1);
         }
-        print("QRCODEDATA $qrCodeData");
         bytes += generator.qrcode(qrCodeData);
       } else {
         bytes += generator.text(sanitizeText(line),
@@ -90,28 +88,23 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
     }
 
     bytes += generator.feed(emptyRows);
-
     bytes += generator.cut(mode: PosCutMode.full);
   } catch (e, s) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('NAPAKA pri pripravi računa: $e')),
       );
-      print("napaka $e");
     }
-    ;
-    return;
+    return false;
   }
 
-  Future<void> printTicket(
+  Future<bool> printTicket(
       List<int> ticket, String ipAddress, bool isBesteronSucess) async {
     PrinterNetworkManager? printer;
-
     try {
       if (!context.mounted) {
-        return;
+        return false;
       }
-
       printer = PrinterNetworkManager(ipAddress);
 
       PosPrintResult connect = await printer
@@ -120,15 +113,24 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
         return PosPrintResult.timeout;
       });
 
+      if (connect != PosPrintResult.success) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('Povezava s tiskalnikom ni uspela: ${connect.msg}')),
+          );
+        }
+        return false;
+      }
+
       PosPrintResult printing =
           await printer.printTicket(ticket).catchError((e, s) {
         return PosPrintResult.timeout;
       });
 
       if (printing == PosPrintResult.success && isBesteronSucess) {
-        ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
-        clearSelectedItem(ref);
-        clearSearchQuery(ref);
+        return true;
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -136,6 +138,7 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
                 content: Text('Ethernet tiskanje ni uspelo: ${printing.msg}')),
           );
         }
+        return false;
       }
     } catch (e, s) {
       if (context.mounted) {
@@ -145,11 +148,12 @@ void printReceipt(String text, BuildContext context, WidgetRef ref,
                   'Nepričakovana napaka pri tiskanju z ethernet tiskalnikom: $e')),
         );
       }
+      return false;
     } finally {
       printer?.disconnect();
     }
   }
 
-  await printTicket(
-      bytes, printerIp!, isBesteronSucess); // Posredujemo IP naslov
+  bool result = await printTicket(bytes, printerIp!, isBesteronSucess);
+  return result;
 }

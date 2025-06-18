@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NacinPlacilaScreen extends ConsumerStatefulWidget {
   const NacinPlacilaScreen({super.key});
@@ -25,6 +26,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late OrderService orderService;
   late ProcessPayment paymentService;
   final Debouncer _debouncer = Debouncer(miliseconds: 2000);
+  String podjetjeDavcna = '';
 
   @override
   void initState() {
@@ -34,11 +36,60 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       orderService.initializePaymentMethods();
     });
     paymentService = ProcessPayment(ref);
+    _loadPrefereces();
+  }
+
+  Future<void> _loadPrefereces() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      setState(() {
+        podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
+      });
+    } catch (e) {
+      throw Exception("Ne moram pridobiti preferences");
+    }
+  }
+
+  void _processAndPrintResponse(List<String> apiResponse) async {
+    try {
+      final filteredResponse = Utils.filterEmptyLines(apiResponse);
+
+      await Print.printText(context, filteredResponse, ref);
+
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BlagajnaScreen()),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Napaka pri tiskanju: $e")),
+        );
+      }
+    }
+  }
+
+  void createOrder() async {
+    try {
+      if (podjetjeDavcna.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Ne najdem davčne številke podjetja")));
+      }
+
+      final response = await orderService.createOrder(
+          context, "TipDokumenta.REP", podjetjeDavcna);
+      _processAndPrintResponse(response);
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Napaka: $e")));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
     final allpaymentMethods = ref.watch(paymentMethodProvider);
     final paymentMethods = finalSum == 0.0
         ? allpaymentMethods.where((pm) => pm.kodaNacinaPlacila != '02').toList()
@@ -49,6 +100,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
         settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+    final rep = settings['isCheckedREP'] ?? false;
 
     void paymentPrint(String paymentMethod, String davcnaSt) async {
       try {
@@ -192,65 +244,81 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween, // dodano za boljši razmik
                   children: [
-                    Align(
-                      alignment: Alignment.bottomLeft,
-                      child: SizedBox(
-                        width: 150,
-                        height: 60,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            HapticFeedback.vibrate();
-
-                            Navigator.push(
+                    Flexible(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.vibrate();
+                          Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DavcnaDOBScreen(),
-                              ),
-                            );
+                                  builder: (context) => DavcnaDOBScreen()));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.blue,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15)),
+                          minimumSize: Size(150, 60),
+                        ),
+                        child: Text(
+                          "DOB",
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: rep
+                              ? AppStyles.heading4
+                                  .copyWith(color: AppStyles.white)
+                              : AppStyles.heading3
+                                  .copyWith(color: AppStyles.white),
+                        ),
+                      ),
+                    ),
+                    if (rep) SizedBox(width: 16),
+                    if (rep)
+                      Flexible(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            createOrder();
+                            HapticFeedback.vibrate();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppStyles.blue,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
+                                borderRadius: BorderRadius.circular(15)),
+                            minimumSize: Size(150, 60),
                           ),
                           child: Text(
-                            "DOB",
+                            "REP",
+                            softWrap: false,
+                            overflow: TextOverflow.ellipsis,
                             style: AppStyles.heading3
                                 .copyWith(color: AppStyles.white),
                           ),
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: SizedBox(
-                        width: 150,
-                        height: 60,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            HapticFeedback.vibrate();
-
-                            Navigator.push(
+                    SizedBox(width: 16),
+                    Flexible(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          HapticFeedback.vibrate();
+                          Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => DavcnaStrankaScreen(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          child: Text(
-                            "STRANKA",
-                            style: AppStyles.heading3
-                                .copyWith(color: AppStyles.white),
-                          ),
+                                  builder: (context) => DavcnaStrankaScreen()));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.blue,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15)),
+                          minimumSize: Size(150, 60),
+                        ),
+                        child: Text(
+                          rep ? "STR" : "STRANKA",
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppStyles.heading3
+                              .copyWith(color: AppStyles.white),
                         ),
                       ),
                     ),

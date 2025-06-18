@@ -328,7 +328,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Po posodobitvi ponovno preberi posodobljeno stanje
       final updatedItems = ref.read(narociloNotifierProvider);
       NarociloItem updatedItem;
-      print("nastavi ceno $nastaviCeno");
 
       updatedItem = updatedItems.firstWhere(
         (item) =>
