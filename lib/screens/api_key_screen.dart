@@ -33,6 +33,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       TextEditingController();
   final TextEditingController _controllerVelikostPrintanegaTeksta =
       TextEditingController();
+  final TextEditingController _controllerSirinaGumbaTipkovnica =
+      TextEditingController();
+  final TextEditingController _controllerVisinaGumbaTipkovnica =
+      TextEditingController();
+  final TextEditingController _controllerFontGumbTipkovnica =
+      TextEditingController();
 
   bool _isCheckedMoney = false;
   bool _isCheckedOrders = false;
@@ -83,6 +89,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getString('ethernetEmptyRows') ?? '';
         _controllerVelikostPrintanegaTeksta.text =
             prefs.getString('velikostPrintanegaTeksta') ?? '32';
+        _controllerSirinaGumbaTipkovnica.text =
+            prefs.getString('sirinaGumbaTipkovnica') ?? '80';
+        _controllerVisinaGumbaTipkovnica.text =
+            prefs.getString('visinaGumbaTipkovnica') ?? '50';
+        _controllerFontGumbTipkovnica.text =
+            prefs.getString('fontGumbTipkovnica') ?? '16';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -143,7 +155,16 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         'ethernetEmptyRows', _controllerEthernetEmptyLines.text);
     await prefs.setString(
         'velikostPrintanegaTeksta', _controllerVelikostPrintanegaTeksta.text);
+    await prefs.setString(
+        'sirinaGumbaTipkovnica', _controllerSirinaGumbaTipkovnica.text);
+    await prefs.setString(
+        'visinaGumbaTipkovnica', _controllerVisinaGumbaTipkovnica.text);
+    await prefs.setString(
+        'fontGumbTipkovnica', _controllerFontGumbTipkovnica.text);
+
+    ////////////////////////7
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
+
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
         'isCheckedPrikazujNarocila', _isCheckedPrikazujNarocila);
@@ -732,6 +753,51 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                 .read(settingsProvider.notifier)
                                 .toogleEnojniKlik(value ?? false);
                           },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Širina gumba:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerSirinaGumbaTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Višina gumba:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerVisinaGumbaTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Velikost teksta:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerFontGumbTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
                         ),
                       ],
                     ),

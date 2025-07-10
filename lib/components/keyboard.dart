@@ -15,6 +15,7 @@ import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/app_styles.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Keyboard extends ConsumerStatefulWidget {
   final TextEditingController controller;
@@ -50,11 +51,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   final TextEditingController searchController = TextEditingController();
   late ProcessPayment paymentService;
   final Debouncer _debouncer = Debouncer(miliseconds: 2000);
+  double visinaGumba = 50;
+  double sirinaGumba = 80;
+  double fontGumb = 16;
 
   @override
   void initState() {
     super.initState();
     paymentService = ProcessPayment(ref);
+    _loadPrefereces();
   }
 
   void _updateFinalSum() {
@@ -62,6 +67,26 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     setState(() {
       finalSum = newSum;
     });
+  }
+
+  Future<void> _loadPrefereces() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String visinaGumbaPrefs =
+          prefs.getString('visinaGumbaTipkovnica') ?? '50';
+
+      String sirinaGumbaPrefs =
+          prefs.getString('sirinaGumbaTipkovnica') ?? '80';
+
+      String fontGumbTipkovnicaPrefs =
+          prefs.getString('fontGumbTipkovnica') ?? '16';
+
+      visinaGumba = double.tryParse(visinaGumbaPrefs) ?? 50;
+      sirinaGumba = double.tryParse(sirinaGumbaPrefs) ?? 80;
+      fontGumb = double.tryParse(fontGumbTipkovnicaPrefs) ?? 16;
+    } catch (e) {
+      throw Exception("Ne moram pridobiti preferences");
+    }
   }
   /*
 
@@ -237,13 +262,27 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      KeyboardC(controller: widget.controller),
+                      KeyboardC(
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardMultiply(
                         multiply: _handleMultiply,
                         quantity: itemQuantity,
                         controller: widget.controller,
+                        visinaGumba: visinaGumba,
+                        sirinaGumba: sirinaGumba,
+                        fontGumb: fontGumb,
                       ),
-                      KeyboardNumber(number: ',', controller: widget.controller)
+                      KeyboardNumber(
+                        number: ',',
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      )
                     ],
                   ),
                 ),
@@ -253,11 +292,26 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       KeyboardNumber(
-                          number: "1", controller: widget.controller),
+                        number: "1",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "2 ABC", controller: widget.controller),
+                        number: "2 ABC",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "3 DEF", controller: widget.controller),
+                        number: "3 DEF",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                     ],
                   ),
                 ),
@@ -267,11 +321,26 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       KeyboardNumber(
-                          number: "4 GHI", controller: widget.controller),
+                        number: "4 GHI",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "5 JKL", controller: widget.controller),
+                        number: "5 JKL",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "6 MNO", controller: widget.controller),
+                        number: "6 MNO",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                     ],
                   ),
                 ),
@@ -281,11 +350,26 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       KeyboardNumber(
-                          number: "7 PQRS", controller: widget.controller),
+                        number: "7 PQRS",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "8 TUV", controller: widget.controller),
+                        number: "8 TUV",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                       KeyboardNumber(
-                          number: "9 WXYZ", controller: widget.controller),
+                        number: "9 WXYZ",
+                        controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
+                      ),
                     ],
                   ),
                 ),
@@ -300,14 +384,23 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                         height: 50,
                         fontSize: 16,
                         borderRadius: 20,
+                        visinaGumba: visinaGumba,
+                        sirinaGumba: sirinaGumba,
+                        fontGumb: fontGumb,
                       ),
                       KeyboardNumber(
                         number: "0",
                         controller: widget.controller,
+                        sirinaGumba: sirinaGumba,
+                        visinaGumba: visinaGumba,
+                        fontGumb: fontGumb,
                       ),
                       KeyboardRedirect(
                         backgroundColor: AppStyles.blue,
                         text: widget.opisDiscountButton,
+                        visinaGumba: visinaGumba,
+                        sirinaGumba: sirinaGumba,
+                        fontGumb: fontGumb,
                         onPressed: widget.navigateToOpisDiscountScreen,
                       )
                     ],
@@ -323,6 +416,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 child: KeyboardRedirect(
                     backgroundColor: AppStyles.blue,
                     text: widget.racunArtikliButton,
+                    visinaGumba: visinaGumba,
+                    sirinaGumba: sirinaGumba,
+                    fontGumb: fontGumb,
                     onPressed: widget.navigateToRacun),
               ),
               if (!prikazujSamoNarocila)
@@ -331,6 +427,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                       backgroundColor: AppStyles.brightOrange,
                       text: "GOT",
+                      visinaGumba: visinaGumba,
+                      sirinaGumba: sirinaGumba,
+                      fontGumb: fontGumb,
                       onPressed: () {
                         _paymentGotovina();
                       }),
@@ -341,6 +440,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                     backgroundColor: AppStyles.brightRed,
                     text: "KAR",
+                    visinaGumba: visinaGumba,
+                    sirinaGumba: sirinaGumba,
+                    fontGumb: fontGumb,
                     onPressed: obstajaKarPlacilo && newSum > 0.00
                         ? () {
                             _paymentKartica();
@@ -355,6 +457,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                       backgroundColor: AppStyles.brightPurple,
                       text: mizaButton,
+                      visinaGumba: visinaGumba,
+                      sirinaGumba: sirinaGumba,
+                      fontGumb: fontGumb,
                       onPressed: widget.navigateToMizaScreen),
                 ),
               if (!prikazujSamoNarocila)
@@ -363,6 +468,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                   child: KeyboardRedirect(
                     backgroundColor: AppStyles.green,
                     text: "OK",
+                    visinaGumba: visinaGumba,
+                    sirinaGumba: sirinaGumba,
+                    fontGumb: fontGumb,
                     onPressed: () {
                       widget
                           .navigateToNacinPlacilaScreen(); // Navigate to the payment method screen
@@ -380,9 +488,17 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 class KeyboardNumber extends StatefulWidget {
   final String number;
   final TextEditingController controller;
+  final double sirinaGumba;
+  final double visinaGumba;
+  final double fontGumb;
 
   const KeyboardNumber(
-      {super.key, required this.number, required this.controller});
+      {super.key,
+      required this.number,
+      required this.controller,
+      required this.sirinaGumba,
+      required this.visinaGumba,
+      required this.fontGumb});
 
   @override
   State<KeyboardNumber> createState() => _KeyboardNumberState();
@@ -392,8 +508,8 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
-      height: 50,
+      width: widget.sirinaGumba,
+      height: widget.visinaGumba,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
             backgroundColor: AppStyles.lightGrey,
@@ -419,7 +535,10 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
         child: Center(
           child: Text(
             widget.number,
-            style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
+            style: TextStyle(
+                fontSize: widget.fontGumb,
+                fontWeight: FontWeight.bold,
+                color: AppStyles.black),
           ),
         ),
       ),
@@ -429,8 +548,16 @@ class _KeyboardNumberState extends State<KeyboardNumber> {
 
 class KeyboardC extends ConsumerWidget {
   final TextEditingController controller;
+  final double sirinaGumba;
+  final double visinaGumba;
+  final double fontGumb;
 
-  const KeyboardC({super.key, required this.controller});
+  const KeyboardC(
+      {super.key,
+      required this.controller,
+      required this.sirinaGumba,
+      required this.visinaGumba,
+      required this.fontGumb});
 
   void _clearText(WidgetRef ref) {
     controller.clear();
@@ -439,8 +566,8 @@ class KeyboardC extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
-      width: 80,
-      height: 50,
+      width: sirinaGumba,
+      height: visinaGumba,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: AppStyles.lightGrey,
@@ -463,8 +590,10 @@ class KeyboardC extends ConsumerWidget {
           child: Center(
             child: Text(
               "C",
-              style:
-                  AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
+              style: TextStyle(
+                  fontSize: fontGumb,
+                  fontWeight: FontWeight.bold,
+                  color: AppStyles.black),
             ),
           )),
     );
@@ -475,19 +604,24 @@ class KeyboardMultiply extends StatelessWidget {
   final TextEditingController controller;
   final double quantity;
   final Function(double result) multiply;
+  final double sirinaGumba;
+  final double visinaGumba;
+  final double fontGumb;
 
-  const KeyboardMultiply({
-    super.key,
-    required this.multiply,
-    required this.quantity,
-    required this.controller,
-  });
+  const KeyboardMultiply(
+      {super.key,
+      required this.multiply,
+      required this.quantity,
+      required this.controller,
+      required this.sirinaGumba,
+      required this.visinaGumba,
+      required this.fontGumb});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
-      height: 50,
+      width: sirinaGumba,
+      height: visinaGumba,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppStyles.lightGrey,
@@ -516,7 +650,10 @@ class KeyboardMultiply extends StatelessWidget {
         child: Center(
           child: Text(
             "*",
-            style: AppStyles.boldanparagraph1.copyWith(color: AppStyles.black),
+            style: TextStyle(
+                fontSize: fontGumb,
+                fontWeight: FontWeight.bold,
+                color: AppStyles.black),
           ),
         ),
       ),
@@ -528,18 +665,24 @@ class KeyboardRedirect extends StatelessWidget {
   final Color backgroundColor;
   final String text;
   final VoidCallback onPressed;
+  final double sirinaGumba;
+  final double visinaGumba;
+  final double fontGumb;
 
   const KeyboardRedirect(
       {super.key,
       required this.backgroundColor,
       required this.text,
-      required this.onPressed});
+      required this.onPressed,
+      required this.visinaGumba,
+      required this.sirinaGumba,
+      required this.fontGumb});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 80,
-      height: 50,
+      width: sirinaGumba,
+      height: visinaGumba,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: backgroundColor,
@@ -554,8 +697,10 @@ class KeyboardRedirect extends StatelessWidget {
           child: Center(
             child: Text(
               text,
-              style:
-                  AppStyles.boldanparagraph1.copyWith(color: AppStyles.white),
+              style: TextStyle(
+                  fontSize: fontGumb,
+                  fontWeight: FontWeight.bold,
+                  color: AppStyles.white),
             ),
           )),
     );
@@ -568,6 +713,9 @@ class KeyboardBack extends ConsumerWidget {
   final int height;
   final VoidCallback? search;
   final IconData icon;
+  final double sirinaGumba;
+  final double visinaGumba;
+  final double fontGumb;
 
   const KeyboardBack(
       {super.key,
@@ -575,7 +723,10 @@ class KeyboardBack extends ConsumerWidget {
       required this.borderRadius,
       required this.height,
       this.search,
-      required this.icon});
+      required this.icon,
+      required this.visinaGumba,
+      required this.sirinaGumba,
+      required this.fontGumb});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -585,8 +736,8 @@ class KeyboardBack extends ConsumerWidget {
     final isLandscape = orientation == Orientation.landscape;
 
     return SizedBox(
-      width: 80,
-      height: height.toDouble(),
+      width: sirinaGumba,
+      height: visinaGumba,
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               backgroundColor: AppStyles.lightGrey,
@@ -605,7 +756,7 @@ class KeyboardBack extends ConsumerWidget {
             child: Icon(
               icon,
               color: AppStyles.black,
-              size: fontSize.toDouble(),
+              size: fontGumb,
             ),
           )),
     );
