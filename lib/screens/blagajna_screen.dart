@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/item_card.dart';
@@ -68,6 +72,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   List<Map<String, String>> _tables = [];
   bool _tablesFetched = false;
   bool _isKeyboardVisible = true;
+  bool _isOnline = true;
 
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
@@ -75,7 +80,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   @override
   void initState() {
     super.initState();
-
+    testConnection();
     if (izdelki.isEmpty) {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
@@ -550,6 +555,25 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     });
   }
 
+  void testConnection() async {
+    try {
+      List<String> responseList =
+          await sendRequest(userId, "echo").timeout(const Duration(seconds: 2));
+
+      setState(() {
+        _isOnline = responseList.isNotEmpty;
+      });
+    } on TimeoutException {
+      setState(() {
+        _isOnline = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isOnline = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
@@ -582,16 +606,30 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           preferredSize: const Size.fromHeight(32.0),
           child: GestureDetector(
             onDoubleTap: _hideKeyboard,
+            onTap: testConnection,
             child: AppBar(
               centerTitle: true,
               toolbarHeight: 32.0,
               backgroundColor: AppStyles.white,
               iconTheme: const IconThemeData(color: AppStyles.blue),
-              title: Text(
-                user ?? '',
-                style: AppStyles.paragraph3.copyWith(
-                    color: AppStyles.blue, fontWeight: FontWeight.bold),
-              ),
+              title:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  user ?? '',
+                  style: AppStyles.paragraph3.copyWith(
+                      color: AppStyles.blue, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              ]),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
