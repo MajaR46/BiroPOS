@@ -126,7 +126,8 @@ class _BluetoothScreenState extends ConsumerState<BluetoothScreen> {
   }
 
   Future<void> sendBluetoothData() async {
-    final response = await ref.read(orderProvider).createOrder(context, "KAR");
+    final response =
+        await ref.read(orderProvider).createOrder(context, ref, "KAR");
     final filteredResponse = Utils.filterEmptyLines(response);
 
     // Convert filtered response into a list of strings

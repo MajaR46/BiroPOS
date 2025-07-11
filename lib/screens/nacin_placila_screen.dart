@@ -78,7 +78,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       }
 
       final response = await orderService.createOrder(
-          context, "TipDokumenta.REP", podjetjeDavcna);
+          context, ref, "TipDokumenta.REP", podjetjeDavcna);
       _processAndPrintResponse(response);
     } catch (e) {
       ScaffoldMessenger.of(context)

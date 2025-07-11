@@ -7,6 +7,8 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
   final prefs = await SharedPreferences.getInstance();
   final roundedFinalSum = double.parse(finalSum.toStringAsFixed(2));
 
+  print("tuki tuki poslan");
+
   String? posUrlNastavitve = prefs.getString('POS');
 
   if (posUrlNastavitve == null || posUrlNastavitve.isEmpty) {

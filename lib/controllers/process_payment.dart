@@ -59,7 +59,10 @@ class ProcessPayment {
 
     if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
       try {
-        final besteronResponse = await callBesteron(finalSum);
+        final besteronResponse = await callBesteron(finalSum)
+            .timeout(const Duration(seconds: 10), onTimeout: () {
+          throw TimeoutException("TimeOUT");
+        });
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
 
@@ -72,6 +75,7 @@ class ProcessPayment {
         if (bluetoothPrintanje) {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
+          print("tuku");
         } else if (usbPrintanje) {
           await UsbPrint.sendDataUsb([besteronRacun]);
         } else if (ethernetPrintanje) {
@@ -104,7 +108,7 @@ class ProcessPayment {
       if (isBesteronSucess) {
         response = await ref
             .read(orderProvider)
-            .createOrder(context, paymentType, davcnaSt);
+            .createOrder(context, ref, paymentType, davcnaSt);
       }
 
       if (receiptCode == true) {

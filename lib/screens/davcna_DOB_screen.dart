@@ -65,7 +65,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
         if (davcnaNumber != null && davcnaSt.length == 8) {
           final response = await orderService.createOrder(
-              context, "TipDokumenta.DOB", davcnaSt);
+              context, ref, "TipDokumenta.DOB", davcnaSt);
           _processAndPrintResponse(response);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
