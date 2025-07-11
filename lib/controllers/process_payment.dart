@@ -75,7 +75,6 @@ class ProcessPayment {
         if (bluetoothPrintanje) {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
-          print("tuku");
         } else if (usbPrintanje) {
           await UsbPrint.sendDataUsb([besteronRacun]);
         } else if (ethernetPrintanje) {
@@ -115,6 +114,11 @@ class ProcessPayment {
         modifiedResponse = insertCodeInReceipt(response);
       } else {
         modifiedResponse = response;
+      }
+      int index = modifiedResponse
+          .indexWhere((line) => line.contains("#VELIKOST-END#"));
+      if (index != -1) {
+        modifiedResponse.insert(index + 1, "#VELIKOST-END#");
       }
 
       if (modifiedResponse.any((line) => line.contains("#NAPAKA#"))) {
@@ -205,8 +209,6 @@ class ProcessPayment {
         await isBluetoothConnected(context, response);
         final result = await BluetoothService.sendData(response, ref,
             context: context, addEmptyLines: true);
-
-        print("RESULT BLUETOOTH $result");
 
         // Preveri če je rezultat vseboval napako
         if (result.toLowerCase().contains("napaka") ||
