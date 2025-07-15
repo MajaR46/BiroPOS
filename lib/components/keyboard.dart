@@ -170,7 +170,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         }
 
         // Process the payment
-        paymentService.processPayment(context, "GOT");
+        await paymentService.processPayment(context, "GOT");
 
         if (tiskajNarociloPriRacunu) {
           await Narocilo.createNarocilo(ref, false, context);
@@ -188,8 +188,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       final settings = ref.watch(settingsProvider);
       final tiskajNarociloPriRacunu =
           settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+
+      await paymentService.processPayment(context, "KAR");
       try {
-        paymentService.processPayment(context, "KAR");
         if (tiskajNarociloPriRacunu == true) {
           await Narocilo.createNarocilo(ref, false, context);
         }
