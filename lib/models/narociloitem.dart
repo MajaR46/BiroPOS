@@ -1,16 +1,28 @@
 import 'package:BiroPOS/models/item.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:uuid/uuid.dart'; // <-- Dodaj import
+
+part 'narociloitem.g.dart';
 
 var _uuid = const Uuid(); // Instanca generatorja UUID
 
+@HiveType(typeId: 10)
 class NarociloItem {
-  final String uniqueId; // <-- Dodaj unikatni ID
+  @HiveField(0)
+  final String uniqueId;
+  @HiveField(1)
   final Item product;
+  @HiveField(02)
   double quantity;
+  @HiveField(3)
   double discount;
+  @HiveField(4)
   String description;
+  @HiveField(5)
   String davcnaSt;
+  @HiveField(6)
   String tableNumber;
+  @HiveField(7)
   final bool isFromTable;
 
   NarociloItem({

@@ -23,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -316,6 +317,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final chosenItems = ref.watch(narociloNotifierProvider);
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
+    var narociloBox = Hive.box('narociloBox');
+
+    List hiveNarocilo = narociloBox.values.toList();
+    print("hive $hiveNarocilo");
+
     final numbers2String = ref.watch(searchQueryProvider);
 
     return Scaffold(
@@ -356,7 +362,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           children: [
             Expanded(
               child: SeznamRacun(
-                  chosenItems: chosenItems,
+                  chosenItems: hiveNarocilo,
                   totalSum: totalSum,
                   totalDiscount: _totalDiscount,
                   openDialog: openDialog,
@@ -416,6 +422,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       (table) => table['prostor'] != '',
       orElse: () => {},
     );
+
+    var narociloBox = Hive.box('narociloBox');
+    await narociloBox.clear();
     if (currentChosenItems.isNotEmpty) {
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {

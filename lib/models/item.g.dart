@@ -1,47 +1,50 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'osebje.dart';
+part of 'item.dart';
 
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
 
-class OsebjeAdapter extends TypeAdapter<Osebje> {
+class ItemAdapter extends TypeAdapter<Item> {
   @override
-  final int typeId = 4;
+  final int typeId = 11;
 
   @override
-  Osebje read(BinaryReader reader) {
+  Item read(BinaryReader reader) {
     final numOfFields = reader.readByte();
     final fields = <int, dynamic>{
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
-    return Osebje(
-      fields[0] as String,
-      fields[1] as String,
-      fields[2] as String,
-      fields[3] as String?,
-      fields[4] as String?,
-      fields[5] as String?,
+    return Item(
+      id: fields[0] as String,
+      name: fields[1] as String,
+      price: fields[2] as double,
+      discountedPrice: fields[3] as double,
+      hhPrice: fields[4] as double,
+      categoryID: fields[5] as String,
+      eanCode: fields[6] as String,
     );
   }
 
   @override
-  void write(BinaryWriter writer, Osebje obj) {
+  void write(BinaryWriter writer, Item obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
-      ..write(obj.username)
+      ..write(obj.id)
       ..writeByte(1)
-      ..write(obj.password)
+      ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.sifra)
+      ..write(obj.price)
       ..writeByte(3)
-      ..write(obj.pravicaPregledPorocil)
+      ..write(obj.discountedPrice)
       ..writeByte(4)
-      ..write(obj.pregledSamoSvojihDokumentov)
+      ..write(obj.hhPrice)
       ..writeByte(5)
-      ..write(obj.pravicaStornoProdaja);
+      ..write(obj.categoryID)
+      ..writeByte(6)
+      ..write(obj.eanCode);
   }
 
   @override
@@ -50,7 +53,7 @@ class OsebjeAdapter extends TypeAdapter<Osebje> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is OsebjeAdapter &&
+      other is ItemAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }

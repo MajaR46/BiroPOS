@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SeznamRacun extends ConsumerWidget {
-  final List<NarociloItem> chosenItems;
+  final List chosenItems;
   final double totalSum;
   final double totalDiscount;
   final Function(String?, String?, String, double, bool, [double?]) openDialog;

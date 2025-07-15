@@ -5,16 +5,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Assuming you have these providers defined somewhere:
 import 'package:BiroPOS/providers/categoriseditems_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void searchByEan(String input, WidgetRef ref, BuildContext context,
     Function updateTotalDiscount,
-    {double quantity = 1.0}) {
+    {double quantity = 1.0}) async {
   RegExp regExp = RegExp(r'\d+');
   Iterable<Match> matches = regExp.allMatches(input);
   List<String> numbers = matches.map((match) => match.group(0)!).toList();
   String numbersToString = numbers.join();
   final items = ref.watch(itemsProvider);
   List<Item> matchingItems = [];
+
+  var narociloBox = Hive.box('narociloBox');
 
   if (numbersToString.length >= 6 && input.isNotEmpty) {
     matchingItems = items.where((item) {
@@ -29,6 +32,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false);
+      await narociloBox.add(newNarociloItem);
       updateTotalDiscount();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,6 +52,9 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false);
+
+      await narociloBox.add(newNarociloItem);
+
       updateTotalDiscount();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

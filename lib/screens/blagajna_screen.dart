@@ -81,6 +81,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void initState() {
     super.initState();
     testConnection();
+    _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
@@ -147,6 +148,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     searchController.dispose();
 
     super.dispose();
+  }
+
+  void _loadNarocilaFromHive() {
+    Future.microtask(() {
+      final narociloBox = Hive.box('narociloBox');
+      final items = narociloBox.values.cast<NarociloItem>().toList();
+
+      ref.read(narociloNotifierProvider.notifier).setNarocila(items);
+    });
   }
 
   Future<void> _handleData() async {
@@ -299,37 +309,44 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
   }
 
-  void _ouputselectedItem(dynamic outputtedItem) {
+  void _ouputselectedItem(dynamic outputtedItem) async {
+    var narociloBox = Hive.box('narociloBox');
+    final settings = ref.watch(settingsProvider);
+    final nastaviCeno = settings['isCheckedMoney'];
+
+    Item originalItem = Item.fromMap(outputtedItem);
+    Item newItem = originalItem.copyWith();
+
+    // Pripravimo artikel za naročilo (default količina 1)
+    NarociloItem newNarociloItem =
+        NarociloItem(product: newItem.copyWith(), quantity: 1);
+
+    // Preverimo obstoječe artikle
+    final currentItems = ref.read(narociloNotifierProvider); // NE watch
+
+    final existingItemIndex = currentItems.indexWhere((item) =>
+        item.product.id == newNarociloItem.product.id &&
+        item.description == newNarociloItem.description);
+
+    // Dodaj artikel (ali posodobi količino)
+    final isNew = existingItemIndex == -1;
+    if (nastaviCeno == false) {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
+    } else {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
+    }
+
+    if (isNew) {
+      await narociloBox.add(newNarociloItem); // dodamo samo nove
+    } else {
+      // Lahko posodobiš obstoječi zapis v Hive, če želiš
+      // narociloBox.putAt(existingItemIndex, updatedNarociloItem);
+    }
     setState(() {
-      final settings = ref.watch(settingsProvider);
-      final nastaviCeno = settings['isCheckedMoney'];
-
-      Item originalItem = Item.fromMap(outputtedItem);
-      Item newItem = originalItem.copyWith();
-
-      // Pripravimo artikel za naročilo (default količina 1)
-      NarociloItem newNarociloItem =
-          NarociloItem(product: newItem.copyWith(), quantity: 1);
-
-      // Preverimo obstoječe artikle
-      final currentItems = ref.read(narociloNotifierProvider); // NE watch
-
-      final existingItemIndex = currentItems.indexWhere((item) =>
-          item.product.id == newNarociloItem.product.id &&
-          item.description == newNarociloItem.description);
-
-      // Dodaj artikel (ali posodobi količino)
-
-      if (nastaviCeno == false) {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
-      } else {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
-      }
-
       // Po posodobitvi ponovno preberi posodobljeno stanje
       final updatedItems = ref.read(narociloNotifierProvider);
       NarociloItem updatedItem;
@@ -756,13 +773,17 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
+
     final table = _tables.firstWhere(
       (table) => table['prostor'] != '',
       orElse: () => {},
     );
     if (currentChosenItems.isNotEmpty) {
       // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
+      var narociloBox = Hive.box('narociloBox');
+      await narociloBox.clear();
 
+      ref.read(narociloNotifierProvider.notifier).clearRacun();
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
         // Če je 'prostor' prazen, preusmeri na AddToTableScreen

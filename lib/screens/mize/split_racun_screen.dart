@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplitRacunScreen extends ConsumerStatefulWidget {
@@ -94,7 +95,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     });
   }
 
-  void _dodajNaRacun(List<TableItem> items) {
+  void _dodajNaRacun(List<TableItem> items) async {
     final narociloItems =
         items.where((tableItem) => tableItem.quantity > 0).map((tableItem) {
       final item = Item(
@@ -113,10 +114,13 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
       );
     }).toList();
 
+    var narociloBox = Hive.box('narociloBox');
+
     for (var narociloItem in narociloItems) {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(narociloItem, fromTable: true);
+      await narociloBox.add(narociloItem);
     }
   }
 
