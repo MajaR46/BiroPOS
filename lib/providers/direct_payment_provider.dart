@@ -147,10 +147,6 @@ class OrderService {
       // Izpiši napako v konzolo in prikaži uporabniku obvestilo
       debugPrint('Napaka pri ustvarjanju naročila: $e');
       debugPrint(stackTrace.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Prišlo je do napake pri oddaji naročila.")),
-      );
       return [];
     }
   }

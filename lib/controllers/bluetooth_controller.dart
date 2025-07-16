@@ -149,7 +149,6 @@ class BluetoothService {
 
         await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 1");
-        print("tu sem sifiejfie");
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
           errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
         }
@@ -169,7 +168,6 @@ class BluetoothService {
     } catch (e) {
       final errorMessage = 'An unexpected error occurred: ${e.toString()}';
       if (context != null) {
-        print("ZAHAHAHAHA");
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(errorMessage)));
         //await ErrorDialogs.showBluetoothErrorDialog(context!, response);

@@ -1,6 +1,9 @@
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/search_items.dart';
 import 'package:BiroPOS/utils/vracilo_denarja.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
@@ -54,6 +57,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   double visinaGumba = 50;
   double sirinaGumba = 80;
   double fontGumb = 16;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
@@ -67,6 +71,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     setState(() {
       finalSum = newSum;
     });
+  }
+
+  Future<bool> checkConnection() async {
+    bool success = await testConnection(userId);
+    if (!success) {
+      String response = "NI POVEZAVE Z BLAGAJNO";
+      await ErrorDialogs.showBasicDialog(response, context);
+    }
+    return success;
   }
 
   Future<void> _loadPrefereces() async {
@@ -153,6 +166,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       double finalSum = ref.read(narociloNotifierProvider.notifier).totalSum();
 
       try {
+        bool connected = await checkConnection();
+        if (!connected) return;
         ref.read(searchQueryProvider.notifier).state = widget.controller.text;
 
         String searchQuery = ref.watch(searchQueryProvider);
@@ -185,6 +200,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 
   void _paymentKartica() {
     _debouncer.debouce(() async {
+      bool connected = await checkConnection();
+      if (!connected) return;
       final settings = ref.watch(settingsProvider);
       final tiskajNarociloPriRacunu =
           settings['isCheckedTiskajNarociloPriRacunu'] ?? false;

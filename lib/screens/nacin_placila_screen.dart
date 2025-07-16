@@ -2,6 +2,7 @@ import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
@@ -14,6 +15,7 @@ import 'package:BiroPOS/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -100,6 +102,15 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     }
   }
 
+  Future<bool> checkConnection2() async {
+    bool success = await testConnection(userId);
+    if (!success) {
+      String response = "NI POVEZAVE Z BLAGAJNO";
+      await ErrorDialogs.showBasicDialog(response, context);
+    }
+    return success;
+  }
+
   @override
   Widget build(BuildContext context) {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
@@ -118,6 +129,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
     void paymentPrint(String paymentMethod, String davcnaSt) async {
       try {
+        bool connected = await checkConnection2();
+        if (!connected) return;
         paymentService.processPayment(context, paymentMethod, davcnaSt);
         if (tiskajNarociloPriRacunu == true) {
           await Narocilo.createNarocilo(ref, false, context);

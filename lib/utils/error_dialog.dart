@@ -29,6 +29,31 @@ class ErrorDialogs {
     );
   }
 
+  static Future<void> showBasicDialog(String text, BuildContext context) async {
+    return await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Padding(
+              padding: const EdgeInsets.only(top: 24.0),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Zapre dialog
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   static Future<void> showResponseDialog(
       List<String> response, BuildContext context) async {
     return await showDialog(

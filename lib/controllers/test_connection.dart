@@ -6,8 +6,11 @@ Future<bool> testConnection(String userId) async {
   try {
     List<String> responseList =
         await sendRequest(userId, "echo").timeout(const Duration(seconds: 2));
-
-    return responseList.isNotEmpty;
+    if (responseList.isEmpty ||
+        responseList.any((line) => line.contains("Napaka"))) {
+      return false;
+    }
+    return true;
   } on TimeoutException {
     return false;
   } catch (e) {
