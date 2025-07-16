@@ -1,3 +1,5 @@
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -27,10 +29,15 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late ProcessPayment paymentService;
   final Debouncer _debouncer = Debouncer(miliseconds: 2000);
   String podjetjeDavcna = '';
+  bool _isOnline = true;
+
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
+    checkConnection();
+
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
@@ -48,6 +55,13 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     } catch (e) {
       throw Exception("Ne moram pridobiti preferences");
     }
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   void _processAndPrintResponse(List<String> apiResponse) async {
@@ -120,20 +134,38 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
     return Scaffold(
         backgroundColor: AppStyles.white,
-        appBar: AppBar(
-          backgroundColor: AppStyles.white,
-          title: Text(
-            "Način plačila",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppStyles.black),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const BlagajnaScreen())),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: GestureDetector(
+            onTap: checkConnection,
+            child: AppBar(
+              backgroundColor: AppStyles.white,
+              title: Text(
+                "Način plačila",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black),
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: AppStyles.black),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen())),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 24.0),
+                  child: Text(
+                    _isOnline ? "Online" : "Offline",
+                    style: AppStyles.paragraph3.copyWith(
+                      color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         body: Padding(

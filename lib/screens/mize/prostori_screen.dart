@@ -1,6 +1,7 @@
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
 import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
@@ -26,6 +27,9 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
   Map<String, List<String>> tableItems = {};
   List<String> uniqueSpacesList = [];
 
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
+
   late List<dynamic> chosenItems;
   bool _isLoading = true;
   String _errorMessage = '';
@@ -34,6 +38,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
   void initState() {
     super.initState();
     _fetchTables();
+    checkConnection();
   }
 
   Future<void> _fetchTables() async {
@@ -86,26 +91,51 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
     }
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const BlagajnaScreen())),
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black,
-            )),
-        title: Text(
-          "Prostori",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen())),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black,
+                )),
+            title: Text(
+              "Prostori",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black),
+            ),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
-        centerTitle: true,
       ),
       body: Stack(
         children: [

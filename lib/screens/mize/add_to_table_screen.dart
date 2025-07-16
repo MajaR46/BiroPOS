@@ -2,6 +2,7 @@ import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/table_controller.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
@@ -28,6 +29,8 @@ class AddToTableScreen extends ConsumerStatefulWidget {
 class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   List<Map<String, String>> _tables = [];
   Map<String, List<String>> tableItems = {};
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   late List<dynamic> chosenItems;
 
@@ -38,6 +41,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   void initState() {
     super.initState();
     _loadTables();
+    checkConnection();
   }
 
   Future<void> _loadTables() async {
@@ -74,36 +78,63 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
       await Narocilo.createNarocilo(ref, true, context, tableNumber);
     }
     ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+    var narociloBox = Hive.box('narociloBox');
+    await narociloBox.clear();
 
     ref.read(tableNotifierProvider.notifier).state = [];
     clearSelectedItem(ref);
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () {
-            if (widget.prostor?.isEmpty ?? true) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const BlagajnaScreen()));
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () {
+                if (widget.prostor?.isEmpty ?? true) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BlagajnaScreen()));
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Dodaj na mizo",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black),
+            ),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
-        title: Text(
-          "Dodaj na mizo",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
-        ),
-        centerTitle: true,
       ),
       body: Stack(
         children: [

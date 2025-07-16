@@ -1,3 +1,5 @@
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
@@ -54,11 +56,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   final FocusNode _discountFocusNode = FocusNode();
   String _scannedBarcode = '';
   bool _isDiscountDialogOpen = false;
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     _fetchTables();
+    checkConnection();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
@@ -312,6 +317,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         searchText); // Use the function from search_ean.dart
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
@@ -327,12 +339,30 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        automaticallyImplyLeading: false,
-        title: Text("Račun",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            automaticallyImplyLeading: false,
+            title: Text("Račun",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
       body: KeyboardListener(
         // Replaced RawKeyboardListener with KeyboardListener
@@ -423,8 +453,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       orElse: () => {},
     );
 
-    var narociloBox = Hive.box('narociloBox');
-    await narociloBox.clear();
     if (currentChosenItems.isNotEmpty) {
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {

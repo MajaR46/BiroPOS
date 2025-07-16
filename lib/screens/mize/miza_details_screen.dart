@@ -2,6 +2,7 @@ import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/models/tableItem.dart';
@@ -33,12 +34,15 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   late String imeMize;
   List<TableItem> izdelki = [];
   List<TableItem> izbraniIzdelki = [];
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
+    checkConnection();
   }
 
   Future<void> _fetchSingleTable() async {
@@ -101,7 +105,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     });
   }
 
-  void _dodajNaRacun(List<TableItem> items) async {
+  Future<void> _dodajNaRacun(List<TableItem> items) async {
     final narociloItems = items.map((tableItem) {
       final item = Item(
         id: tableItem.productCode,
@@ -119,22 +123,28 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       );
     }).toList();
 
-    var narociloBox = Hive.box('narociloBox');
-
     for (var narociloItem in narociloItems) {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(narociloItem, fromTable: true);
+
+      final narociloBox = Hive.box('narociloBox');
+      print("Shranjujem ${narociloItem.product.name}");
       await narociloBox.add(narociloItem);
+      print("Vsebina Hive:");
+      for (var item in narociloBox.values) {
+        print(" - ${item.product.name}, ${item.quantity}");
+      }
     }
   }
 
-  void _ok() {
+  void _ok() async {
     final itemsToProcess =
         (izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki)
             .where((item) => item.disabled != true)
             .toList();
-    _dodajNaRacun(itemsToProcess);
+    await _dodajNaRacun(itemsToProcess);
+
     clearSelectedItem(ref);
 
     var orientation = MediaQuery.of(context).orientation;
@@ -191,51 +201,74 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     });
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text("Miza: $imeMize",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppStyles.green, AppStyles.grey],
-                  stops: [0.5, 0.5],
-                  begin: Alignment.bottomRight,
-                  end: Alignment.topLeft,
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                padding: EdgeInsets.zero,
-                iconSize: 24,
-                onPressed: () {
-                  HapticFeedback.vibrate();
-                  _disableItems();
-                },
-                icon: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.white,
-                  size: 24, // Spremeni barvo ikone po potrebi
-                ),
-              ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
             ),
+            title: Text("Miza: $imeMize",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppStyles.green, AppStyles.grey],
+                      stops: [0.5, 0.5],
+                      begin: Alignment.bottomRight,
+                      end: Alignment.topLeft,
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    iconSize: 24,
+                    onPressed: () {
+                      HapticFeedback.vibrate();
+                      _disableItems();
+                    },
+                    icon: const Icon(
+                      Icons.check_rounded,
+                      color: Colors.white,
+                      size: 24, // Spremeni barvo ikone po potrebi
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
       body: Stack(
         children: [

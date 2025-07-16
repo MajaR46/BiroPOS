@@ -2,6 +2,7 @@ import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
@@ -12,6 +13,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 class NewTableScreen extends ConsumerStatefulWidget {
   const NewTableScreen({
@@ -24,6 +26,14 @@ class NewTableScreen extends ConsumerStatefulWidget {
 
 class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   final TextEditingController _newTableController = TextEditingController();
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
+
+  @override
+  void initState() {
+    super.initState();
+    checkConnection();
+  }
 
   void _clearText() {
     _newTableController.clear();
@@ -62,25 +72,52 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
         await Narocilo.createNarocilo(ref, true, context, tableNumber);
       }
       ref.read(narociloNotifierProvider.notifier).clearChosenItems();
+      var narociloBox = Hive.box('narociloBox');
+      await narociloBox.clear();
 
       clearSelectedItem(ref);
     }
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text("Nova miza",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
-        title: Text("Nova miza",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
       ),
       body: Stack(
         children: [

@@ -13,18 +13,18 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   void addToRacun(NarociloItem narociloItem,
-      {bool fromTable = false, bool nastaviCeno = false}) {
+      {bool fromTable = false, bool nastaviCeno = false}) async {
     final String? davcnaSt = ref.read(taxNumberProvider);
     int existingItemIndex = -1;
+    final narociloBox = Hive.box('narociloBox');
 
     if (nastaviCeno) {
-      state = [
-        ...state,
-        narociloItem.copyWith(
-          davcnaSt: davcnaSt,
-          isFromTable: fromTable,
-        ),
-      ];
+      final newItem = narociloItem.copyWith(
+        davcnaSt: davcnaSt,
+        isFromTable: fromTable,
+      );
+      state = [...state, newItem];
+      await narociloBox.add(newItem); // Dodaj v Hive
       return;
     }
 
@@ -56,18 +56,22 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       final newState = List<NarociloItem>.from(state);
       newState[existingItemIndex] = updatedItem;
       state = newState;
+
+      final hiveIndex = narociloBox.values
+          .toList()
+          .indexWhere((item) => item.uniqueId == updatedItem.uniqueId);
+      if (hiveIndex != -1) {
+        await narociloBox.putAt(hiveIndex, updatedItem);
+      }
     } else {
       // Če ni popolnega ujemanja (ali je opis drugačen), dodaj kot novo postavko
       // NarociloItem konstruktor bo sam generiral nov uniqueId
-      state = [
-        ...state,
-        narociloItem.copyWith(
-          // Uporabi copyWith za nastavitev davcnaSt itd.
-          davcnaSt: davcnaSt,
-          isFromTable: fromTable,
-          // Opis in ostalo pride iz `narociloItem` parametra
-        ),
-      ];
+      final newItem = narociloItem.copyWith(
+        davcnaSt: davcnaSt,
+        isFromTable: fromTable,
+      );
+      state = [...state, newItem];
+      await narociloBox.add(newItem);
     }
   }
 

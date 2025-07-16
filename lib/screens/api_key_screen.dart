@@ -1,5 +1,7 @@
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/ok_button.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
@@ -60,11 +62,20 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedEthernetPrint = false;
   bool _isCheckedReceiptCode = false;
   bool _isCheckedREP = false;
-
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
   @override
   void initState() {
     super.initState();
     _loadPreferences();
+    checkConnection();
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   Future<void> _loadPreferences() async {
@@ -202,19 +213,39 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
 
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.black),
-            onPressed: () {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()));
-              HapticFeedback.vibrate();
-            }),
-        title: const Text("Nastavitve",
-            style: TextStyle(fontSize: 20, color: Colors.black)),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.black),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()));
+                  HapticFeedback.vibrate();
+                }),
+            title: Text("Nastavitve",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

@@ -4,6 +4,7 @@ import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/item_card.dart';
@@ -80,7 +81,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   @override
   void initState() {
     super.initState();
-    testConnection();
+    checkConnection();
     _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
       // Preverimo, če so podatki že v pomnilniku
@@ -340,12 +341,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
     }
 
-    if (isNew) {
-      await narociloBox.add(newNarociloItem); // dodamo samo nove
-    } else {
-      // Lahko posodobiš obstoječi zapis v Hive, če želiš
-      // narociloBox.putAt(existingItemIndex, updatedNarociloItem);
-    }
     setState(() {
       // Po posodobitvi ponovno preberi posodobljeno stanje
       final updatedItems = ref.read(narociloNotifierProvider);
@@ -572,23 +567,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     });
   }
 
-  void testConnection() async {
-    try {
-      List<String> responseList =
-          await sendRequest(userId, "echo").timeout(const Duration(seconds: 2));
-
-      setState(() {
-        _isOnline = responseList.isNotEmpty;
-      });
-    } on TimeoutException {
-      setState(() {
-        _isOnline = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isOnline = false;
-      });
-    }
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
@@ -623,7 +606,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           preferredSize: const Size.fromHeight(32.0),
           child: GestureDetector(
             onDoubleTap: _hideKeyboard,
-            onTap: testConnection,
+            onTap: checkConnection,
             child: AppBar(
               centerTitle: true,
               toolbarHeight: 32.0,
@@ -778,12 +761,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       (table) => table['prostor'] != '',
       orElse: () => {},
     );
+
     if (currentChosenItems.isNotEmpty) {
       // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
-      var narociloBox = Hive.box('narociloBox');
-      await narociloBox.clear();
 
-      ref.read(narociloNotifierProvider.notifier).clearRacun();
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
         // Če je 'prostor' prazen, preusmeri na AddToTableScreen

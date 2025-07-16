@@ -2,6 +2,7 @@ import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/models/tableItem.dart';
@@ -29,12 +30,15 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
   late String imeMize;
   List<TableItem> izdelki = [];
   List<TableItem> izbraniIzdelki = [];
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
+    checkConnection();
   }
 
   Future<void> _fetchSingleTable() async {
@@ -142,20 +146,45 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     });
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text("Razdeli račun za: $imeMize",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
-        title: Text("Razdeli račun za: $imeMize",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
       ),
       body: Stack(
         children: [
