@@ -49,7 +49,6 @@ class BlagajnaScreen extends ConsumerStatefulWidget {
 }
 
 class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
-  final DateTime currentDate = DateTime.now();
   //late List<dynamic> cafeItems;
   bool isLoading = false;
   bool hasError = false;
@@ -74,6 +73,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool _tablesFetched = false;
   bool _isKeyboardVisible = true;
   bool _isOnline = true;
+  String formattedDate = '';
+  String formattedTime = '';
+  late Timer _timer;
 
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
@@ -576,8 +578,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
-    String formattedTime = DateFormat("HH:mm").format(currentDate);
+    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
+      setState(() {
+        final DateTime currentDate = DateTime.now();
+
+        String formattedDate =
+            DateFormat("EEE, dd. MMM yyyy").format(currentDate);
+        formattedTime = DateFormat("HH:mm").format(currentDate);
+      });
+    });
 
     final String? user = SessionManager().getLoggedInUserName();
 
