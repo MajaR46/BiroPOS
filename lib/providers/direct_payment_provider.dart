@@ -72,7 +72,7 @@ class OrderService {
       }
 
       final chosenItems = ref.watch(narociloNotifierProvider);
-      final numberFormat = NumberFormat("#,##0.00", "sl_SI");
+      final numberFormat = NumberFormat("0.00", "sl_SI");
 
       List<String> tableOrderItems = [];
       List<String> directOrderItems = [];

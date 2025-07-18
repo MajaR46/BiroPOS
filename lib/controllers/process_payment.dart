@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
@@ -70,6 +71,13 @@ class ProcessPayment {
 
         if (result != "Success") {
           isBesteronSucess = false;
+        }
+
+        //tiskanje prestavljeno sem ker če ne prej natisne naročilo in izbriše izdelek (windows print)
+        final tiskajNarociloPriRacunu =
+            settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
+        if (tiskajNarociloPriRacunu && isBesteronSucess) {
+          await Narocilo.createNarocilo(ref, false, context);
         }
 
         if (bluetoothPrintanje) {

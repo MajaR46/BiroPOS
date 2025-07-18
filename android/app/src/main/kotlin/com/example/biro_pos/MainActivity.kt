@@ -161,7 +161,6 @@ class MainActivity : FlutterActivity() {
                             outputStream?.flush()
                             outputStream?.write(byteArrayOf(0x1D, 0x56, 0x41, 0x10))
                             outputStream?.flush()
-                            activity.runOnUiThread { result.success("Data sent successfully") }
                         } else {
                             result.error("SEND_FAILED", "No device connected or invalid data", null)
                         }
@@ -784,7 +783,6 @@ class MainActivity : FlutterActivity() {
                 }
                 sendDataToUsb("\r\n")
                 sendDataToUsb("\r\n")
-                activity.runOnUiThread { result.success("Data sent to USB printer") }
             } catch (e: Exception) {
                 Log.e("USB", "Error sending data to USB printer", e)
                 activity.runOnUiThread {

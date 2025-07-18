@@ -184,12 +184,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
               context, vnesenZnesek, finalSum, vracilo);
         }
 
-        // Process the payment
-        await paymentService.processPayment(context, "GOT");
-
         if (tiskajNarociloPriRacunu) {
           await Narocilo.createNarocilo(ref, false, context);
         }
+        // Process the payment
+        await paymentService.processPayment(context, "GOT");
+
         widget.controller.clear();
       } catch (e) {
         ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
@@ -206,13 +206,6 @@ class _KeyboardState extends ConsumerState<Keyboard> {
           settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
 
       await paymentService.processPayment(context, "KAR");
-      try {
-        if (tiskajNarociloPriRacunu == true) {
-          await Narocilo.createNarocilo(ref, false, context);
-        }
-      } catch (e) {
-        ErrorDialogs.showBasicDialog("Težava z bluetooth", context);
-      }
     });
   }
 
