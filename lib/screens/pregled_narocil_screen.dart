@@ -5,6 +5,7 @@ import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -118,9 +119,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
       }
     } catch (e, stackTrace) {
       debugPrint("Error fetching orders: $e\n$stackTrace");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
+      ErrorDialogs.showBasicDialog("Napaka ${e.toString()}", context);
     }
   }
 

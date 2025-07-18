@@ -68,9 +68,8 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ErrorDialogs.showBasicDialog(message, context);
+
     setState(() {
       _apiResponse = 'Error fetching data';
     });

@@ -42,9 +42,9 @@ class Utils {
       final printerStatus = await sunmiPrinterPlus.getStatus();
 
       if (printerStatus == PrinterStatus.COMM) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri uporabi vgrajenega tiskalnika")),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri uporabi vgrajenega tiskalnika", context);
+
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
 
         return;
@@ -107,26 +107,17 @@ class Utils {
           .toString()
           .contains('kotlin.UninitializedPropertyAccessException')) {
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
+        ErrorDialogs.showBasicDialog(
+            "Naprava ne podpira integriranega tiskalnika", context);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Naprava ne podpira integriranega tiskalnika."),
-          ),
-        );
-        print('Sunmi Printer not available');
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);
       } else {
         print('Error during printing: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content:
-                  Text("Napaka pri tiskanju z integriranim tiskalnikom: $e")),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri tiskanju z integriranim tiskalnikom $e", context);
+
         await ErrorDialogs.showResponseDialog(filteredLines, context!);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("Problem $e"),
-        ));
 
         ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
         clearSelectedItem(ref);

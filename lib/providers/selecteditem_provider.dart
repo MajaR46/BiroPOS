@@ -6,6 +6,4 @@ final selectedItemProvider = StateProvider<NarociloItem?>((ref) => null);
 
 void clearSelectedItem(WidgetRef ref) async {
   ref.read(selectedItemProvider.notifier).state = null;
-  final narociloBox = Hive.box('narociloBox');
-  await narociloBox.clear();
 }

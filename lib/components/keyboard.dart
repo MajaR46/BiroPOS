@@ -192,8 +192,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         }
         widget.controller.clear();
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+        ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
       }
     });
   }
@@ -212,8 +211,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
           await Narocilo.createNarocilo(ref, false, context);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+        ErrorDialogs.showBasicDialog("Težava z bluetooth", context);
       }
     });
   }

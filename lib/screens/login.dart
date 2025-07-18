@@ -7,6 +7,7 @@ import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
@@ -56,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.25.1';
+  String verzijaPrograma = '5.25.2';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -185,8 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } else if (inputPassword == "999") {
       SystemNavigator.pop();
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
+      ErrorDialogs.showBasicDialog("Nepravilno geslo", context);
     }
   }
 
@@ -294,9 +294,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Napaka pri osveževanju podatkov: $e')),
-      );
+      ErrorDialogs.showBasicDialog(
+          "Napaka pri osveževanju podatkov $e", context);
     }
   }
 

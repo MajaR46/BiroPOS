@@ -6,6 +6,7 @@ import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
 import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
 import 'package:BiroPOS/screens/porocila_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,9 +86,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
         _errorMessage = 'Error fetching tables: $e';
         _isLoading = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni vzpostavljene povezave")),
-      );
+      ErrorDialogs.showBasicDialog("Ni vzpostavljene povezave", context);
     }
   }
 

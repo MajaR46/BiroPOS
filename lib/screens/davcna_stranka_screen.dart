@@ -6,6 +6,7 @@ import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -50,8 +51,8 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
 
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Davčna številka mora imeti 8 znakov!")));
+        ErrorDialogs.showBasicDialog(
+            "Davčna številka mora imeti 8 znakov", context);
       }
     }
 

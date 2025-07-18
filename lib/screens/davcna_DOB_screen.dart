@@ -55,9 +55,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
       }
     }
   }
@@ -80,12 +78,11 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
               context, ref, "TipDokumenta.DOB", davcnaSt);
           _processAndPrintResponse(response);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Davčna številka mora biti dolga 8 znakov")));
+          ErrorDialogs.showBasicDialog(
+              "Davčna številka mora biti dolga 8 znakov", context);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Napaka: $e")));
+        ErrorDialogs.showBasicDialog("Napaka $e", context);
       }
     }
 

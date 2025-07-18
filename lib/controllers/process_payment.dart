@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:BiroPOS/components/usb_printer.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -51,9 +52,8 @@ class ProcessPayment {
     String? tid = prefs.getString('TID');
 
     if (paymentMethods.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne najdem načinov plačil!")),
-      );
+      ErrorDialogs.showBasicDialog("Ni načinov plačil", context);
+
       return;
     }
 
@@ -88,13 +88,9 @@ class ProcessPayment {
               context, besteronRacun, ref, isBesteronSucess);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text("Napaka pri komunikaciji z Besteronom: ${e.toString()}"),
-            duration: const Duration(seconds: 5),
-          ),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri komunikaciji z Besteronom ${e.toString()}", context);
+
         return;
       }
     }
@@ -122,9 +118,8 @@ class ProcessPayment {
       }
 
       if (modifiedResponse.any((line) => line.contains("#NAPAKA#"))) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(modifiedResponse.toString())),
-        );
+        ErrorDialogs.showBasicDialog(modifiedResponse.toString(), context);
+
         return;
       }
       if (isBesteronSucess == true) {
@@ -192,12 +187,7 @@ class ProcessPayment {
         errorMessage = e.toString();
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      ErrorDialogs.showBasicDialog(errorMessage, context);
     }
   }
 
@@ -221,27 +211,17 @@ class ProcessPayment {
       } catch (e) {
         // Napaka pri pošiljanju podatkov preko Bluetootha
         bluetoothSucess = false;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
-            duration: const Duration(seconds: 5), // Daljša prikaz napake
-          ),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri pošiljanju podatkov preko Bluetootha ${e.toString()}",
+            context);
       } finally {
         // Set total to zero in case of error or success
         ref.read(totalSumProvider.notifier).state =
             ref.read(narociloNotifierProvider.notifier).totalSum();
       }
     } catch (e) {
-      // Splošna napaka pri obdelavi plačila
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
-          duration: const Duration(seconds: 5), // Daljša prikaz napake
-        ),
-      );
+      ErrorDialogs.showBasicDialog(
+          "Napaka pri obdelavi plačila ${e.toString()}", context);
     } finally {
       // Set total to zero in case of error or success
       ref.read(totalSumProvider.notifier).state =
@@ -289,9 +269,7 @@ class ProcessPayment {
     } catch (e) {
       ethernetSucess = false;
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
       }
     }
   }
@@ -307,9 +285,7 @@ class ProcessPayment {
     } catch (e) {
       windowsSucess = false;
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
       }
     }
   }
@@ -329,9 +305,9 @@ class ProcessPayment {
 
     if (printerStatus == PrinterStatus.COMM) {
       integratedPrinterSucess = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tiskalnik ni inicializiran.")),
-      );
+
+      ErrorDialogs.showBasicDialog("Tiskalnik ni inicializiran", context);
+
       return;
     }
 
@@ -341,9 +317,7 @@ class ProcessPayment {
       integratedPrinterSucess = true;
     } catch (e) {
       integratedPrinterSucess = false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Napaka pri tiskanju: $e")),
-      );
+      ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
     }
   }
 

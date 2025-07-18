@@ -8,6 +8,7 @@ import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -46,8 +47,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
 
     if (_newTableController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Oznaka mize ne sme biti prazna")));
+      ErrorDialogs.showBasicDialog("Oznaka mize ne sme biti prazna", context);
     } else {
       List<String> narociloItems = [];
 

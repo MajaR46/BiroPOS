@@ -1,6 +1,7 @@
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
@@ -156,9 +157,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateTotalDiscount();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne morem izbrisati izdelka")),
-      );
+      ErrorDialogs.showBasicDialog("Ne morem izbrisati izdelka", context);
     }
   }
 
@@ -392,7 +391,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           children: [
             Expanded(
               child: SeznamRacun(
-                  chosenItems: hiveNarocilo,
+                  chosenItems: chosenItems,
                   totalSum: totalSum,
                   totalDiscount: _totalDiscount,
                   openDialog: openDialog,

@@ -126,15 +126,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     for (var narociloItem in narociloItems) {
       ref
           .read(narociloNotifierProvider.notifier)
-          .addToRacun(narociloItem, fromTable: true);
-
-      final narociloBox = Hive.box('narociloBox');
-      print("Shranjujem ${narociloItem.product.name}");
-      await narociloBox.add(narociloItem);
-      print("Vsebina Hive:");
-      for (var item in narociloBox.values) {
-        print(" - ${item.product.name}, ${item.quantity}");
-      }
+          .addToRacun(narociloItem, fromTable: true, nastaviCeno: false);
     }
   }
 

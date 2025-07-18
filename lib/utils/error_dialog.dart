@@ -34,12 +34,19 @@ class ErrorDialogs {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            content: Padding(
-              padding: const EdgeInsets.only(top: 24.0),
-              child: Text(
-                text,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxHeight: 300,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
             ),
             actions: [

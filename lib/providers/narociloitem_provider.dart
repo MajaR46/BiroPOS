@@ -66,6 +66,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     } else {
       // Če ni popolnega ujemanja (ali je opis drugačen), dodaj kot novo postavko
       // NarociloItem konstruktor bo sam generiral nov uniqueId
+
       final newItem = narociloItem.copyWith(
         davcnaSt: davcnaSt,
         isFromTable: fromTable,

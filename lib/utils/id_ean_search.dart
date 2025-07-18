@@ -1,5 +1,6 @@
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Assuming you have these providers defined somewhere:
@@ -35,9 +36,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       await narociloBox.add(newNarociloItem);
       updateTotalDiscount();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne najdem izdelka s to EAN kodo")),
-      );
+      ErrorDialogs.showBasicDialog("Ne najdem izdelka s to EAN kodo", context);
     }
   } else if (numbersToString.length <= 5 && input.isNotEmpty) {
     matchingItems = items.where((item) {
@@ -57,14 +56,10 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
 
       updateTotalDiscount();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne najdem izdelka s tem IDjem")),
-      );
+      ErrorDialogs.showBasicDialog("Ne najdem izdelka s tem ID-jem", context);
     }
   } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Ne najdem izdelka")),
-    );
+    ErrorDialogs.showBasicDialog("Ne najdem izdelka", context);
   }
 }
 

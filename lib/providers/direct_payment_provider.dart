@@ -4,6 +4,7 @@ import 'package:BiroPOS/models/nacinPlacila.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
@@ -57,18 +58,16 @@ class OrderService {
     try {
       String? userId = SessionManager().getLoggedInUserSifra();
       if (userId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No user logged in!")),
-        );
+        ErrorDialogs.showBasicDialog("Uporabnik ni vpisan", context);
+
         return [];
       }
 
       final paymentMethods = ref.watch(paymentMethodProvider);
 
       if (paymentMethods.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No payment methods available!")),
-        );
+        ErrorDialogs.showBasicDialog("Ni načinov plačil", context);
+
         return [];
       }
 

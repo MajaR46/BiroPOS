@@ -85,9 +85,7 @@ class BluetoothService {
         }
       }
     } on PlatformException catch (e) {
-      print('Failed to connect: ${e.message}');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to connect: ${e.message}")));
+      ErrorDialogs.showBasicDialog("Napaka pri povezovanju $e", context);
     }
   }
 
@@ -157,21 +155,15 @@ class BluetoothService {
 
       // Ensure the context is passed before attempting to display SnackBar
       if (context != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result)));
-        print("pokazalo snackbar");
+        ErrorDialogs.showBasicDialog(result, context);
       } else {
         print("No context available for SnackBar");
       }
 
       return result; // Return success or error message
     } catch (e) {
-      final errorMessage = 'An unexpected error occurred: ${e.toString()}';
+      final errorMessage = 'Napaka: ${e.toString()}';
       if (context != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(errorMessage)));
-        //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-
         await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 2");
       } else {
@@ -184,7 +176,6 @@ class BluetoothService {
         print(errorMessage); // Print error if no context available
       }
       //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-      print("MAJAMAJAMAJAMAJA");
       await ErrorDialogs.showResponseDialog(response, context!);
       print("PRINT 4");
 

@@ -79,9 +79,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju", context);
       }
     }
   }
@@ -89,16 +87,15 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   void createOrder() async {
     try {
       if (podjetjeDavcna.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Ne najdem davčne številke podjetja")));
+        ErrorDialogs.showBasicDialog(
+            "Ne najdem davčne številke podjetja", context);
       }
 
       final response = await orderService.createOrder(
           context, ref, "TipDokumenta.REP", podjetjeDavcna);
       _processAndPrintResponse(response);
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Napaka: $e")));
+      ErrorDialogs.showBasicDialog("Napaka $e", context);
     }
   }
 
@@ -139,9 +136,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
       } catch (e) {
-        print("Težava z bluetooth");
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+        ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
       }
     }
 

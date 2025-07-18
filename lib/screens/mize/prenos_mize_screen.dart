@@ -5,6 +5,7 @@ import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/tableitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,9 +42,8 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
     String newTableNumber = _prenosMizeController.text;
 
     if (newTableNumber.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Vnesi številko mize")),
-      );
+      ErrorDialogs.showBasicDialog("Vnesi številko mize", context);
+
       return;
     }
 

@@ -1,5 +1,6 @@
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
 import 'package:BiroPOS/controllers/klic.dart';
@@ -69,9 +70,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
       setState(() {
         isLoading = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni vzpostavljene povezave")),
-      );
+      ErrorDialogs.showBasicDialog("Ni vzpostavljene povezave", context);
     }
   }
 
@@ -154,9 +153,8 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
     if (result != "Success") {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri komunikaciji z Besteronom ")),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri komunikaciji z Besteronom", context);
       }
     }
 

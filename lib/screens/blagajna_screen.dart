@@ -6,6 +6,7 @@ import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/components/item_list_builder.dart';
@@ -80,9 +81,24 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
+
+  void _updateTime() {
+    // Using 'mounted' check as a safeguard, although not strictly necessary
+    // if the timer is cancelled correctly in dispose().
+    if (mounted) {
+      setState(() {
+        formattedTime = DateFormat("HH:mm").format(DateTime.now());
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _updateTime(); // Set the initial time immediately
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _updateTime(); // Update the time every second
+    });
     checkConnection();
     _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
@@ -144,6 +160,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   void dispose() {
+    _timer.cancel();
     searchController.removeListener(_searchListener);
     searchController.removeListener(_searchListener2);
     searchController.removeListener(_onSearchChanged);
@@ -313,7 +330,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _ouputselectedItem(dynamic outputtedItem) async {
-    var narociloBox = Hive.box('narociloBox');
     final settings = ref.watch(settingsProvider);
     final nastaviCeno = settings['isCheckedMoney'];
 
@@ -331,8 +347,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         item.product.id == newNarociloItem.product.id &&
         item.description == newNarociloItem.description);
 
-    // Dodaj artikel (ali posodobi količino)
-    final isNew = existingItemIndex == -1;
     if (nastaviCeno == false) {
       ref
           .read(narociloNotifierProvider.notifier)
@@ -578,16 +592,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
-      setState(() {
-        final DateTime currentDate = DateTime.now();
-
-        String formattedDate =
-            DateFormat("EEE, dd. MMM yyyy").format(currentDate);
-        formattedTime = DateFormat("HH:mm").format(currentDate);
-      });
-    });
-
     final String? user = SessionManager().getLoggedInUserName();
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
@@ -833,8 +837,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ni izbranega izdelka za urejanje')));
+      ErrorDialogs.showBasicDialog("Ni izbranega izdelka za urejanje", context);
     }
   }
 }

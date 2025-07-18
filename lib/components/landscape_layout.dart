@@ -5,6 +5,7 @@ import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/racun_list_banner.dart';
 import 'package:BiroPOS/components/seznam_racun.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -221,9 +222,7 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateTotalDiscount();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne morem izbrisati izdelka")),
-      );
+      ErrorDialogs.showBasicDialog("Ne morem izbrisati izdelka", context);
     }
   }
 

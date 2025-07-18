@@ -4,6 +4,7 @@ import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/miza_details_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -79,9 +80,7 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
       setState(() {
         _isLoading = true;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ni vzpostavljene povezave")),
-      );
+      ErrorDialogs.showBasicDialog("Ni vzpostavljene povezave", context);
     }
   }
 
