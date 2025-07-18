@@ -1,4 +1,7 @@
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
@@ -23,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -53,11 +57,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   final FocusNode _discountFocusNode = FocusNode();
   String _scannedBarcode = '';
   bool _isDiscountDialogOpen = false;
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     _fetchTables();
+    checkConnection();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
@@ -150,9 +157,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       ref.read(narociloNotifierProvider.notifier).removeFromRacun(itemToRemove);
       _updateTotalDiscount();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Ne morem izbrisati izdelka")),
-      );
+      ErrorDialogs.showBasicDialog("Ne morem izbrisati izdelka", context);
     }
   }
 
@@ -311,22 +316,52 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         searchText); // Use the function from search_ean.dart
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
+    var narociloBox = Hive.box('narociloBox');
+
+    List hiveNarocilo = narociloBox.values.toList();
+    print("hive $hiveNarocilo");
 
     final numbers2String = ref.watch(searchQueryProvider);
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        automaticallyImplyLeading: false,
-        title: Text("Račun",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            automaticallyImplyLeading: false,
+            title: Text("Račun",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
       body: KeyboardListener(
         // Replaced RawKeyboardListener with KeyboardListener
@@ -416,6 +451,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       (table) => table['prostor'] != '',
       orElse: () => {},
     );
+
     if (currentChosenItems.isNotEmpty) {
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {

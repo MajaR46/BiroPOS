@@ -1,3 +1,4 @@
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -20,12 +21,19 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
   final TextEditingController _stornoRacunController = TextEditingController();
   final String? userSifra = SessionManager().getLoggedInUserSifra();
   String? _apiResponse;
-
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
   void _clearText() {
     _stornoRacunController.clear();
     setState(() {
       _apiResponse = null;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkConnection();
   }
 
   _handleData() async {
@@ -52,26 +60,51 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
     }
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppStyles.white,
-        appBar: AppBar(
-          backgroundColor: AppStyles.white,
-          title: Text(
-            "Storno računa",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppStyles.black),
-            onPressed: () {
-              HapticFeedback.vibrate();
-              Navigator.of(context).pop();
-            },
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: GestureDetector(
+            onTap: checkConnection,
+            child: AppBar(
+              backgroundColor: AppStyles.white,
+              title: Text(
+                "Storno računa",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black),
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: AppStyles.black),
+                onPressed: () {
+                  HapticFeedback.vibrate();
+                  Navigator.of(context).pop();
+                },
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 24.0),
+                  child: Text(
+                    _isOnline ? "Online" : "Offline",
+                    style: AppStyles.paragraph3.copyWith(
+                      color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         body: Stack(

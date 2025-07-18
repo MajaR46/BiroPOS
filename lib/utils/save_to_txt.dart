@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -25,8 +26,8 @@ Future<bool> saveFileNextToExe(String txtContent, BuildContext context,
     await file.writeAsString(txtContent);
     return true;
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Napaka pri windows tiskanju: $e")));
+    ErrorDialogs.showBasicDialog("Napaka pri windows tiskanju $e", context);
+
     return false;
   }
 }

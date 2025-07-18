@@ -6,6 +6,8 @@ import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/save_to_txt.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
@@ -55,10 +57,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.24.0';
+  String verzijaPrograma = '5.25.2';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
@@ -66,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _loadLastRefreshTime();
 
     _initializeBluetooth();
+    checkConnection();
 
     // Tukaj takoj nastavimo datum in uro, da se prikažeta ob nalaganju
     DateTime currentDate = DateTime.now();
@@ -86,6 +91,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _timer.cancel();
     _logininputcontroller.dispose();
     super.dispose();
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   Future<void> _loadLastRefreshTime() async {
@@ -174,8 +186,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } else if (inputPassword == "999") {
       SystemNavigator.pop();
     } else {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Nepravilno geslo')));
+      ErrorDialogs.showBasicDialog("Nepravilno geslo", context);
     }
   }
 
@@ -283,9 +294,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Napaka pri osveževanju podatkov: $e')),
-      );
+      ErrorDialogs.showBasicDialog(
+          "Napaka pri osveževanju podatkov $e", context);
     }
   }
 
@@ -303,21 +313,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text(formattedDate),
+            GestureDetector(
+              onTap: checkConnection,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Text(formattedDate),
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: Text(formattedTime),
-                  ),
-                )
-              ],
+                  Expanded(
+                      child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Text(
+                      _isOnline ? "Online" : "Offline",
+                      style: AppStyles.paragraph3.copyWith(
+                        color:
+                            _isOnline ? AppStyles.green : AppStyles.brightRed,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Text(formattedTime),
+                    ),
+                  )
+                ],
+              ),
             ),
             const SizedBox(height: 16),
 

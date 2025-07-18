@@ -1,5 +1,8 @@
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/process_payment.dart';
@@ -12,6 +15,7 @@ import 'package:BiroPOS/screens/davcna_stranka_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -27,10 +31,15 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   late ProcessPayment paymentService;
   final Debouncer _debouncer = Debouncer(miliseconds: 2000);
   String podjetjeDavcna = '';
+  bool _isOnline = true;
+
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
+    checkConnection();
+
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
       orderService.initializePaymentMethods();
@@ -50,6 +59,13 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     }
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   void _processAndPrintResponse(List<String> apiResponse) async {
     try {
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
@@ -63,9 +79,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju", context);
       }
     }
   }
@@ -73,17 +87,25 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   void createOrder() async {
     try {
       if (podjetjeDavcna.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Ne najdem davčne številke podjetja")));
+        ErrorDialogs.showBasicDialog(
+            "Ne najdem davčne številke podjetja", context);
       }
 
       final response = await orderService.createOrder(
-          context, "TipDokumenta.REP", podjetjeDavcna);
+          context, ref, "TipDokumenta.REP", podjetjeDavcna);
       _processAndPrintResponse(response);
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Napaka: $e")));
+      ErrorDialogs.showBasicDialog("Napaka $e", context);
     }
+  }
+
+  Future<bool> checkConnection2() async {
+    bool success = await testConnection(userId);
+    if (!success) {
+      String response = "NI POVEZAVE Z BLAGAJNO";
+      await ErrorDialogs.showBasicDialog(response, context);
+    }
+    return success;
   }
 
   @override
@@ -104,6 +126,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
 
     void paymentPrint(String paymentMethod, String davcnaSt) async {
       try {
+        bool connected = await checkConnection2();
+        if (!connected) return;
         paymentService.processPayment(context, paymentMethod, davcnaSt);
         if (tiskajNarociloPriRacunu == true) {
           await Narocilo.createNarocilo(ref, false, context);
@@ -112,28 +136,44 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         Navigator.push(
             context, MaterialPageRoute(builder: (context) => BlagajnaScreen()));
       } catch (e) {
-        print("Težava z bluetooth");
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("Težava z bluetooth!")));
+        ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
       }
     }
 
     return Scaffold(
         backgroundColor: AppStyles.white,
-        appBar: AppBar(
-          backgroundColor: AppStyles.white,
-          title: Text(
-            "Način plačila",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black),
-          ),
-          centerTitle: true,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppStyles.black),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const BlagajnaScreen())),
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: GestureDetector(
+            onTap: checkConnection,
+            child: AppBar(
+              backgroundColor: AppStyles.white,
+              title: Text(
+                "Način plačila",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black),
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: AppStyles.black),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BlagajnaScreen())),
+              ),
+              actions: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 24.0),
+                  child: Text(
+                    _isOnline ? "Online" : "Offline",
+                    style: AppStyles.paragraph3.copyWith(
+                      color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              ],
+            ),
           ),
         ),
         body: Padding(

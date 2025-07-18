@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
+import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/save_data_controller.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/item_card.dart';
 import 'package:BiroPOS/components/item_list_builder.dart';
@@ -44,7 +50,6 @@ class BlagajnaScreen extends ConsumerStatefulWidget {
 }
 
 class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
-  final DateTime currentDate = DateTime.now();
   //late List<dynamic> cafeItems;
   bool isLoading = false;
   bool hasError = false;
@@ -68,14 +73,34 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   List<Map<String, String>> _tables = [];
   bool _tablesFetched = false;
   bool _isKeyboardVisible = true;
+  bool _isOnline = true;
+  String formattedDate = '';
+  String formattedTime = '';
+  late Timer _timer;
 
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
+
+  void _updateTime() {
+    // Using 'mounted' check as a safeguard, although not strictly necessary
+    // if the timer is cancelled correctly in dispose().
+    if (mounted) {
+      setState(() {
+        formattedTime = DateFormat("HH:mm").format(DateTime.now());
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-
+    _updateTime(); // Set the initial time immediately
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
+      _updateTime(); // Update the time every second
+    });
+    checkConnection();
+    _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
@@ -135,6 +160,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   void dispose() {
+    _timer.cancel();
     searchController.removeListener(_searchListener);
     searchController.removeListener(_searchListener2);
     searchController.removeListener(_onSearchChanged);
@@ -142,6 +168,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     searchController.dispose();
 
     super.dispose();
+  }
+
+  void _loadNarocilaFromHive() {
+    Future.microtask(() {
+      final narociloBox = Hive.box('narociloBox');
+      final items = narociloBox.values.cast<NarociloItem>().toList();
+
+      ref.read(narociloNotifierProvider.notifier).setNarocila(items);
+    });
   }
 
   Future<void> _handleData() async {
@@ -294,37 +329,35 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     }
   }
 
-  void _ouputselectedItem(dynamic outputtedItem) {
+  void _ouputselectedItem(dynamic outputtedItem) async {
+    final settings = ref.watch(settingsProvider);
+    final nastaviCeno = settings['isCheckedMoney'];
+
+    Item originalItem = Item.fromMap(outputtedItem);
+    Item newItem = originalItem.copyWith();
+
+    // Pripravimo artikel za naročilo (default količina 1)
+    NarociloItem newNarociloItem =
+        NarociloItem(product: newItem.copyWith(), quantity: 1);
+
+    // Preverimo obstoječe artikle
+    final currentItems = ref.read(narociloNotifierProvider); // NE watch
+
+    final existingItemIndex = currentItems.indexWhere((item) =>
+        item.product.id == newNarociloItem.product.id &&
+        item.description == newNarociloItem.description);
+
+    if (nastaviCeno == false) {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
+    } else {
+      ref
+          .read(narociloNotifierProvider.notifier)
+          .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
+    }
+
     setState(() {
-      final settings = ref.watch(settingsProvider);
-      final nastaviCeno = settings['isCheckedMoney'];
-
-      Item originalItem = Item.fromMap(outputtedItem);
-      Item newItem = originalItem.copyWith();
-
-      // Pripravimo artikel za naročilo (default količina 1)
-      NarociloItem newNarociloItem =
-          NarociloItem(product: newItem.copyWith(), quantity: 1);
-
-      // Preverimo obstoječe artikle
-      final currentItems = ref.read(narociloNotifierProvider); // NE watch
-
-      final existingItemIndex = currentItems.indexWhere((item) =>
-          item.product.id == newNarociloItem.product.id &&
-          item.description == newNarociloItem.description);
-
-      // Dodaj artikel (ali posodobi količino)
-
-      if (nastaviCeno == false) {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
-      } else {
-        ref
-            .read(narociloNotifierProvider.notifier)
-            .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
-      }
-
       // Po posodobitvi ponovno preberi posodobljeno stanje
       final updatedItems = ref.read(narociloNotifierProvider);
       NarociloItem updatedItem;
@@ -550,11 +583,15 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     });
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat("EEE, dd. MMM yyyy").format(currentDate);
-    String formattedTime = DateFormat("HH:mm").format(currentDate);
-
     final String? user = SessionManager().getLoggedInUserName();
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
@@ -582,16 +619,30 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           preferredSize: const Size.fromHeight(32.0),
           child: GestureDetector(
             onDoubleTap: _hideKeyboard,
+            onTap: checkConnection,
             child: AppBar(
               centerTitle: true,
               toolbarHeight: 32.0,
               backgroundColor: AppStyles.white,
               iconTheme: const IconThemeData(color: AppStyles.blue),
-              title: Text(
-                user ?? '',
-                style: AppStyles.paragraph3.copyWith(
-                    color: AppStyles.blue, fontWeight: FontWeight.bold),
-              ),
+              title:
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  user ?? '',
+                  style: AppStyles.paragraph3.copyWith(
+                      color: AppStyles.blue, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(
+                  width: 8,
+                ),
+                Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )
+              ]),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 16.0),
@@ -718,10 +769,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
+
     final table = _tables.firstWhere(
       (table) => table['prostor'] != '',
       orElse: () => {},
     );
+
     if (currentChosenItems.isNotEmpty) {
       // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
 
@@ -784,8 +837,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ni izbranega izdelka za urejanje')));
+      ErrorDialogs.showBasicDialog("Ni izbranega izdelka za urejanje", context);
     }
   }
 }

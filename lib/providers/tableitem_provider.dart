@@ -2,6 +2,7 @@ import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/models/tableItem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -38,9 +39,8 @@ class TableNotifier extends Notifier<List<TableItem>> {
     final numberFormat = NumberFormat("#,##0.00", "sl_SI"); // Slovenian locale
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No user logged in!")),
-      );
+      ErrorDialogs.showBasicDialog("Uporabnik ni vpisan", context);
+
       return [];
     }
 
@@ -86,9 +86,8 @@ class TableNotifier extends Notifier<List<TableItem>> {
     String? userId = SessionManager().getLoggedInUserSifra();
 
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No user logged in!")),
-      );
+      ErrorDialogs.showBasicDialog("Uporabnik ni vpisan", context);
+
       return [];
     }
     final numberFormat = NumberFormat("#,##0.00", "sl_SI"); // Slovenian locale

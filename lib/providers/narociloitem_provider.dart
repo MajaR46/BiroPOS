@@ -1,5 +1,6 @@
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
 class NarociloNotifier extends Notifier<List<NarociloItem>> {
   @override
@@ -7,19 +8,23 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     return [];
   }
 
+  void setNarocila(List<NarociloItem> items) {
+    state = items;
+  }
+
   void addToRacun(NarociloItem narociloItem,
-      {bool fromTable = false, bool nastaviCeno = false}) {
+      {bool fromTable = false, bool nastaviCeno = false}) async {
     final String? davcnaSt = ref.read(taxNumberProvider);
     int existingItemIndex = -1;
+    final narociloBox = Hive.box('narociloBox');
 
     if (nastaviCeno) {
-      state = [
-        ...state,
-        narociloItem.copyWith(
-          davcnaSt: davcnaSt,
-          isFromTable: fromTable,
-        ),
-      ];
+      final newItem = narociloItem.copyWith(
+        davcnaSt: davcnaSt,
+        isFromTable: fromTable,
+      );
+      state = [...state, newItem];
+      await narociloBox.add(newItem); // Dodaj v Hive
       return;
     }
 
@@ -51,22 +56,29 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       final newState = List<NarociloItem>.from(state);
       newState[existingItemIndex] = updatedItem;
       state = newState;
+
+      final hiveIndex = narociloBox.values
+          .toList()
+          .indexWhere((item) => item.uniqueId == updatedItem.uniqueId);
+      if (hiveIndex != -1) {
+        await narociloBox.putAt(hiveIndex, updatedItem);
+      }
     } else {
       // Če ni popolnega ujemanja (ali je opis drugačen), dodaj kot novo postavko
       // NarociloItem konstruktor bo sam generiral nov uniqueId
-      state = [
-        ...state,
-        narociloItem.copyWith(
-          // Uporabi copyWith za nastavitev davcnaSt itd.
-          davcnaSt: davcnaSt,
-          isFromTable: fromTable,
-          // Opis in ostalo pride iz `narociloItem` parametra
-        ),
-      ];
+
+      final newItem = narociloItem.copyWith(
+        davcnaSt: davcnaSt,
+        isFromTable: fromTable,
+      );
+      state = [...state, newItem];
+      await narociloBox.add(newItem);
     }
   }
 
-  void removeFromRacun(NarociloItem narociloItem) {
+  void removeFromRacun(NarociloItem narociloItem) async {
+    final narociloBox = Hive.box('narociloBox');
+
     int indexToRemove = state.indexWhere((item) =>
         item.product.id == narociloItem.product.id &&
         item.description == narociloItem.description &&
@@ -75,8 +87,22 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
     if (indexToRemove != -1) {
       List<NarociloItem> updatedState = List.from(state);
+
+      // Najprej odstranimo iz Hive (če obstaja enak element v njem)
+      final hiveIndex = narociloBox.values.toList().indexWhere((item) =>
+          item.product.id == narociloItem.product.id &&
+          item.description == narociloItem.description &&
+          item.product.price == narociloItem.product.price &&
+          item.quantity == narociloItem.quantity);
+
+      if (hiveIndex != -1) {
+        await narociloBox.deleteAt(hiveIndex);
+      }
+
+      // Nato še iz Riverpod state
       updatedState.removeAt(indexToRemove);
       state = updatedState;
+      totalSum();
     }
   }
 
@@ -90,24 +116,49 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   void updateQuantity(String uniqueId, String productId, String description,
-      double newQuantity, double itemPrice, double oldQuantity) {
+      double newQuantity, double itemPrice, double oldQuantity) async {
+    final narociloBox = Hive.box('narociloBox');
+
     final updatedItems = state.map((item) {
       if (item.uniqueId == uniqueId) {
-        return item.copyWith(quantity: newQuantity);
+        final updatedItem = item.copyWith(quantity: newQuantity);
+
+        // Posodobi v Hive
+        final hiveIndex = narociloBox.values
+            .toList()
+            .indexWhere((hiveItem) => hiveItem.uniqueId == uniqueId);
+        if (hiveIndex != -1) {
+          narociloBox.putAt(hiveIndex, updatedItem);
+        }
+
+        return updatedItem;
       }
       return item;
     }).toList();
+
     state = updatedItems;
   }
 
-  void updateDiscount(
-      String uniqueItemId, double discountedPrice, double discountPercentage) {
+  void updateDiscount(String uniqueItemId, double discountedPrice,
+      double discountPercentage) async {
+    final narociloBox = Hive.box('narociloBox');
+
     final updatedItems = state.map((item) {
       if (item.uniqueId == uniqueItemId) {
-        return item.copyWith(
+        final updatedItem = item.copyWith(
           product: item.product.copyWith(discountedPrice: discountedPrice),
           discount: discountPercentage,
         );
+
+        // Posodobi v Hive
+        final hiveIndex = narociloBox.values
+            .toList()
+            .indexWhere((hiveItem) => hiveItem.uniqueId == uniqueItemId);
+        if (hiveIndex != -1) {
+          narociloBox.putAt(hiveIndex, updatedItem);
+        }
+
+        return updatedItem;
       }
       return item;
     }).toList();
@@ -115,31 +166,64 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     state = updatedItems;
   }
 
-  void updateOpis(String uniqueItemId, String newOpis) {
-    state = state.map((item) {
+  void updateOpis(String uniqueItemId, String newOpis) async {
+    final narociloBox = Hive.box('narociloBox');
+
+    final updatedItems = state.map((item) {
       if (item.uniqueId == uniqueItemId) {
-        // Odstranjen pogoj item.description.isEmpty
-        return item.copyWith(description: newOpis);
+        final updatedItem = item.copyWith(description: newOpis);
+
+        // Posodobi v Hive
+        final hiveIndex = narociloBox.values
+            .toList()
+            .indexWhere((hiveItem) => hiveItem.uniqueId == uniqueItemId);
+        if (hiveIndex != -1) {
+          narociloBox.putAt(hiveIndex, updatedItem);
+        }
+
+        return updatedItem;
       }
       return item;
     }).toList();
+
+    state = updatedItems;
   }
 
-  void updatePrice(String productId, double newPrice) {
+  void updatePrice(String productId, double newPrice) async {
+    final narociloBox = Hive.box('narociloBox');
+
     final updatedItems = state.map((item) {
       if (item.product.id == productId && item.product.price == 0.0) {
-        return item.copyWith(
+        final updatedItem = item.copyWith(
           product: item.product.copyWith(price: newPrice),
         );
+
+        // Posodobi v Hive
+        final hiveIndex = narociloBox.values
+            .toList()
+            .indexWhere((hiveItem) => hiveItem.uniqueId == item.uniqueId);
+        if (hiveIndex != -1) {
+          narociloBox.putAt(hiveIndex, updatedItem);
+        }
+
+        return updatedItem;
       }
       return item;
     }).toList();
 
     state = updatedItems;
+  }
+
+  void clearRacun() async {
+    final narociloBox = Hive.box('narociloBox');
+    await narociloBox.clear();
+    state = []; // To bo nastavilo stanje na prazen seznam
   }
 
   // Clears all items in the list
-  void clearChosenItems() {
+  void clearChosenItems() async {
+    final narociloBox = Hive.box('narociloBox');
+    await narociloBox.clear();
     state = [];
   }
 }

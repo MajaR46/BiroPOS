@@ -1,5 +1,7 @@
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/ok_button.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/screens/login.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +35,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       TextEditingController();
   final TextEditingController _controllerVelikostPrintanegaTeksta =
       TextEditingController();
+  final TextEditingController _controllerSirinaGumbaTipkovnica =
+      TextEditingController();
+  final TextEditingController _controllerVisinaGumbaTipkovnica =
+      TextEditingController();
+  final TextEditingController _controllerFontGumbTipkovnica =
+      TextEditingController();
 
   bool _isCheckedMoney = false;
   bool _isCheckedOrders = false;
@@ -54,11 +62,20 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedEthernetPrint = false;
   bool _isCheckedReceiptCode = false;
   bool _isCheckedREP = false;
-
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
   @override
   void initState() {
     super.initState();
     _loadPreferences();
+    checkConnection();
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   Future<void> _loadPreferences() async {
@@ -83,6 +100,12 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getString('ethernetEmptyRows') ?? '';
         _controllerVelikostPrintanegaTeksta.text =
             prefs.getString('velikostPrintanegaTeksta') ?? '32';
+        _controllerSirinaGumbaTipkovnica.text =
+            prefs.getString('sirinaGumbaTipkovnica') ?? '80';
+        _controllerVisinaGumbaTipkovnica.text =
+            prefs.getString('visinaGumbaTipkovnica') ?? '50';
+        _controllerFontGumbTipkovnica.text =
+            prefs.getString('fontGumbTipkovnica') ?? '16';
 
         _isCheckedMoney = prefs.getBool('isCheckedMoney') ?? false;
         _isCheckedOrders = prefs.getBool('isCheckedOrders') ?? false;
@@ -143,7 +166,16 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         'ethernetEmptyRows', _controllerEthernetEmptyLines.text);
     await prefs.setString(
         'velikostPrintanegaTeksta', _controllerVelikostPrintanegaTeksta.text);
+    await prefs.setString(
+        'sirinaGumbaTipkovnica', _controllerSirinaGumbaTipkovnica.text);
+    await prefs.setString(
+        'visinaGumbaTipkovnica', _controllerVisinaGumbaTipkovnica.text);
+    await prefs.setString(
+        'fontGumbTipkovnica', _controllerFontGumbTipkovnica.text);
+
+    ////////////////////////7
     await prefs.setBool('isCheckedMoney', _isCheckedMoney);
+
     await prefs.setBool('isCheckedOrders', _isCheckedOrders);
     await prefs.setBool(
         'isCheckedPrikazujNarocila', _isCheckedPrikazujNarocila);
@@ -181,19 +213,39 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
 
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.black),
-            onPressed: () {
-              Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()));
-              HapticFeedback.vibrate();
-            }),
-        title: const Text("Nastavitve",
-            style: TextStyle(fontSize: 20, color: Colors.black)),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Colors.black),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen()));
+                  HapticFeedback.vibrate();
+                }),
+            title: Text("Nastavitve",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -732,6 +784,51 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                 .read(settingsProvider.notifier)
                                 .toogleEnojniKlik(value ?? false);
                           },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Širina gumba:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerSirinaGumbaTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Višina gumba:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerVisinaGumbaTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text('Velikost teksta:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerFontGumbTipkovnica,
+                          inputwidth: 150,
+                          isHidden: false,
                         ),
                       ],
                     ),

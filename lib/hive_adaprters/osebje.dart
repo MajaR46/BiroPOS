@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'osebje.g.dart'; // Auto-generated file for the adapter
 
-@HiveType(typeId: 1)
+@HiveType(typeId: 4)
 class Osebje {
   @HiveField(0)
   final String username;

@@ -85,9 +85,7 @@ class BluetoothService {
         }
       }
     } on PlatformException catch (e) {
-      print('Failed to connect: ${e.message}');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to connect: ${e.message}")));
+      ErrorDialogs.showBasicDialog("Napaka pri povezovanju $e", context);
     }
   }
 
@@ -114,17 +112,22 @@ class BluetoothService {
         ['', '', ' ', ' '],
       );
 
-      print(
-          'BluetoothService: sendData with dataLines before processing: $dataLines');
-
       int podpisIndex =
           dataLines.indexWhere((line) => line.toLowerCase().contains("podpis"));
+      int velikostIndex =
+          dataLines.indexWhere((line) => line.contains("#VELIKOST-END#"));
 
       // Če je vrstica "Podpis" najdena, vstavi 3 prazne vrstice za njo
       if (podpisIndex != -1) {
         dataLines.insertAll(podpisIndex + 1, ['', '', '']);
       }
 
+      if (velikostIndex != -1) {
+        dataLines.insertAll(velikostIndex + 1, ['#VELIKOST-END#']);
+      }
+
+      print(
+          'BluetoothService: sendData with dataLines before processing: $dataLines');
       // Send data to platform method
       String result;
       try {
@@ -134,15 +137,16 @@ class BluetoothService {
         );
         print('BluetoothService: sendData success: $result');
         if (showDialog == true) {
+          print("to sem pokazal");
           await ErrorDialogs.showResponseDialog(response, context!);
         }
         print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
         // await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+
         await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 1");
-
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
           errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
         }
@@ -151,23 +155,20 @@ class BluetoothService {
 
       // Ensure the context is passed before attempting to display SnackBar
       if (context != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(result)));
+        ErrorDialogs.showBasicDialog(result, context);
       } else {
         print("No context available for SnackBar");
       }
 
       return result; // Return success or error message
     } catch (e) {
-      final errorMessage = 'An unexpected error occurred: ${e.toString()}';
+      final errorMessage = 'Napaka: ${e.toString()}';
       if (context != null) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(errorMessage)));
-        //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
         await ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 2");
       } else {
         //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
+
         await ErrorDialogs.showResponseDialog(response, context!);
 
         print("PRINT 3");

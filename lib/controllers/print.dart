@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BiroPOS/components/usb_printer.dart';
 import 'package:BiroPOS/providers/totdal_sum_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/ethernet_print.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -84,14 +85,8 @@ class Print {
         } catch (e) {
           // Napaka pri pošiljanju podatkov preko Bluetootha
           bluetoothSucess = false;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  "Napaka pri pošiljanju podatkov preko Bluetootha: ${e.toString()}"),
-              duration: const Duration(seconds: 5), // Daljša prikaz napake
-            ),
-          );
+          ErrorDialogs.showBasicDialog(
+              "Napaka pri pošiljanju podatkov preko Bluetootha $e", context);
         } finally {
           // Set total to zero in case of error or success
           ref.read(totalSumProvider.notifier).state =
@@ -99,12 +94,7 @@ class Print {
         }
       } catch (e) {
         // Splošna napaka pri obdelavi plačila
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Napaka pri obdelavi plačila: ${e.toString()}"),
-            duration: const Duration(seconds: 5), // Daljša prikaz napake
-          ),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri obdelavi plačila $e", context);
       } finally {
         // Set total to zero in case of error or success
         ref.read(totalSumProvider.notifier).state =
@@ -133,9 +123,7 @@ class Print {
       } catch (e) {
         ethernetSucess = false;
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka pri tiskanju: $e")),
-          );
+          ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
         }
       }
     }
@@ -151,9 +139,7 @@ class Print {
       } catch (e) {
         windowsSucess = false;
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka pri tiskanju: $e")),
-          );
+          ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
         }
       }
     }
@@ -173,9 +159,8 @@ class Print {
 
       if (printerStatus == PrinterStatus.COMM) {
         integratedPrinterSucess = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Tiskalnik ni inicializiran.")),
-        );
+        ErrorDialogs.showBasicDialog("Tiskalnik ni inicializiran", context);
+
         return;
       }
 
@@ -185,9 +170,7 @@ class Print {
         integratedPrinterSucess = true;
       } catch (e) {
         integratedPrinterSucess = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
       }
     }
 
@@ -197,10 +180,8 @@ class Print {
     }
 
     if (text.any((line) => line.contains("#NAPAKA#"))) {
-      print("tukaj");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(text.toString())),
-      );
+      ErrorDialogs.showBasicDialog(text.toString(), context);
+
       return;
     } else {
       if (receiptCode == true) {
@@ -259,9 +240,7 @@ class Print {
             clearSearchQuery(ref);
           }
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Napaka $e")),
-          );
+          ErrorDialogs.showBasicDialog("Napaka $e", context);
         }
       }
     }

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -25,11 +27,14 @@ class DavcnaDOBScreen extends ConsumerStatefulWidget {
 class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
   final TextEditingController _dobController = TextEditingController();
   late OrderService orderService;
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     orderService = ref.read(orderProvider);
+    checkConnection();
   }
 
   void _clearText() {
@@ -50,11 +55,16 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
       );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Napaka pri tiskanju: $e")),
-        );
+        ErrorDialogs.showBasicDialog("Napaka pri tiskanju $e", context);
       }
     }
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
@@ -65,31 +75,48 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
         if (davcnaNumber != null && davcnaSt.length == 8) {
           final response = await orderService.createOrder(
-              context, "TipDokumenta.DOB", davcnaSt);
+              context, ref, "TipDokumenta.DOB", davcnaSt);
           _processAndPrintResponse(response);
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text("Davčna številka mora biti dolga 8 znakov")));
+          ErrorDialogs.showBasicDialog(
+              "Davčna številka mora biti dolga 8 znakov", context);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Napaka: $e")));
+        ErrorDialogs.showBasicDialog("Napaka $e", context);
       }
     }
 
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        title: Text(
-          "Davčna DOB",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            title: Text(
+              "Davčna DOB",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black),
+            ),
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
       body: Padding(

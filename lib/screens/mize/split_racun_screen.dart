@@ -2,6 +2,7 @@ import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/components/quantity_increase.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/models/tableItem.dart';
@@ -13,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SplitRacunScreen extends ConsumerStatefulWidget {
@@ -28,12 +30,15 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
   late String imeMize;
   List<TableItem> izdelki = [];
   List<TableItem> izbraniIzdelki = [];
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
+    checkConnection();
   }
 
   Future<void> _fetchSingleTable() async {
@@ -94,7 +99,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     });
   }
 
-  void _dodajNaRacun(List<TableItem> items) {
+  void _dodajNaRacun(List<TableItem> items) async {
     final narociloItems =
         items.where((tableItem) => tableItem.quantity > 0).map((tableItem) {
       final item = Item(
@@ -113,10 +118,13 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
       );
     }).toList();
 
+    var narociloBox = Hive.box('narociloBox');
+
     for (var narociloItem in narociloItems) {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(narociloItem, fromTable: true);
+      await narociloBox.add(narociloItem);
     }
   }
 
@@ -138,20 +146,45 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     });
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text("Razdeli račun za: $imeMize",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black)),
+            centerTitle: true,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
-        title: Text("Razdeli račun za: $imeMize",
-            style: AppStyles.heading3.copyWith(color: AppStyles.black)),
-        centerTitle: true,
       ),
       body: Stack(
         children: [

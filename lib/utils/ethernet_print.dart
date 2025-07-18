@@ -2,6 +2,7 @@ import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/searchquery_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_network/flutter_esc_pos_network.dart';
@@ -30,9 +31,7 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
     profile = await CapabilityProfile.load();
   } catch (e, s) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('NAPAKA pri nalaganju profila: $e')),
-      );
+      ErrorDialogs.showBasicDialog("Napaka pri nalagnju profila $e", context);
     }
     return false;
   }
@@ -47,18 +46,15 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
     emptyRows = int.tryParse(emptyRowsSettings) ?? 2;
   } catch (e, s) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('NAPAKA pri branju nastavitev: $e')),
-      );
+      ErrorDialogs.showBasicDialog("Napaka pri branju nastavitev $e", context);
     }
     return false;
   }
 
   if (printerIp == null || printerIp.isEmpty) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('IP naslov tiskalnika ni nastavljen')),
-      );
+      ErrorDialogs.showBasicDialog(
+          "IP naslov tiskalnika ni nastavljen", context);
     }
     return false;
   }
@@ -91,9 +87,7 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
     bytes += generator.cut(mode: PosCutMode.full);
   } catch (e, s) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('NAPAKA pri pripravi računa: $e')),
-      );
+      ErrorDialogs.showBasicDialog("Napaka pri pripravi računa $e", context);
     }
     return false;
   }
@@ -115,11 +109,8 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
 
       if (connect != PosPrintResult.success) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Povezava s tiskalnikom ni uspela: ${connect.msg}')),
-          );
+          ErrorDialogs.showBasicDialog(
+              "Povezava s tiskalnikom ni uspela: ${connect.msg}", context);
         }
         return false;
       }
@@ -133,20 +124,15 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
         return true;
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Ethernet tiskanje ni uspelo: ${printing.msg}')),
-          );
+          ErrorDialogs.showBasicDialog(
+              "Ethernet tiskanje ni uspelo: ${printing.msg}", context);
         }
         return false;
       }
     } catch (e, s) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(
-                  'Nepričakovana napaka pri tiskanju z ethernet tiskalnikom: $e')),
-        );
+        ErrorDialogs.showBasicDialog(
+            "Napaka pri ethernet tiskanju: $e", context);
       }
       return false;
     } finally {

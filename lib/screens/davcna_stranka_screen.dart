@@ -2,23 +2,47 @@ import 'dart:io';
 
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/numpad.dart';
+import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
-class DavcnaStrankaScreen extends ConsumerWidget {
-  final TextEditingController _strankaController = TextEditingController();
+class DavcnaStrankaScreen extends ConsumerStatefulWidget {
+  const DavcnaStrankaScreen({super.key});
 
-  DavcnaStrankaScreen({super.key});
+  @override
+  ConsumerState<DavcnaStrankaScreen> createState() =>
+      _DavcnaStrankaScreenState();
+}
+
+class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
+  final TextEditingController _strankaController = TextEditingController();
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   void _clearText() {
     _strankaController.clear();
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void initState() {
+    super.initState();
+    checkConnection();
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     void _setDavcna() {
       final String davcnaSt = _strankaController.text;
 
@@ -27,24 +51,42 @@ class DavcnaStrankaScreen extends ConsumerWidget {
 
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Davčna številka mora imeti 8 znakov!")));
+        ErrorDialogs.showBasicDialog(
+            "Davčna številka mora imeti 8 znakov", context);
       }
     }
 
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        title: Text(
-          "Davčna stranka",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            title: Text(
+              "Davčna stranka",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black),
+            ),
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
       body: Padding(

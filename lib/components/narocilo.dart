@@ -2,6 +2,7 @@ import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/order_number_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -61,9 +62,7 @@ class NarociloPrinter {
     try {
       await Print.printText(context, narocilo, ref);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Napaka pri tiskanju naročila: $e")),
-      );
+      ErrorDialogs.showBasicDialog("Napaka pri tiskanju naročila $e", context);
     }
   }
 }

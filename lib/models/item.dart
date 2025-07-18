@@ -1,12 +1,23 @@
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
+part 'item.g.dart';
+
+@HiveType(typeId: 11)
 class Item {
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final double price;
+  @HiveField(3)
   double discountedPrice;
+  @HiveField(4)
   final double hhPrice;
+  @HiveField(5)
   final String categoryID;
+  @HiveField(6)
   final String eanCode;
 
   static final numberFormat =

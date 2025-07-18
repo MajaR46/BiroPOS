@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,12 +28,15 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
   late Timer _timer;
   int stMinut = 1;
   late String textSize = '';
+  bool _isOnline = true;
+  String userId = SessionManager().getLoggedInUserSifra() ?? '';
 
   @override
   void initState() {
     super.initState();
     _refreshPage();
     _getPreferences();
+    checkConnection();
   }
 
   Future<void> _getPreferences() async {
@@ -114,10 +119,15 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
       }
     } catch (e, stackTrace) {
       debugPrint("Error fetching orders: $e\n$stackTrace");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
+      ErrorDialogs.showBasicDialog("Napaka ${e.toString()}", context);
     }
+  }
+
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
@@ -125,17 +135,35 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
     final narociloTextSize = double.tryParse(textSize) ?? 16.0;
     return Scaffold(
       backgroundColor: AppStyles.white,
-      appBar: AppBar(
-        backgroundColor: AppStyles.white,
-        title: Text(
-          "Naročila",
-          style: AppStyles.heading3.copyWith(color: AppStyles.black),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppStyles.black),
-          onPressed: () => Navigator.of(context).pop(),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56.0),
+        child: GestureDetector(
+          onTap: checkConnection,
+          child: AppBar(
+            backgroundColor: AppStyles.white,
+            title: Text(
+              "Naročila",
+              style: AppStyles.heading3.copyWith(color: AppStyles.black),
+            ),
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                  color: AppStyles.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 24.0),
+                child: Text(
+                  _isOnline ? "Online" : "Offline",
+                  style: AppStyles.paragraph3.copyWith(
+                    color: _isOnline ? AppStyles.green : AppStyles.brightRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
       body: Consumer(
