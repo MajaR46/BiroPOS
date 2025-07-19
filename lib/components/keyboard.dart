@@ -1,6 +1,7 @@
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
@@ -167,7 +168,10 @@ class _KeyboardState extends ConsumerState<Keyboard> {
 
       try {
         bool connected = await checkConnection();
+        ref.read(onlineStatusProvider.notifier).state = connected;
+
         if (!connected) return;
+
         ref.read(searchQueryProvider.notifier).state = widget.controller.text;
 
         String searchQuery = ref.watch(searchQueryProvider);
@@ -200,6 +204,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
   void _paymentKartica() {
     _debouncer.debouce(() async {
       bool connected = await checkConnection();
+      ref.read(onlineStatusProvider.notifier).state = connected;
+
       if (!connected) return;
       final settings = ref.watch(settingsProvider);
       final tiskajNarociloPriRacunu =

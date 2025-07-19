@@ -5,6 +5,7 @@ import 'package:BiroPOS/components/category_list.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
@@ -585,14 +586,17 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      // Preverimo, ali je widget še vedno v drevesu
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final String? user = SessionManager().getLoggedInUserName();
+
+    _isOnline = ref.watch(onlineStatusProvider);
 
     final stateSelectedCategory = ref.watch(selectedCategoryProvider);
     final settings = ref.watch(settingsProvider);

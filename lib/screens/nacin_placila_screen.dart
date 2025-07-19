@@ -1,5 +1,6 @@
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
@@ -100,17 +101,23 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   }
 
   Future<bool> checkConnection2() async {
-    bool success = await testConnection(userId);
-    if (!success) {
+    bool isOnline = await testConnection(userId);
+    if (mounted) {
+      // Preverimo, ali je widget še vedno v drevesu
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
+    if (!isOnline) {
       String response = "NI POVEZAVE Z BLAGAJNO";
       await ErrorDialogs.showBasicDialog(response, context);
     }
-    return success;
+    return isOnline;
   }
 
   @override
   Widget build(BuildContext context) {
     double finalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+
+    //_isOnline = ref.watch(onlineStatusProvider);
 
     final allpaymentMethods = ref.watch(paymentMethodProvider);
     final paymentMethods = finalSum == 0.0
@@ -127,6 +134,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     void paymentPrint(String paymentMethod, String davcnaSt) async {
       try {
         bool connected = await checkConnection2();
+        ref.read(onlineStatusProvider.notifier).state = connected;
+
         if (!connected) return;
         paymentService.processPayment(context, paymentMethod, davcnaSt);
         if (tiskajNarociloPriRacunu == true) {
