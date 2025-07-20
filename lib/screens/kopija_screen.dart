@@ -1,4 +1,5 @@
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -77,13 +78,15 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(

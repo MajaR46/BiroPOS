@@ -7,6 +7,7 @@ import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/generate_receipt_code.dart';
 import 'package:BiroPOS/utils/save_to_txt.dart';
@@ -57,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.25.3';
+  String verzijaPrograma = '5.25.4';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -68,9 +69,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _loadLastRefreshTime();
+    checkConnection();
 
     _initializeBluetooth();
-    checkConnection();
 
     // Tukaj takoj nastavimo datum in uro, da se prikažeta ob nalaganju
     DateTime currentDate = DateTime.now();
@@ -91,13 +92,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _timer.cancel();
     _logininputcontroller.dispose();
     super.dispose();
-  }
-
-  void checkConnection() async {
-    bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
   }
 
   Future<void> _loadLastRefreshTime() async {
@@ -187,6 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       SystemNavigator.pop();
     } else {
       ErrorDialogs.showBasicDialog("Nepravilno geslo", context);
+      _logininputcontroller.clear();
     }
   }
 
@@ -246,6 +241,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleTestConnection() async {
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
+    checkConnection();
 
     try {
       List<String> responseList = await sendRequest(userId, "echo");
@@ -299,9 +295,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  void checkConnection() async {
+    bool isOnline = await testConnection(userId);
+    if (mounted) {
+      // Preverimo, ali je widget še vedno v drevesu
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
+
+    _isOnline = ref.watch(onlineStatusProvider);
 
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))

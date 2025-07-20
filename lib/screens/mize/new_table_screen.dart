@@ -7,6 +7,7 @@ import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
@@ -81,13 +82,14 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

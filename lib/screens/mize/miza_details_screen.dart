@@ -8,6 +8,7 @@ import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/models/tableItem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/providers/tableitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/prenos_mize_screen.dart';
@@ -195,13 +196,14 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

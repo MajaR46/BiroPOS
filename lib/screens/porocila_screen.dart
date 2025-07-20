@@ -1,5 +1,6 @@
 import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/utils.dart';
 import 'package:BiroPOS/controllers/besteron_controller.dart';
@@ -40,9 +41,9 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   void _clearText() {
@@ -164,6 +165,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

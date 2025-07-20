@@ -5,6 +5,7 @@ import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/settings_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,14 +126,15 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final narociloTextSize = double.tryParse(textSize) ?? 16.0;
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

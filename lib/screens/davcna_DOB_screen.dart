@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/utils/utils.dart';
@@ -45,6 +46,13 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
     try {
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
 
+      if (filteredResponse.any((line) => line.contains("#NAPAKA#"))) {
+        ErrorDialogs.showBasicDialog(filteredResponse.join("\n"), context);
+        return;
+      }
+
+      print("apiresponse: $apiResponse");
+
       await Print.printText(context, filteredResponse, ref);
       await Print.printText(context, filteredResponse, ref);
 
@@ -62,13 +70,14 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     void createOrder(davcnaSt) async {
       try {
         int? davcnaNumber = int.tryParse(davcnaSt); // Convert to int

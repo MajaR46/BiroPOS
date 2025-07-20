@@ -6,6 +6,7 @@ import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -152,9 +153,9 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
@@ -171,7 +172,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
         product: Item(name: '', price: 0.0),
       ),
     );
-
+    _isOnline = ref.watch(onlineStatusProvider);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus(); // Dismiss keyboard

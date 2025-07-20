@@ -120,7 +120,7 @@ Future<bool> printReceipt(String text, BuildContext context, WidgetRef ref,
         return PosPrintResult.timeout;
       });
 
-      if (printing == PosPrintResult.success && isBesteronSucess) {
+      if (printing == PosPrintResult.success) {
         return true;
       } else {
         if (context.mounted) {

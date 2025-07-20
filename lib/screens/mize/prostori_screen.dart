@@ -2,6 +2,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/add_to_table_screen.dart';
 import 'package:BiroPOS/screens/mize/open_tables_screen.dart';
@@ -92,13 +93,14 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

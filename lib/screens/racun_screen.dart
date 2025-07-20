@@ -1,6 +1,7 @@
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
 import 'package:BiroPOS/components/keyboard.dart';
@@ -318,15 +319,16 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final chosenItems = ref.watch(narociloNotifierProvider);
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
+    _isOnline = ref.watch(onlineStatusProvider);
 
     var narociloBox = Hive.box('narociloBox');
 

@@ -5,6 +5,7 @@ import 'package:BiroPOS/components/numpad.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/services.dart';
@@ -36,13 +37,14 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     void _setDavcna() {
       final String davcnaSt = _strankaController.text;
 

@@ -2,23 +2,25 @@ import 'package:BiroPOS/components/ok_button.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/miza_details_screen.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class OpenTablesScreen extends StatefulWidget {
+class OpenTablesScreen extends ConsumerStatefulWidget {
   final String? prostor;
   const OpenTablesScreen({super.key, this.prostor});
 
   @override
-  State<OpenTablesScreen> createState() => _OpenTablesScreenState();
+  ConsumerState<OpenTablesScreen> createState() => _OpenTablesScreenState();
 }
 
-class _OpenTablesScreenState extends State<OpenTablesScreen> {
+class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   List<Map<String, String>> odprteMize = [];
   int? _selectedCardIndex; // Track selected card index
 
@@ -104,13 +106,14 @@ class _OpenTablesScreenState extends State<OpenTablesScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    setState(() {
-      _isOnline = isOnline;
-    });
+    if (mounted) {
+      ref.read(onlineStatusProvider.notifier).state = isOnline;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
         backgroundColor: AppStyles.white,
         appBar: PreferredSize(
