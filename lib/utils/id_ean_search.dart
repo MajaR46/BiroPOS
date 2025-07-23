@@ -11,6 +11,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 void searchByEan(String input, WidgetRef ref, BuildContext context,
     Function updateTotalDiscount,
     {double quantity = 1.0}) async {
+  print("Izvedeno");
   RegExp regExp = RegExp(r'\d+');
   Iterable<Match> matches = regExp.allMatches(input);
   List<String> numbers = matches.map((match) => match.group(0)!).toList();
@@ -33,7 +34,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false);
-      await narociloBox.add(newNarociloItem);
+      //await narociloBox.add(newNarociloItem);
       updateTotalDiscount();
     } else {
       ErrorDialogs.showBasicDialog("Ne najdem izdelka s to EAN kodo", context);
@@ -52,7 +53,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false);
 
-      await narociloBox.add(newNarociloItem);
+      // await narociloBox.add(newNarociloItem);
 
       updateTotalDiscount();
     } else {

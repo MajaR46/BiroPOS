@@ -58,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.25.4';
+  String verzijaPrograma = '5.25.7';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -297,17 +297,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
-    if (mounted) {
-      // Preverimo, ali je widget še vedno v drevesu
-      ref.read(onlineStatusProvider.notifier).state = isOnline;
-    }
+    setState(() {
+      _isOnline = isOnline;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final bool isLoggedIn = SessionManager().isLoggedIn();
-
-    _isOnline = ref.watch(onlineStatusProvider);
 
     String formattedLastRefresh = lastRefresh != null
         ? DateFormat("dd.MM.yyyy HH:mm").format(DateTime.parse(lastRefresh!))

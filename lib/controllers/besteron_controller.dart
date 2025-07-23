@@ -77,6 +77,7 @@ Future<Map<String, dynamic>> callBesteron(double finalSum) async {
     }
 
     var decodedJson = jsonDecode(response.body);
+    print("decoded json ${decodedJson.toString()}");
 
     var saleToPOIResponse = decodedJson['SaleToPOIResponse'];
     if (saleToPOIResponse == null) {

@@ -424,12 +424,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       // PRIMER 1: Imamo shranjen faktor. Uporabimo ga za dodajanje izdelka.
                       _searchByEan(searchController.text,
                           quantity: multiplyFactor);
+                      print("KRKR");
 
                       // Počistimo stanje
                       searchController.clear();
                       ref.read(multiplyFactorProvider.notifier).state = null;
                     } else if (_isSearchMode) {
                       // PRIMER 2: Ni faktorja, ampak je vklopljen način iskanja.
+                      print("TUTU");
                       _searchByEan(searchController.text);
                       searchController.clear();
                     } else {

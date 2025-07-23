@@ -161,6 +161,7 @@ class MainActivity : FlutterActivity() {
                             outputStream?.flush()
                             outputStream?.write(byteArrayOf(0x1D, 0x56, 0x41, 0x10))
                             outputStream?.flush()
+                            activity.runOnUiThread { result.success(null) }
                         } else {
                             result.error("SEND_FAILED", "No device connected or invalid data", null)
                         }

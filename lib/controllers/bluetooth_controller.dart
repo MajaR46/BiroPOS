@@ -163,18 +163,7 @@ class BluetoothService {
       return result; // Return success or error message
     } catch (e) {
       final errorMessage = 'Napaka: ${e.toString()}';
-      if (context != null) {
-        await ErrorDialogs.showResponseDialog(response, context!);
-        print("PRINT 2");
-      } else {
-        //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
 
-        await ErrorDialogs.showResponseDialog(response, context!);
-
-        print("PRINT 3");
-
-        print(errorMessage); // Print error if no context available
-      }
       //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
       await ErrorDialogs.showResponseDialog(response, context!);
       print("PRINT 4");

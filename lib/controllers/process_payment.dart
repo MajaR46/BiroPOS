@@ -61,13 +61,12 @@ class ProcessPayment {
     if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
       try {
         final besteronResponse = await callBesteron(finalSum)
-            .timeout(const Duration(seconds: 10), onTimeout: () {
+            .timeout(const Duration(seconds: 15), onTimeout: () {
           throw TimeoutException("TimeOUT");
         });
+
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
-
-        print("BESTRON RAČUN $besteronRacun");
 
         if (result != "Success") {
           isBesteronSucess = false;
@@ -109,9 +108,11 @@ class ProcessPayment {
       List<String> response = [];
 
       if (isBesteronSucess) {
+        print("Kličem createOrder za običajni račun");
         response = await ref
             .read(orderProvider)
             .createOrder(context, ref, paymentType, davcnaSt);
+        print("Odgovor createOrder: $response");
       }
 
       if (receiptCode == true) {
