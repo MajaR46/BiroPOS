@@ -128,6 +128,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(narociloItem, fromTable: true, nastaviCeno: false);
+      ref.read(selectedItemProvider.notifier).state = narociloItem;
     }
   }
 

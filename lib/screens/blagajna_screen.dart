@@ -352,10 +352,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: false);
+      ref.read(selectedItemProvider.notifier).state = newNarociloItem;
     } else {
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false, nastaviCeno: true);
+      ref.read(selectedItemProvider.notifier).state = newNarociloItem;
     }
 
     setState(() {
@@ -712,6 +714,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                 opisDiscountButton: "OPIS",
                                 racunArtikliButton: "RAČUN",
                                 navigateToRacun: () {
+                                  clearSelectedItem(ref);
+
                                   Navigator.pushReplacement(
                                     context,
                                     PageRouteBuilder(

@@ -68,4 +68,14 @@ class NarociloItem {
         product.price == other.product.price &&
         description == other.description;
   }
+
+  @override
+  String toString() {
+    return 'NarociloItem('
+        'uniqueId: $uniqueId, '
+        'description: $description, '
+        'quantity: $quantity, '
+        'product: ${product.name} - ${product.price}€'
+        ')';
+  }
 }

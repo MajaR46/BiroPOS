@@ -6,6 +6,7 @@ import 'package:BiroPOS/components/racun_list_banner.dart';
 import 'package:BiroPOS/components/seznam_racun.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
+import 'package:BiroPOS/utils/search_items.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -296,6 +297,9 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
                   Align(
                     alignment: Alignment.bottomLeft,
                     child: Keyboard(
+                      search: () {
+                        widget.searchByName(); // <== kličemo kot prej
+                      },
                       controller: widget.keyboardController,
                       navigateToMizaScreen: widget.navigateToMizaScreen,
                       navigateToNacinPlacilaScreen:
@@ -306,7 +310,6 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
                       opisDiscountButton: "OPIS",
                       racunArtikliButton: "%",
                       icon: Icons.search,
-                      search: widget.searchByName,
                     ),
                   ),
                 ]),
