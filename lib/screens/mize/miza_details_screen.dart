@@ -14,6 +14,7 @@ import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/screens/mize/prenos_mize_screen.dart';
 import 'package:BiroPOS/screens/mize/split_racun_screen.dart';
 import 'package:BiroPOS/screens/racun_screen.dart';
+import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
@@ -43,7 +44,9 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
-    checkConnection();
+    Future.delayed(const Duration(seconds: 1), () {
+      checkConnection();
+    });
   }
 
   Future<void> _fetchSingleTable() async {
@@ -69,19 +72,24 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
           );
         }
       }
+
       setState(() {
         izdelki = fetchedItems;
         _isLoading = false;
       });
-      ref.read(tableNotifierProvider.notifier).clearTable(); // nova vrstica
+
+      // 🚨 Te vrstice naj bodo izven setState in po njem
+      final tableNotifier = ref.read(tableNotifierProvider.notifier);
+      tableNotifier.clearTable();
 
       for (var item in fetchedItems) {
-        ref.read(tableNotifierProvider.notifier).addToTable(item);
+        tableNotifier.addToTable(item);
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+      ErrorDialogs.showBasicDialog("Napaka pri branju mize: $e", context);
     }
   }
 
