@@ -63,7 +63,7 @@
         <receiver android:name=".MainActivity$usbReceiver"
                   android:exported="false">
             <intent-filter>
-                <action android:name="si.Flop.BiroPOS.USB_PERMISSION" />
+                <action android:name="si.Flop.BiroPOSF.USB_PERMISSION" />
                 <action android:name="android.hardware.usb.action.USB_DEVICE_DETACHED" />
             </intent-filter>
         </receiver>
