@@ -32,7 +32,9 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   void initState() {
     super.initState();
     _fetchOpenTables();
-    checkConnection();
+    Future.delayed(const Duration(seconds: 1), () {
+      checkConnection();
+    });
   }
 
   Future<void> _fetchOpenTables() async {
@@ -105,6 +107,7 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   }
 
   void checkConnection() async {
+    print("izvedeno");
     bool isOnline = await testConnection(userId);
     if (mounted) {
       ref.read(onlineStatusProvider.notifier).state = isOnline;

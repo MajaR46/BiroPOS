@@ -40,12 +40,15 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
   void initState() {
     super.initState();
     _fetchTables();
-    checkConnection();
+    Future.delayed(const Duration(seconds: 1), () {
+      checkConnection();
+    });
   }
 
   Future<void> _fetchTables() async {
     setState(() {
       _isLoading = false;
+      _errorMessage = '';
     });
 
     try {
@@ -53,6 +56,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
 
       String txtData = 'VrniSeznamMiz';
       List<String> apiResponseList = await sendRequest(userId!, txtData);
+
       List<Map<String, String>> parsedTables = [];
 
       for (String line in apiResponseList) {
@@ -61,8 +65,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
         if (splitLine.length >= 4) {
           String prostor = splitLine[0];
           String miza = splitLine[1];
-          String cena =
-              splitLine[2].replaceAll(',', '.'); // Handle comma decimal
+          String cena = splitLine[2].replaceAll(',', '.');
 
           parsedTables.add({
             'miza': miza,
@@ -84,9 +87,10 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error fetching tables: $e';
-        _isLoading = true;
+        _isLoading = false;
+        _errorMessage = 'Napaka pri pridobivanju podatkov: $e';
       });
+
       ErrorDialogs.showBasicDialog("Ni vzpostavljene povezave", context);
     }
   }

@@ -38,7 +38,9 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
-    checkConnection();
+    Future.delayed(const Duration(seconds: 1), () {
+      checkConnection();
+    });
   }
 
   Future<void> _fetchSingleTable() async {
