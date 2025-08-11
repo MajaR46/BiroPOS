@@ -442,28 +442,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         const SizedBox(width: 20),
-                        ElevatedButton(
-                          onPressed: () {
-                            HapticFeedback.vibrate();
-                            Navigator.push(
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppStyles.lightGrey,
+                            borderRadius:
+                                BorderRadius.circular(25), // rounded corners
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black
+                                    .withOpacity(0.2), // shadow color
+                                spreadRadius: 1, // how wide it spreads
+                                blurRadius: 2, // softness of the shadow
+                                offset: Offset(
+                                    0, 2), // horizontal & vertical offset
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              HapticFeedback.vibrate();
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const ApiKeyScreen(
-                                          isDefaultPassword: false,
-                                        )));
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            backgroundColor: AppStyles.lightGrey,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              "Api ključ",
-                              textAlign: TextAlign.center,
-                              style: AppStyles.button2
-                                  .copyWith(color: AppStyles.black),
-                            ),
+                                  builder: (context) => const ApiKeyScreen(
+                                    isDefaultPassword: false,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.settings),
+                            color: Colors.black, // icon color
                           ),
                         ),
                         const SizedBox(width: 20),

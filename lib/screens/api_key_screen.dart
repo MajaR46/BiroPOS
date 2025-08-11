@@ -262,41 +262,41 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         style: AppStyles.paragraph1
                             .copyWith(color: AppStyles.black.withOpacity(0.5))),
                     Divider(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Api ključ:',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        ApiKeyTextfield(
-                            inputwidth: 500,
-                            controller: _controllerApiKey,
-                            isHidden: true)
-                      ],
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Align(
                             alignment: Alignment.center,
-                            child: Text('IP:',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Api ključ:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           ApiKeyTextfield(
-                            controller: _controllerIP,
-                            isHidden: false,
-                            inputwidth: 500,
-                          ),
+                              inputwidth: 500,
+                              controller: _controllerApiKey,
+                              isHidden: true)
                         ],
                       ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Align(
+                          alignment: Alignment.center,
+                          child: Text('IP:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerIP,
+                          isHidden: false,
+                          inputwidth: 500,
+                        ),
+                      ],
+                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
