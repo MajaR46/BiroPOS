@@ -171,10 +171,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       [double? discount]) {
     final chosenItems = ref.read(narociloNotifierProvider);
 
-    if (discount == null || discount <= 0 || discount >= 99) {
+    if (discount == null || discount <= 0 || discount >= 100) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: const Text("Popust mora biti med 0 in 100")));
-      return; // prekini, če ni veljavno
+      return;
     }
     if (isFinalDiscount) {
       double finalDiscountPercentage = (discount ?? 0) / 100;
