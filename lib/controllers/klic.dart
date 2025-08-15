@@ -35,7 +35,7 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
       headers: headers,
       body: body,
     )
-        .timeout(const Duration(seconds: 5), onTimeout: () {
+        .timeout(const Duration(seconds: 10), onTimeout: () {
       throw TimeoutException("Connection timed out: ni povezave");
     });
 

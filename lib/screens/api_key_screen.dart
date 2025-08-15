@@ -63,6 +63,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedReceiptCode = false;
   bool _isCheckedREP = false;
   bool _isOnline = true;
+  bool _isCheckedDvojnaVrstica = false;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
   @override
   void initState() {
@@ -140,6 +141,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getBool('isCheckedEthernetPrint') ?? false;
         _isCheckedReceiptCode = prefs.getBool('isCheckedReceiptCode') ?? false;
         _isCheckedREP = prefs.getBool('isCheckedREP') ?? false;
+        _isCheckedDvojnaVrstica =
+            prefs.getBool('isCheckedDvojnaVrstica') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -202,7 +205,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedEthernetPrint', _isCheckedEthernetPrint);
     await prefs.setBool('isCheckedReceiptCode', _isCheckedReceiptCode);
     await prefs.setBool('isCheckedREP', _isCheckedREP);
-
+    await prefs.setBool('isCheckedDvojnaVrstica', _isCheckedDvojnaVrstica);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
@@ -262,41 +265,41 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                         style: AppStyles.paragraph1
                             .copyWith(color: AppStyles.black.withOpacity(0.5))),
                     Divider(),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const Align(
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Api ključ:',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        ApiKeyTextfield(
-                            inputwidth: 500,
-                            controller: _controllerApiKey,
-                            isHidden: true)
-                      ],
-                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           const Align(
                             alignment: Alignment.center,
-                            child: Text('IP:',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: Text(
+                              'Api ključ:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                           ApiKeyTextfield(
-                            controller: _controllerIP,
-                            isHidden: false,
-                            inputwidth: 500,
-                          ),
+                              inputwidth: 500,
+                              controller: _controllerApiKey,
+                              isHidden: true)
                         ],
                       ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Align(
+                          alignment: Alignment.center,
+                          child: Text('IP:',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyTextfield(
+                          controller: _controllerIP,
+                          isHidden: false,
+                          inputwidth: 500,
+                        ),
+                      ],
+                    ),
                     if (widget.isDefaultPassword)
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -829,6 +832,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           controller: _controllerFontGumbTipkovnica,
                           inputwidth: 150,
                           isHidden: false,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Skupine v dveh vrsticah:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedDvojnaVrstica,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedDvojnaVrstica = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleDvojnaVrstica(value ?? false);
+                          },
                         ),
                       ],
                     ),

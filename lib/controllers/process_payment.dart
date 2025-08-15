@@ -60,7 +60,10 @@ class ProcessPayment {
 
     if (paymentType == "KAR" && posUrlNastavitve.isNotEmpty) {
       try {
-        final besteronResponse = await callBesteron(finalSum);
+        final besteronResponse = await callBesteron(finalSum)
+            .timeout(const Duration(seconds: 90), onTimeout: () {
+          throw TimeoutException("Besteron Timeout");
+        });
 
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
