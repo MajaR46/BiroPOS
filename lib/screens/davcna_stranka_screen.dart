@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/components/numpad.dart';
+import 'package:BiroPOS/controllers/inetis.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/davcna_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
@@ -45,7 +47,7 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
   @override
   Widget build(BuildContext context) {
     _isOnline = ref.watch(onlineStatusProvider);
-    void _setDavcna() {
+    void _setDavcna() async {
       final String davcnaSt = _strankaController.text;
 
       if (davcnaSt.length == 8) {
@@ -56,6 +58,9 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
         ErrorDialogs.showBasicDialog(
             "Davčna številka mora imeti 8 znakov", context);
       }
+      Map<String, String> inetisRezultat = await inetisCall(davcnaSt);
+
+      ref.read(davcnaPodatkiProvider.notifier).state = inetisRezultat;
     }
 
     return Scaffold(

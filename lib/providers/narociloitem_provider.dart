@@ -1,4 +1,5 @@
 import 'package:BiroPOS/models/narociloitem.dart';
+import 'package:BiroPOS/providers/davcna_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
@@ -226,19 +227,6 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     await narociloBox.clear();
     state = [];
   }
-}
-
-// Provider for managing davcna (tax number)
-final taxNumberProvider = StateProvider<String?>((ref) => null);
-
-// Function to set the tax number
-void setTaxNumber(WidgetRef ref, String taxNumber) {
-  ref.read(taxNumberProvider.notifier).state = taxNumber;
-}
-
-// Clear davcna using the taxNumberProvider
-void clearDavcna(WidgetRef ref) {
-  ref.read(taxNumberProvider.notifier).state = '';
 }
 
 // Provider for narociloNotifier

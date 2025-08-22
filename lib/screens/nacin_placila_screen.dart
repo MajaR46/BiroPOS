@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/davcna_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
@@ -127,6 +128,11 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         : allpaymentMethods;
 
     final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
+    final davcnaPodatki = ref.watch(davcnaPodatkiProvider);
+
+    final nazivPodjetja = davcnaPodatki['naziv'] ?? 'Ni podatka o nazivu';
+    final naslovPodjetja = davcnaPodatki['naslov'] ?? 'Ni podatka o naslovu';
+
     orderService = ref.watch(orderProvider);
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
@@ -218,31 +224,50 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                       ),
                       if (davcnaSt.isNotEmpty)
                         Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Davčna: $davcnaSt",
-                                  style: AppStyles.paragraph1,
-                                ),
-                                IconButton.outlined(
-                                    style: IconButton.styleFrom(
-                                        side:
-                                            BorderSide(color: AppStyles.blue)),
-                                    onPressed: () {
-                                      clearDavcna(ref);
-                                      HapticFeedback.vibrate();
-                                    },
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      size: 12,
-                                      color: AppStyles.blue,
-                                    ),
-                                    constraints: BoxConstraints(
-                                        minWidth: 13, minHeight: 13))
-                              ],
-                            )),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Davčna: $davcnaSt",
+                                style: AppStyles.paragraph1,
+                              ),
+                              IconButton.outlined(
+                                  style: IconButton.styleFrom(
+                                      side: BorderSide(color: AppStyles.blue)),
+                                  onPressed: () {
+                                    clearDavcna(ref);
+                                    HapticFeedback.vibrate();
+                                  },
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    size: 12,
+                                    color: AppStyles.blue,
+                                  ),
+                                  constraints: BoxConstraints(
+                                      minWidth: 13, minHeight: 13)),
+                            ],
+                          ),
+                        ),
+                      if (davcnaSt.isNotEmpty)
+                        Container(
+                          width: 200,
+                          child: Text(
+                            nazivPodjetja,
+                            style: AppStyles.paragraph3,
+                            textAlign: TextAlign
+                                .center, // <-- center text horizontally
+                          ),
+                        ),
+                      if (davcnaSt.isNotEmpty)
+                        Container(
+                          width: 200,
+                          child: Text(
+                            naslovPodjetja,
+                            style: AppStyles.paragraph3,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                     ],
                   ),
                 ),
