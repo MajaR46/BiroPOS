@@ -240,43 +240,72 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                             ],
                           ),
                         ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: SizedBox(
-                          width: 250,
-                          child: TextField(
-                            autofocus: true,
-                            controller: _opisController,
-                            cursorHeight: 20,
-                            cursorColor: AppStyles.blue,
-                            textAlignVertical: TextAlignVertical.bottom,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0),
-                              enabledBorder: const UnderlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: AppStyles.blue, width: 1),
-                              ),
-                              focusedBorder: const UnderlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: AppStyles.blue, width: 2),
-                              ),
-                              suffixIconColor: AppStyles.blue,
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: _clearText,
-                                focusColor: AppStyles.blue,
+                      const SizedBox(
+                        height: 16,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: SizedBox(
+                              width: 250,
+                              child: TextField(
+                                autofocus: true,
+                                controller: _opisController,
+                                cursorHeight: 20,
+                                cursorColor: AppStyles.blue,
+                                textAlignVertical: TextAlignVertical.bottom,
+                                decoration: InputDecoration(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 10.0, horizontal: 10.0),
+                                  enabledBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: AppStyles.blue, width: 1),
+                                  ),
+                                  focusedBorder: const UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: AppStyles.blue, width: 2),
+                                  ),
+                                  suffixIconColor: AppStyles.blue,
+                                  suffixIcon: IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: _clearText,
+                                    focusColor: AppStyles.blue,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          OKButton(
+                            onPressed: () {
+                              final resultOpis = _opisController.text.trim();
+
+                              narociloNotifier.updateOpis(
+                                widget
+                                    .narociloItemUniqueId, // <-- Pošlji uniqueId
+                                resultOpis,
+                              );
+                              SystemChrome.setEnabledSystemUIMode(
+                                  SystemUiMode.immersiveSticky);
+                              Navigator.of(context).pop();
+                            },
+                            text: 'OK',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(
+                        height: 8,
                       ),
                       Padding(
-                        padding:
-                            const EdgeInsets.only(top: 32, left: 16, right: 16),
+                        padding: const EdgeInsets.only(
+                            top: 32, left: 16, right: 16, bottom: 32),
                         child: GridView.builder(
                           shrinkWrap:
                               true, // Add this to avoid taking up extra space
+                          physics:
+                              const NeverScrollableScrollPhysics(), // 🔑 onemogoči lastno skrolanje
+
                           gridDelegate:
                               const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent:
@@ -313,26 +342,6 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                   ),
                 ),
               ),
-        floatingActionButton: Padding(
-          padding: const EdgeInsets.only(right: 16, bottom: 32),
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: OKButton(
-              onPressed: () {
-                final resultOpis = _opisController.text.trim();
-
-                narociloNotifier.updateOpis(
-                  widget.narociloItemUniqueId, // <-- Pošlji uniqueId
-                  resultOpis,
-                );
-                SystemChrome.setEnabledSystemUIMode(
-                    SystemUiMode.immersiveSticky);
-                Navigator.of(context).pop();
-              },
-              text: 'OK',
-            ),
-          ),
-        ),
       ),
     );
   }

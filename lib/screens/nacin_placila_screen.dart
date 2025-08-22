@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
@@ -137,7 +139,12 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         ref.read(onlineStatusProvider.notifier).state = connected;
 
         if (!connected) return;
-        paymentService.processPayment(context, paymentMethod, davcnaSt);
+        paymentService
+            .processPayment(context, paymentMethod, davcnaSt)
+            .timeout(const Duration(seconds: 20), onTimeout: () {
+          throw TimeoutException("Payment Timeout");
+        });
+        ;
         if (tiskajNarociloPriRacunu == true) {
           await Narocilo.createNarocilo(ref, false, context);
         }
