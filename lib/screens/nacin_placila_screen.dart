@@ -272,121 +272,99 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 24, left: 8, right: 8),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 200,
-                    childAspectRatio: 2.5,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: paymentMethods.length,
-                  itemBuilder: ((context, index) {
-                    final String nacinPlacila;
-                    final paymentMethod = paymentMethods[index];
-
-                    if (paymentMethod.kodaNacinaPlacila == "01") {
-                      nacinPlacila = "GOT";
-                    } else if (paymentMethod.kodaNacinaPlacila == "02") {
-                      nacinPlacila = "KAR";
-                    } else {
-                      nacinPlacila = paymentMethod.kodaNacinaPlacila;
-                    }
-
-                    return SizedBox(
-                      width: 150, // Nastavite fiksno širino
-                      height: 50, // Nastavite fiksno višino
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _debouncer.debouce(() async {
-                            paymentPrint(nacinPlacila, davcnaSt!);
-                            HapticFeedback.vibrate();
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.lightGrey,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: Text(
-                          paymentMethod.nacinPlacila,
-                          style: AppStyles.boldanparagraph1
-                              .copyWith(color: AppStyles.black),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // dodano za boljši razmik
-                  children: [
-                    Flexible(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          HapticFeedback.vibrate();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DavcnaDOBScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.blue,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15)),
-                          minimumSize: Size(150, 60),
-                        ),
-                        child: Text(
-                          "DOB",
-                          softWrap: false,
-                          overflow: TextOverflow.ellipsis,
-                          style: rep
-                              ? AppStyles.heading4
-                                  .copyWith(color: AppStyles.white)
-                              : AppStyles.heading3
-                                  .copyWith(color: AppStyles.white),
-                        ),
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      top: 24, left: 8, right: 8, bottom: 16),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200,
+                      childAspectRatio: 2.5,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
                     ),
-                    if (rep) SizedBox(width: 16),
-                    if (rep)
-                      Flexible(
+                    itemCount: paymentMethods.length,
+                    itemBuilder: ((context, index) {
+                      final String nacinPlacila;
+                      final paymentMethod = paymentMethods[index];
+
+                      if (paymentMethod.kodaNacinaPlacila == "01") {
+                        nacinPlacila = "GOT";
+                      } else if (paymentMethod.kodaNacinaPlacila == "02") {
+                        nacinPlacila = "KAR";
+                      } else {
+                        nacinPlacila = paymentMethod.kodaNacinaPlacila;
+                      }
+
+                      return SizedBox(
+                        width: 150, // Nastavite fiksno širino
+                        height: 50, // Nastavite fiksno višino
                         child: ElevatedButton(
                           onPressed: () {
-                            createOrder();
-                            HapticFeedback.vibrate();
+                            _debouncer.debouce(() async {
+                              paymentPrint(nacinPlacila, davcnaSt!);
+                              HapticFeedback.vibrate();
+                            });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue,
+                            backgroundColor: AppStyles.lightGrey,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            minimumSize: Size(150, 60),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
                           ),
                           child: Text(
-                            "REP",
-                            softWrap: false,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppStyles.heading3
-                                .copyWith(color: AppStyles.white),
+                            paymentMethod.nacinPlacila,
+                            style: AppStyles.boldanparagraph1
+                                .copyWith(color: AppStyles.black),
                           ),
                         ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // dodano za boljši razmik
+                children: [
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.vibrate();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DavcnaDOBScreen()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        minimumSize: Size(150, 60),
                       ),
-                    SizedBox(width: 16),
+                      child: Text(
+                        "DOB",
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: rep
+                            ? AppStyles.heading4
+                                .copyWith(color: AppStyles.white)
+                            : AppStyles.heading3
+                                .copyWith(color: AppStyles.white),
+                      ),
+                    ),
+                  ),
+                  if (rep) SizedBox(width: 16),
+                  if (rep)
                     Flexible(
                       child: ElevatedButton(
                         onPressed: () {
+                          createOrder();
                           HapticFeedback.vibrate();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DavcnaStrankaScreen()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.blue,
@@ -395,7 +373,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                           minimumSize: Size(150, 60),
                         ),
                         child: Text(
-                          rep ? "STR" : "STRANKA",
+                          "REP",
                           softWrap: false,
                           overflow: TextOverflow.ellipsis,
                           style: AppStyles.heading3
@@ -403,8 +381,32 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  SizedBox(width: 16),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.vibrate();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DavcnaStrankaScreen()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        minimumSize: Size(150, 60),
+                      ),
+                      child: Text(
+                        rep ? "STR" : "STRANKA",
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            AppStyles.heading3.copyWith(color: AppStyles.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
