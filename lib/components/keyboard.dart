@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
@@ -192,7 +194,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
           await Narocilo.createNarocilo(ref, false, context);
         }
         // Process the payment
-        await paymentService.processPayment(context, "GOT");
+        await paymentService
+            .processPayment(context, "GOT")
+            .timeout(const Duration(seconds: 20), onTimeout: () {
+          throw TimeoutException("Payment Timeout");
+        });
+        ;
 
         widget.controller.clear();
       } catch (e) {
@@ -211,7 +218,12 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       final tiskajNarociloPriRacunu =
           settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
 
-      await paymentService.processPayment(context, "KAR");
+      await paymentService
+          .processPayment(context, "KAR")
+          .timeout(const Duration(seconds: 20), onTimeout: () {
+        throw TimeoutException("Payment Timeout");
+      });
+      ;
     });
   }
 

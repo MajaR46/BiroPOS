@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
+import 'package:BiroPOS/providers/davcna_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/debouncer.dart';
 import 'package:BiroPOS/components/narocilo.dart';
@@ -125,6 +128,11 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         : allpaymentMethods;
 
     final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
+    final davcnaPodatki = ref.watch(davcnaPodatkiProvider);
+
+    final nazivPodjetja = davcnaPodatki['naziv'] ?? 'Ni podatka o nazivu';
+    final naslovPodjetja = davcnaPodatki['naslov'] ?? 'Ni podatka o naslovu';
+
     orderService = ref.watch(orderProvider);
     final settings = ref.watch(settingsProvider);
     final tiskajNarociloPriRacunu =
@@ -137,7 +145,12 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         ref.read(onlineStatusProvider.notifier).state = connected;
 
         if (!connected) return;
-        paymentService.processPayment(context, paymentMethod, davcnaSt);
+        paymentService
+            .processPayment(context, paymentMethod, davcnaSt)
+            .timeout(const Duration(seconds: 20), onTimeout: () {
+          throw TimeoutException("Payment Timeout");
+        });
+        ;
         if (tiskajNarociloPriRacunu == true) {
           await Narocilo.createNarocilo(ref, false, context);
         }
@@ -211,150 +224,147 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                       ),
                       if (davcnaSt.isNotEmpty)
                         Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Davčna: $davcnaSt",
-                                  style: AppStyles.paragraph1,
-                                ),
-                                IconButton.outlined(
-                                    style: IconButton.styleFrom(
-                                        side:
-                                            BorderSide(color: AppStyles.blue)),
-                                    onPressed: () {
-                                      clearDavcna(ref);
-                                      HapticFeedback.vibrate();
-                                    },
-                                    icon: const Icon(
-                                      Icons.clear,
-                                      size: 12,
-                                      color: AppStyles.blue,
-                                    ),
-                                    constraints: BoxConstraints(
-                                        minWidth: 13, minHeight: 13))
-                              ],
-                            )),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Davčna: $davcnaSt",
+                                style: AppStyles.paragraph1,
+                              ),
+                              IconButton.outlined(
+                                  style: IconButton.styleFrom(
+                                      side: BorderSide(color: AppStyles.blue)),
+                                  onPressed: () {
+                                    clearDavcna(ref);
+                                    HapticFeedback.vibrate();
+                                  },
+                                  icon: const Icon(
+                                    Icons.clear,
+                                    size: 12,
+                                    color: AppStyles.blue,
+                                  ),
+                                  constraints: BoxConstraints(
+                                      minWidth: 13, minHeight: 13)),
+                            ],
+                          ),
+                        ),
+                      if (davcnaSt.isNotEmpty)
+                        Container(
+                          width: 200,
+                          child: Text(
+                            nazivPodjetja,
+                            style: AppStyles.paragraph3,
+                            textAlign: TextAlign
+                                .center, // <-- center text horizontally
+                          ),
+                        ),
+                      if (davcnaSt.isNotEmpty)
+                        Container(
+                          width: 200,
+                          child: Text(
+                            naslovPodjetja,
+                            style: AppStyles.paragraph3,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(top: 24, left: 8, right: 8),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 200,
-                    childAspectRatio: 2.5,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                  ),
-                  itemCount: paymentMethods.length,
-                  itemBuilder: ((context, index) {
-                    final String nacinPlacila;
-                    final paymentMethod = paymentMethods[index];
-
-                    if (paymentMethod.kodaNacinaPlacila == "01") {
-                      nacinPlacila = "GOT";
-                    } else if (paymentMethod.kodaNacinaPlacila == "02") {
-                      nacinPlacila = "KAR";
-                    } else {
-                      nacinPlacila = paymentMethod.kodaNacinaPlacila;
-                    }
-
-                    return SizedBox(
-                      width: 150, // Nastavite fiksno širino
-                      height: 50, // Nastavite fiksno višino
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _debouncer.debouce(() async {
-                            paymentPrint(nacinPlacila, davcnaSt!);
-                            HapticFeedback.vibrate();
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.lightGrey,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: Text(
-                          paymentMethod.nacinPlacila,
-                          style: AppStyles.boldanparagraph1
-                              .copyWith(color: AppStyles.black),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween, // dodano za boljši razmik
-                  children: [
-                    Flexible(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          HapticFeedback.vibrate();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DavcnaDOBScreen()));
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.blue,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15)),
-                          minimumSize: Size(150, 60),
-                        ),
-                        child: Text(
-                          "DOB",
-                          softWrap: false,
-                          overflow: TextOverflow.ellipsis,
-                          style: rep
-                              ? AppStyles.heading4
-                                  .copyWith(color: AppStyles.white)
-                              : AppStyles.heading3
-                                  .copyWith(color: AppStyles.white),
-                        ),
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                      top: 24, left: 8, right: 8, bottom: 16),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithMaxCrossAxisExtent(
+                      maxCrossAxisExtent: 200,
+                      childAspectRatio: 2.5,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
                     ),
-                    if (rep) SizedBox(width: 16),
-                    if (rep)
-                      Flexible(
+                    itemCount: paymentMethods.length,
+                    itemBuilder: ((context, index) {
+                      final String nacinPlacila;
+                      final paymentMethod = paymentMethods[index];
+
+                      if (paymentMethod.kodaNacinaPlacila == "01") {
+                        nacinPlacila = "GOT";
+                      } else if (paymentMethod.kodaNacinaPlacila == "02") {
+                        nacinPlacila = "KAR";
+                      } else {
+                        nacinPlacila = paymentMethod.kodaNacinaPlacila;
+                      }
+
+                      return SizedBox(
+                        width: 150, // Nastavite fiksno širino
+                        height: 50, // Nastavite fiksno višino
                         child: ElevatedButton(
                           onPressed: () {
-                            createOrder();
-                            HapticFeedback.vibrate();
+                            _debouncer.debouce(() async {
+                              paymentPrint(nacinPlacila, davcnaSt!);
+                              HapticFeedback.vibrate();
+                            });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue,
+                            backgroundColor: AppStyles.lightGrey,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15)),
-                            minimumSize: Size(150, 60),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
                           ),
                           child: Text(
-                            "REP",
-                            softWrap: false,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppStyles.heading3
-                                .copyWith(color: AppStyles.white),
+                            paymentMethod.nacinPlacila,
+                            style: AppStyles.boldanparagraph1
+                                .copyWith(color: AppStyles.black),
                           ),
                         ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // dodano za boljši razmik
+                children: [
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.vibrate();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DavcnaDOBScreen()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        minimumSize: Size(150, 60),
                       ),
-                    SizedBox(width: 16),
+                      child: Text(
+                        "DOB",
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style: rep
+                            ? AppStyles.heading4
+                                .copyWith(color: AppStyles.white)
+                            : AppStyles.heading3
+                                .copyWith(color: AppStyles.white),
+                      ),
+                    ),
+                  ),
+                  if (rep) SizedBox(width: 16),
+                  if (rep)
                     Flexible(
                       child: ElevatedButton(
                         onPressed: () {
+                          createOrder();
                           HapticFeedback.vibrate();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => DavcnaStrankaScreen()));
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppStyles.blue,
@@ -363,7 +373,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                           minimumSize: Size(150, 60),
                         ),
                         child: Text(
-                          rep ? "STR" : "STRANKA",
+                          "REP",
                           softWrap: false,
                           overflow: TextOverflow.ellipsis,
                           style: AppStyles.heading3
@@ -371,8 +381,32 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  SizedBox(width: 16),
+                  Flexible(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        HapticFeedback.vibrate();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => DavcnaStrankaScreen()));
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppStyles.blue,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        minimumSize: Size(150, 60),
+                      ),
+                      child: Text(
+                        rep ? "STR" : "STRANKA",
+                        softWrap: false,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            AppStyles.heading3.copyWith(color: AppStyles.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
