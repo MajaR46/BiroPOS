@@ -130,8 +130,8 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
     final String davcnaSt = ref.watch(taxNumberProvider) ?? '';
     final davcnaPodatki = ref.watch(davcnaPodatkiProvider);
 
-    final nazivPodjetja = davcnaPodatki['naziv'] ?? 'Ni podatka o nazivu';
-    final naslovPodjetja = davcnaPodatki['naslov'] ?? 'Ni podatka o naslovu';
+    final nazivPodjetja = davcnaPodatki['naziv'] ?? '';
+    final naslovPodjetja = davcnaPodatki['naslov'] ?? '';
 
     orderService = ref.watch(orderProvider);
     final settings = ref.watch(settingsProvider);

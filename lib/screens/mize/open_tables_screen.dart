@@ -32,7 +32,7 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   void initState() {
     super.initState();
     _fetchOpenTables();
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
   }

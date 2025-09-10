@@ -1,0 +1,212 @@
+[
+    {
+        "id": 1,
+        "name": "Kava",
+        "category": "Topli napitki",
+        "price": 2.00,
+        "available": true
+    },
+    {
+        "id": 2,
+        "name": "Cappuccino",
+        "category": "Topli napitki",
+        "price": 2.50,
+        "available": true
+    },
+    {
+        "id": 3,
+        "name": "Latte",
+        "category": "Topli napitki",
+        "price": 2.80,
+        "available": true
+    },
+    {
+        "id": 4,
+        "name": "Čaj",
+        "category": "Topli napitki",
+        "price": 1.80,
+        "available": true
+    },
+    {
+        "id": 5,
+        "name": "Vroča čokolada",
+        "category": "Topli napitki",
+        "price": 3.00,
+        "available": false
+    },
+    {
+        "id": 6,
+        "name": "Mineralna voda",
+        "category": "Brezalkoholne pijače",
+        "price": 1.50,
+        "available": true
+    },
+    {
+        "id": 7,
+        "name": "Sok pomaranča",
+        "category": "Brezalkoholne pijače",
+        "price": 2.20,
+        "available": true
+    },
+    {
+        "id": 8,
+        "name": "Kokakola",
+        "category": "Brezalkoholne pijače",
+        "price": 2.00,
+        "available": true
+    },
+    {
+        "id": 9,
+        "name": "Sprite",
+        "category": "Brezalkoholne pijače",
+        "price": 2.00,
+        "available": true
+    },
+    {
+        "id": 10,
+        "name": "Ledeni čaj",
+        "category": "Brezalkoholne pijače",
+        "price": 2.20,
+        "available": true
+    },
+    {
+        "id": 11,
+        "name": "Pivo",
+        "category": "Alkoholne pijače",
+        "price": 3.00,
+        "available": true
+    },
+    {
+        "id": 12,
+        "name": "Vino - rdeče",
+        "category": "Alkoholne pijače",
+        "price": 4.50,
+        "available": true
+    },
+    {
+        "id": 13,
+        "name": "Vino - belo",
+        "category": "Alkoholne pijače",
+        "price": 4.50,
+        "available": true
+    },
+    {
+        "id": 14,
+        "name": "Radler",
+        "category": "Alkoholne pijače",
+        "price": 3.20,
+        "available": true
+    },
+    {
+        "id": 15,
+        "name": "Cider",
+        "category": "Alkoholne pijače",
+        "price": 3.50,
+        "available": true
+    },
+    {
+        "id": 16,
+        "name": "Whiskey",
+        "category": "Žgane pijače",
+        "price": 5.00,
+        "available": true
+    },
+    {
+        "id": 17,
+        "name": "Vodka",
+        "category": "Žgane pijače",
+        "price": 4.50,
+        "available": true
+    },
+    {
+        "id": 18,
+        "name": "Rum",
+        "category": "Žgane pijače",
+        "price": 4.80,
+        "available": true
+    },
+    {
+        "id": 19,
+        "name": "Tekila",
+        "category": "Žgane pijače",
+        "price": 4.80,
+        "available": true
+    },
+    {
+        "id": 20,
+        "name": "Brandy",
+        "category": "Žgane pijače",
+        "price": 5.00,
+        "available": true
+    },
+    {
+        "id": 21,
+        "name": "Mojito",
+        "category": "Koktejli",
+        "price": 6.00,
+        "available": true
+    },
+    {
+        "id": 22,
+        "name": "Caipirinha",
+        "category": "Koktejli",
+        "price": 6.50,
+        "available": true
+    },
+    {
+        "id": 23,
+        "name": "Pina Colada",
+        "category": "Koktejli",
+        "price": 7.00,
+        "available": true
+    },
+    {
+        "id": 24,
+        "name": "Margarita",
+        "category": "Koktejli",
+        "price": 6.80,
+        "available": true
+    },
+    {
+        "id": 25,
+        "name": "Sex on the Beach",
+        "category": "Koktejli",
+        "price": 7.00,
+        "available": true
+    },
+    {
+        "id": 26,
+        "name": "Negroni",
+        "category": "Koktejli",
+        "price": 6.50,
+        "available": true
+    },
+    {
+        "id": 27,
+        "name": "Daiquiri",
+        "category": "Koktejli",
+        "price": 6.50,
+        "available": true
+    },
+    {
+        "id": 28,
+        "name": "Gin Tonic",
+        "category": "Koktejli",
+        "price": 6.00,
+        "available": true
+    },
+    {
+        "id": 29,
+        "name": "Whiskey Sour",
+        "category": "Koktejli",
+        "price": 6.80,
+        "available": true
+    },
+    {
+        "id": 30,
+        "name": "Old Fashioned",
+        "category": "Koktejli",
+        "price": 7.00,
+        "available": true
+    }
+]
