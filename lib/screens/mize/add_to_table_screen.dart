@@ -42,7 +42,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   void initState() {
     super.initState();
     _loadTables();
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
   }

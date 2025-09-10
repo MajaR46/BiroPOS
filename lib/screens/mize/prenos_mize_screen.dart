@@ -29,7 +29,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
   }

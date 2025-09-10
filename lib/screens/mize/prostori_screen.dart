@@ -40,7 +40,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
   void initState() {
     super.initState();
     _fetchTables();
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
   }

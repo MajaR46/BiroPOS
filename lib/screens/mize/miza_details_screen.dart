@@ -44,7 +44,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
-    Future.delayed(const Duration(seconds: 1), () {
+    Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
   }

@@ -21,8 +21,9 @@ Future<Map<String, String>> inetisCall(String davcnaSt) async {
   };
 
   try {
-    final response =
-        await http.post(Uri.parse(url), headers: headers, body: envelope);
+    final response = await http
+        .post(Uri.parse(url), headers: headers, body: envelope)
+        .timeout(const Duration(seconds: 5));
 
     if (response.statusCode == 200) {
       // Parsiranje XML
