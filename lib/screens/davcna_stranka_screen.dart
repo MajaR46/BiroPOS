@@ -53,14 +53,15 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
       if (davcnaSt.length == 8) {
         ref.read(taxNumberProvider.notifier).state = davcnaSt;
 
+        Map<String, String> inetisRezultat = await inetisCall(davcnaSt);
+
+        ref.read(davcnaPodatkiProvider.notifier).state = inetisRezultat;
+
         Navigator.of(context).pop();
       } else {
         ErrorDialogs.showBasicDialog(
             "Davčna številka mora imeti 8 znakov", context);
       }
-      Map<String, String> inetisRezultat = await inetisCall(davcnaSt);
-
-      ref.read(davcnaPodatkiProvider.notifier).state = inetisRezultat;
     }
 
     return Scaffold(
