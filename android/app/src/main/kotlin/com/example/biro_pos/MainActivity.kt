@@ -21,6 +21,7 @@ import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import androidx.activity.enableEdgeToEdge
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "bluetooth_channel"
