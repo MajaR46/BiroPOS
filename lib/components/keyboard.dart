@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
@@ -588,6 +589,9 @@ class KeyboardC extends ConsumerWidget {
 
   void _clearText(WidgetRef ref) {
     controller.clear();
+    ref.read(iskalniNiz.notifier).state = '';
+    ref.read(searchQueryProvider.notifier).state = '';
+    ref.read(isSearchingProvider.notifier).state = false;
   }
 
   @override
