@@ -453,44 +453,53 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-    final table = _tables.firstWhere(
-      (table) => table['prostor'] != '',
-      orElse: () => {},
-    );
+    String searchQuery = ref.watch(searchQueryProvider);
+    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
-    if (currentChosenItems.isNotEmpty) {
-      if (table['prostor'] == null ||
-          table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AddToTableScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const ProstoriScreen(
-                    whereTo: "DodajNaMizo",
-                  )),
-        );
-      }
+    if (stMize.isNotEmpty) {
+      await TableService.addToExistingTable(stMize, ref, context);
+      searchController.clear();
+      ref.read(searchQueryProvider.notifier).state = '';
     } else {
-      if (table['prostor'] == null ||
-          table['prostor']!.isEmpty && table['prostor'] != "Miza") {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OpenTablesScreen(),
-          ),
-        );
+      final table = _tables.firstWhere(
+        (table) => table['prostor'] != '',
+        orElse: () => {},
+      );
+
+      if (currentChosenItems.isNotEmpty) {
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AddToTableScreen()),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "DodajNaMizo",
+                    )),
+          );
+        }
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const ProstoriScreen(
-                    whereTo: "VrniPrazneMize",
-                  )),
-        );
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const OpenTablesScreen(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "VrniPrazneMize",
+                    )),
+          );
+        }
       }
     }
   }

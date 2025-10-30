@@ -784,6 +784,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     if (stMize.isNotEmpty) {
       await TableService.addToExistingTable(stMize, ref, context);
       searchController.clear();
+      ref.read(searchQueryProvider.notifier).state = '';
     } else {
       final table = _tables.firstWhere(
         (table) => table['prostor'] != '',
