@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:BiroPOS/controllers/sessionmanager.dart';
+import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
@@ -202,6 +203,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         ;
 
         widget.controller.clear();
+        ref.read(iskalniNiz.notifier).state = '';
+        ref.read(searchQueryProvider.notifier).state = '';
+        ref.read(isSearchingProvider.notifier).state = false;
       } catch (e) {
         ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
       }
@@ -252,6 +256,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     } else {
       ref.read(multiplyFactorProvider.notifier).state = factor;
       widget.controller.clear();
+      ref.read(iskalniNiz.notifier).state = '';
+      ref.read(searchQueryProvider.notifier).state = '';
+      ref.read(isSearchingProvider.notifier).state = false;
 
       return false; // Vrnemo false, ker pričakujemo nadaljnji vnos
     }
@@ -474,6 +481,10 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                         ? () {
                             _paymentKartica();
                             widget.controller.clear();
+                            ref.read(iskalniNiz.notifier).state = '';
+                            ref.read(searchQueryProvider.notifier).state = '';
+                            ref.read(isSearchingProvider.notifier).state =
+                                false;
                           }
                         : () {}, // Empty function if not available
                   ),
@@ -588,6 +599,9 @@ class KeyboardC extends ConsumerWidget {
 
   void _clearText(WidgetRef ref) {
     controller.clear();
+    ref.read(iskalniNiz.notifier).state = '';
+    ref.read(searchQueryProvider.notifier).state = '';
+    ref.read(isSearchingProvider.notifier).state = false;
   }
 
   @override
@@ -627,7 +641,7 @@ class KeyboardC extends ConsumerWidget {
   }
 }
 
-class KeyboardMultiply extends StatelessWidget {
+class KeyboardMultiply extends ConsumerWidget {
   final TextEditingController controller;
   final double quantity;
   final Function(double result) multiply;
@@ -645,7 +659,7 @@ class KeyboardMultiply extends StatelessWidget {
       required this.fontGumb});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SizedBox(
       width: sirinaGumba,
       height: visinaGumba,
@@ -671,6 +685,9 @@ class KeyboardMultiply extends StatelessWidget {
             // Počistimo kontroler samo, če je funkcija vrnila true
             if (shouldClear) {
               controller.clear();
+              ref.read(iskalniNiz.notifier).state = '';
+              ref.read(searchQueryProvider.notifier).state = '';
+              ref.read(isSearchingProvider.notifier).state = false;
             }
           }
         },

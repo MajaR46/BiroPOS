@@ -69,25 +69,6 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     });
   }
 
-  void addToExistingTable(String tableNumber) async {
-    final tableNotifier = ref.read(tableNotifierProvider.notifier);
-    final settings = ref.watch(settingsProvider);
-    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
-
-    List<String> serverResponse =
-        await tableNotifier.addToExistingTable(context, tableNumber);
-
-    if (tiskajNarocilo == true) {
-      await Narocilo.createNarocilo(ref, true, context, tableNumber);
-    }
-    ref.read(narociloNotifierProvider.notifier).clearChosenItems();
-    var narociloBox = Hive.box('narociloBox');
-    await narociloBox.clear();
-
-    ref.read(tableNotifierProvider.notifier).state = [];
-    clearSelectedItem(ref);
-  }
-
   void checkConnection() async {
     bool isOnline = await testConnection(userId);
     if (mounted) {
@@ -164,7 +145,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                                 horizontal: 16, vertical: 2),
                             child: GestureDetector(
                               onTap: () {
-                                addToExistingTable(tableNumber);
+                                TableService.addToExistingTable(
+                                    tableNumber, ref, context);
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -244,7 +226,8 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
                         if (newTableNumber != null &&
                             newTableNumber.isNotEmpty) {
-                          addToExistingTable(newTableNumber);
+                          TableService.addToExistingTable(
+                              newTableNumber, ref, context);
                         }
                       },
                       style: ElevatedButton.styleFrom(
