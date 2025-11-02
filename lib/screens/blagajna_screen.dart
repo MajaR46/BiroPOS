@@ -379,6 +379,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Nastavi izbran artikel
 
       // Posodobi končni znesek
+      searchController.clear();
       _updateFinalSum();
     });
   }
@@ -432,7 +433,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   List<dynamic> _getFilteredItems() {
-    String searchText = searchController.text;
+    String searchText = ref.watch(iskalniNiz);
 
     final iskalniNizString = ref.watch(iskalniNiz);
 
@@ -777,49 +778,57 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
+    String searchQuery = ref.watch(searchQueryProvider);
+    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
-    final table = _tables.firstWhere(
-      (table) => table['prostor'] != '',
-      orElse: () => {},
-    );
-
-    if (currentChosenItems.isNotEmpty) {
-      // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
-
-      if (table['prostor'] == null ||
-          table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-        // Če je 'prostor' prazen, preusmeri na AddToTableScreen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AddToTableScreen()),
-        );
-      } else {
-        // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const ProstoriScreen(
-                    whereTo: "DodajNaMizo",
-                  )),
-        );
-      }
+    if (stMize.isNotEmpty) {
+      await TableService.addToExistingTable(stMize, ref, context);
+      searchController.clear();
+      ref.read(searchQueryProvider.notifier).state = '';
     } else {
-      if (table['prostor'] == null ||
-          table['prostor']!.isEmpty && table['prostor'] != "Miza") {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const OpenTablesScreen(),
-          ),
-        );
+      final table = _tables.firstWhere(
+        (table) => table['prostor'] != '',
+        orElse: () => {},
+      );
+
+      if (currentChosenItems.isNotEmpty) {
+        // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
+
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
+          // Če je 'prostor' prazen, preusmeri na AddToTableScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => AddToTableScreen()),
+          );
+        } else {
+          // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "DodajNaMizo",
+                    )),
+          );
+        }
       } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const ProstoriScreen(
-                    whereTo: "VrniPrazneMize",
-                  )),
-        );
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const OpenTablesScreen(),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "VrniPrazneMize",
+                    )),
+          );
+        }
       }
     }
   }

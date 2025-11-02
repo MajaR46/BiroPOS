@@ -14,5 +14,4 @@ void clearSearchQuery(WidgetRef ref) {
   ref.read(searchQueryProvider.notifier).state = '';
 }
 
-final searchTextProvider = StateProvider<String>((ref) => '');
-final savedSearchResultsProvider = StateProvider<List<dynamic>>((ref) => []);
+final lastSearchQueryProvider = StateProvider<String>((ref) => '');
