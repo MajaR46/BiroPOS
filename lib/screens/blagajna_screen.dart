@@ -778,7 +778,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   void _navigateToMizaScreen() async {
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-    String searchQuery = ref.watch(searchQueryProvider);
+    String searchQuery = searchController.text;
     String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
 
     if (stMize.isNotEmpty) {
