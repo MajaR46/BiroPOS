@@ -30,6 +30,8 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
 
   void _logout() {
     SessionManager().clearSession();
+    ref.read(settingsProvider.notifier).toggleHHCene(false);
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const LoginScreen()),
