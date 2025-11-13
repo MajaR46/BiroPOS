@@ -1,6 +1,8 @@
+import 'package:BiroPOS/controllers/add_to_table.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
@@ -417,7 +419,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   racunArtikliButton: "ARTIKLI",
                   opisDiscountButton: "%",
                   controller: searchController,
-                  navigateToMizaScreen: _navigateToMizaScreen,
+                  navigateToMizaScreen: () {
+                    navigateToMizaScreen(
+                        context, ref, searchController, _tables);
+                  },
                   navigateToNacinPlacilaScreen: () {
                     // <-- TUKAJ JE LOGIKA ZA GUMB "OK"
                     // Preberemo vrednost iz providerja
@@ -449,59 +454,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         ),
       ),
     );
-  }
-
-  void _navigateToMizaScreen() async {
-    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-    String searchQuery = searchController.text;
-    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
-
-    if (stMize.isNotEmpty) {
-      await TableService.addToExistingTable(stMize, ref, context);
-      searchController.clear();
-      ref.read(searchQueryProvider.notifier).state = '';
-    } else {
-      final table = _tables.firstWhere(
-        (table) => table['prostor'] != '',
-        orElse: () => {},
-      );
-
-      if (currentChosenItems.isNotEmpty) {
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => AddToTableScreen()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "DodajNaMizo",
-                    )),
-          );
-        }
-      } else {
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const OpenTablesScreen(),
-            ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "VrniPrazneMize",
-                    )),
-          );
-        }
-      }
-    }
   }
 
   void _navigateToNacinPlacilaScreen() async {
