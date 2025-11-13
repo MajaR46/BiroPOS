@@ -1,5 +1,6 @@
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/davcna_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
@@ -18,9 +19,15 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     final String? davcnaSt = ref.read(taxNumberProvider);
     int existingItemIndex = -1;
     final narociloBox = Hive.box('narociloBox');
+    final bool hhPrice = ref.read(settingsProvider)['isCheckedHHCene'] ?? false;
+
+    final double cena = hhPrice && narociloItem.product.hhPrice != null
+        ? narociloItem.product.hhPrice
+        : narociloItem.product.price;
 
     if (nastaviCeno) {
       final newItem = narociloItem.copyWith(
+        product: narociloItem.product.copyWith(price: cena),
         davcnaSt: davcnaSt,
         isFromTable: fromTable,
       );
@@ -38,7 +45,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
         return isExistingItemIntegerQuantity &&
             item.product.id == narociloItem.product.id &&
-            item.product.price == narociloItem.product.price &&
+            item.product.price == cena &&
             item.description == narociloItem.description &&
             item.discount == narociloItem.discount;
       });
@@ -69,6 +76,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       // NarociloItem konstruktor bo sam generiral nov uniqueId
 
       final newItem = narociloItem.copyWith(
+        product: narociloItem.product.copyWith(price: cena),
         davcnaSt: davcnaSt,
         isFromTable: fromTable,
       );
@@ -79,11 +87,16 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
   void removeFromRacun(NarociloItem narociloItem) async {
     final narociloBox = Hive.box('narociloBox');
+    final bool hhPrice = ref.read(settingsProvider)['isCheckedHHCene'] ?? false;
+
+    final double cena = hhPrice && narociloItem.product.hhPrice != null
+        ? narociloItem.product.hhPrice
+        : narociloItem.product.price;
 
     int indexToRemove = state.indexWhere((item) =>
         item.product.id == narociloItem.product.id &&
         item.description == narociloItem.description &&
-        item.product.price == narociloItem.product.price &&
+        item.product.price == cena &&
         item.quantity == narociloItem.quantity);
 
     if (indexToRemove != -1) {
@@ -93,7 +106,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       final hiveIndex = narociloBox.values.toList().indexWhere((item) =>
           item.product.id == narociloItem.product.id &&
           item.description == narociloItem.description &&
-          item.product.price == narociloItem.product.price &&
+          item.product.price == cena &&
           item.quantity == narociloItem.quantity);
 
       if (hiveIndex != -1) {
@@ -108,9 +121,15 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   double totalSum() {
+    final bool hhPrice = ref.read(settingsProvider)['isCheckedHHCene'] ?? false;
+
     return state.fold(0.0, (sum, item) {
+      final double basePrice = hhPrice && item.product.hhPrice != null
+          ? item.product.hhPrice
+          : item.product.price;
+
       double discountMultiplier = (100 - (item.discount)) / 100;
-      double discountedPrice = item.product.price * discountMultiplier;
+      double discountedPrice = basePrice * discountMultiplier;
       double totalForItem = item.quantity * discountedPrice;
       return sum + totalForItem;
     });
