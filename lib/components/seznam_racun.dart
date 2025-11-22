@@ -44,19 +44,20 @@ class _SeznamRacunState extends ConsumerState<SeznamRacun> {
 
   @override
   Widget build(BuildContext context) {
+    final List reversedChosenItems = List.from(widget.chosenItems.reversed);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: widget.chosenItems.length,
+            padding: const EdgeInsets.all(8.0),
+            itemCount: reversedChosenItems.length,
             itemBuilder: (context, index) {
-              final item = widget.chosenItems[index];
+              final item = reversedChosenItems[index];
               final isSelected =
                   ref.watch(selectedItemProvider)?.uniqueId == item.uniqueId;
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: GestureDetector(
                   onTap: () {
                     ref.read(selectedItemProvider.notifier).state = item;
