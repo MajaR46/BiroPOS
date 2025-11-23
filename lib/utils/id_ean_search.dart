@@ -2,6 +2,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -74,8 +75,12 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
   final items = ref.watch(itemsProvider);
   List<Item> matchingItems = [];
 
+  final settings = ref.watch(settingsProvider);
+  final hhCene = settings['isCheckedHHCene'] ?? false;
+
   var narociloBox = Hive.box('narociloBox');
 
+// ISKANJE PO EAN
   if (numbersToString.length >= 6 && input.isNotEmpty) {
     matchingItems = items.where((item) {
       return item.eanCode == numbersToString;
@@ -86,6 +91,16 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       NarociloItem newNarociloItem =
           NarociloItem(product: matchingItem, quantity: quantity);
 
+      // HH cene
+      if (hhCene == true && newNarociloItem.product.hhPrice != null) {
+        newNarociloItem = NarociloItem(
+          product:
+              matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
+          quantity: quantity,
+        );
+      }
+
+      // NASTAVI CENO ČE JE 0.0
       if (newNarociloItem.product.price == 0.0) {
         double? enteredPrice = await nastaviCenoDialog(
             ref,
@@ -94,10 +109,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
             newNarociloItem.product.price.toString(),
             newNarociloItem.product.name);
 
-        // če uporabnik prekine dialog = nič ne dodamo
         if (enteredPrice == null || enteredPrice == 0.0) return;
 
-        // posodobi produkt
         newNarociloItem = NarociloItem(
           product: matchingItem.copyWith(price: enteredPrice),
           quantity: quantity,
@@ -113,6 +126,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
     } else {
       ErrorDialogs.showBasicDialog("Ne najdem izdelka s to EAN kodo", context);
     }
+
+    // ISKANJE PO ID
   } else if (numbersToString.length <= 5 && input.isNotEmpty) {
     matchingItems = items.where((item) {
       return int.tryParse(item.id) == int.tryParse(numbersToString);
@@ -123,6 +138,16 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       NarociloItem newNarociloItem =
           NarociloItem(product: matchingItem, quantity: quantity);
 
+      // HH CENE
+      if (hhCene == true && newNarociloItem.product.hhPrice != null) {
+        newNarociloItem = NarociloItem(
+          product:
+              matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
+          quantity: quantity,
+        );
+      }
+
+      // NASTAVI CENO ČE JE 0.0
       if (newNarociloItem.product.price == 0.0) {
         double? enteredPrice = await nastaviCenoDialog(
             ref,
@@ -131,10 +156,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
             newNarociloItem.product.price.toString(),
             newNarociloItem.product.name);
 
-        // če uporabnik prekine dialog = nič ne dodamo
         if (enteredPrice == null || enteredPrice == 0.0) return;
 
-        // posodobi produkt
         newNarociloItem = NarociloItem(
           product: matchingItem.copyWith(price: enteredPrice),
           quantity: quantity,
