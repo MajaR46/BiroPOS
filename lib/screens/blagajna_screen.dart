@@ -576,6 +576,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _searchByEan(String input) {
+    final settings = ref.watch(settingsProvider);
+    final nastaviCeno = settings['isCheckedMoney'] ?? false;
     searchByEan(input, ref, context, _updateTotalDiscount);
   }
 

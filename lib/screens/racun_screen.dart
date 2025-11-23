@@ -30,6 +30,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -54,7 +55,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   bool _isSearchMode = false;
   bool _isKeyboardListenerEnabled = false;
   bool _tablesFetched = false;
-
+  bool nastaviCeno = false;
   // NEW: Barcode scanner implementation
   final FocusNode _barcodeFocusNode = FocusNode();
   final FocusNode _discountFocusNode = FocusNode();
@@ -92,6 +93,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     _barcodeFocusNode.dispose();
     _discountFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDropdownValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nastaviCeno = prefs.getBool('isCheckedMoney') ?? false;
+    });
   }
 
   void _updateTotalDiscount() {

@@ -209,6 +209,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
         return updatedItem;
       }
+      print("item ${item.product.price}");
       return item;
     }).toList();
 
