@@ -65,8 +65,8 @@ Future nastaviCenoDialog(WidgetRef ref, BuildContext context, String itemId,
   );
 }
 
-void searchByEan(String input, WidgetRef ref, BuildContext context,
-    Function updateTotalDiscount,
+void searchByEan(bool nastaviCeno, String input, WidgetRef ref,
+    BuildContext context, Function updateTotalDiscount,
     {double quantity = 1.0}) async {
   RegExp regExp = RegExp(r'\d+');
   Iterable<Match> matches = regExp.allMatches(input);
@@ -92,7 +92,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
           NarociloItem(product: matchingItem, quantity: quantity);
 
       // HH cene
-      if (hhCene == true && newNarociloItem.product.hhPrice != null) {
+      if (hhCene == true && newNarociloItem.product.hhPrice != 0.0) {
         newNarociloItem = NarociloItem(
           product:
               matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
@@ -101,7 +101,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       }
 
       // NASTAVI CENO ČE JE 0.0
-      if (newNarociloItem.product.price == 0.0) {
+      if (newNarociloItem.product.price == 0.0 && nastaviCeno) {
         double? enteredPrice = await nastaviCenoDialog(
             ref,
             context,
@@ -139,7 +139,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
           NarociloItem(product: matchingItem, quantity: quantity);
 
       // HH CENE
-      if (hhCene == true && newNarociloItem.product.hhPrice != null) {
+      if (hhCene == true && newNarociloItem.product.hhPrice != 0.0) {
         newNarociloItem = NarociloItem(
           product:
               matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
@@ -148,7 +148,7 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       }
 
       // NASTAVI CENO ČE JE 0.0
-      if (newNarociloItem.product.price == 0.0) {
+      if (newNarociloItem.product.price == 0.0 && nastaviCeno) {
         double? enteredPrice = await nastaviCenoDialog(
             ref,
             context,

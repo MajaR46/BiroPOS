@@ -31,8 +31,6 @@ Future<void> navigateToMizaScreen(
     );
 
     if (currentChosenItems.isNotEmpty) {
-      // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
-
       if (table['prostor'] == null ||
           table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
         // Če je 'prostor' prazen, preusmeri na AddToTableScreen

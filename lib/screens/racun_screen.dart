@@ -67,8 +67,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchTables();
+    Future.microtask(() async {
+      await _fetchTables();
+    });
     checkConnection();
+    _loadDropdownValue();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
@@ -138,7 +141,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   Future<void> _fetchTables() async {
-    if (_tablesFetched) return;
+    //if (_tablesFetched) return;
 
     _tablesFetched = true;
 
@@ -322,7 +325,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   List<Item> matchingItems = [];
 
   void _searchByEan(String input, {double? quantity}) {
-    searchByEan(input, ref, context, _updateTotalDiscount,
+    searchByEan(nastaviCeno, input, ref, context, _updateTotalDiscount,
         quantity: quantity ?? 1.0);
   }
 

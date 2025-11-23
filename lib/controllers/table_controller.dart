@@ -37,7 +37,6 @@ class TableService {
 
       return parsedTables;
     } catch (e) {
-      print('Napaka pri pridobivanju miz: $e');
       return [];
     }
   }

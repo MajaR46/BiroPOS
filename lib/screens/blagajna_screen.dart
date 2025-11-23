@@ -107,7 +107,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
     }
-    _fetchTables();
+    Future.microtask(() async {
+      await _fetchTables();
+    });
     searchController.addListener(() {
       _searchDebouncer.debouce(_onSearchChanged);
     });
@@ -232,7 +234,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   Future<void> _fetchTables() async {
-    if (_tablesFetched) return;
+    //if (_tablesFetched) return;
 
     _tablesFetched = true;
 
@@ -578,7 +580,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void _searchByEan(String input) {
     final settings = ref.watch(settingsProvider);
     final nastaviCeno = settings['isCheckedMoney'] ?? false;
-    searchByEan(input, ref, context, _updateTotalDiscount);
+    searchByEan(nastaviCeno, input, ref, context, _updateTotalDiscount);
   }
 
   void _checkAndSetSearchMode() {
