@@ -1,6 +1,8 @@
+import 'package:BiroPOS/controllers/add_to_table.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/factor_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:BiroPOS/utils/id_ean_search.dart';
@@ -28,6 +30,7 @@ import 'package:BiroPOS/app_styles.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RacunScreen extends ConsumerStatefulWidget {
   const RacunScreen({
@@ -52,7 +55,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   bool _isSearchMode = false;
   bool _isKeyboardListenerEnabled = false;
   bool _tablesFetched = false;
-
+  bool nastaviCeno = false;
   // NEW: Barcode scanner implementation
   final FocusNode _barcodeFocusNode = FocusNode();
   final FocusNode _discountFocusNode = FocusNode();
@@ -64,8 +67,11 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchTables();
+    Future.microtask(() async {
+      await _fetchTables();
+    });
     checkConnection();
+    _loadDropdownValue();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
       orderService.initializePaymentMethods();
@@ -90,6 +96,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     _barcodeFocusNode.dispose();
     _discountFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadDropdownValue() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nastaviCeno = prefs.getBool('isCheckedMoney') ?? false;
+    });
   }
 
   void _updateTotalDiscount() {
@@ -128,7 +141,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   Future<void> _fetchTables() async {
-    if (_tablesFetched) return;
+    //if (_tablesFetched) return;
 
     _tablesFetched = true;
 
@@ -312,7 +325,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   List<Item> matchingItems = [];
 
   void _searchByEan(String input, {double? quantity}) {
-    searchByEan(input, ref, context, _updateTotalDiscount,
+    searchByEan(nastaviCeno, input, ref, context, _updateTotalDiscount,
         quantity: quantity ?? 1.0);
   }
 
@@ -417,7 +430,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   racunArtikliButton: "ARTIKLI",
                   opisDiscountButton: "%",
                   controller: searchController,
-                  navigateToMizaScreen: _navigateToMizaScreen,
+                  navigateToMizaScreen: () {
+                    navigateToMizaScreen(
+                        context, ref, searchController, _tables);
+                  },
                   navigateToNacinPlacilaScreen: () {
                     // <-- TUKAJ JE LOGIKA ZA GUMB "OK"
                     // Preberemo vrednost iz providerja
@@ -449,59 +465,6 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
         ),
       ),
     );
-  }
-
-  void _navigateToMizaScreen() async {
-    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-    String searchQuery = ref.watch(searchQueryProvider);
-    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
-
-    if (stMize.isNotEmpty) {
-      await TableService.addToExistingTable(stMize, ref, context);
-      searchController.clear();
-      ref.read(searchQueryProvider.notifier).state = '';
-    } else {
-      final table = _tables.firstWhere(
-        (table) => table['prostor'] != '',
-        orElse: () => {},
-      );
-
-      if (currentChosenItems.isNotEmpty) {
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => AddToTableScreen()),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "DodajNaMizo",
-                    )),
-          );
-        }
-      } else {
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const OpenTablesScreen(),
-            ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "VrniPrazneMize",
-                    )),
-          );
-        }
-      }
-    }
   }
 
   void _navigateToNacinPlacilaScreen() async {

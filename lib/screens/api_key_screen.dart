@@ -64,6 +64,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isCheckedREP = false;
   bool _isOnline = true;
   bool _isCheckedDvojnaVrstica = false;
+  bool _isCheckedDirektneMize = false;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
   @override
   void initState() {
@@ -143,6 +144,8 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
         _isCheckedREP = prefs.getBool('isCheckedREP') ?? false;
         _isCheckedDvojnaVrstica =
             prefs.getBool('isCheckedDvojnaVrstica') ?? false;
+        _isCheckedDirektneMize =
+            prefs.getBool('isCheckedDirektneMize') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -206,6 +209,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedReceiptCode', _isCheckedReceiptCode);
     await prefs.setBool('isCheckedREP', _isCheckedREP);
     await prefs.setBool('isCheckedDvojnaVrstica', _isCheckedDvojnaVrstica);
+    await prefs.setBool('isCheckedDirektneMize', _isCheckedDirektneMize);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
@@ -931,6 +935,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                           ),
                         ],
                       ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Direktne mize:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedDirektneMize,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedDirektneMize = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .toggleDirektneMize(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

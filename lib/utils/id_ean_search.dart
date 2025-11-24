@@ -1,16 +1,72 @@
+import 'package:BiroPOS/app_styles.dart';
 import 'package:BiroPOS/models/item.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // Assuming you have these providers defined somewhere:
 import 'package:BiroPOS/providers/categoriseditems_provider.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-void searchByEan(String input, WidgetRef ref, BuildContext context,
-    Function updateTotalDiscount,
+Future nastaviCenoDialog(WidgetRef ref, BuildContext context, String itemId,
+    String itemPrice, String itemName) {
+  final TextEditingController priceController = TextEditingController();
+  return showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppStyles.white,
+      title: const Text(
+        textAlign: TextAlign.center,
+        "Nastavi ceno",
+        style: AppStyles.heading3,
+      ),
+      content: TextField(
+        controller: priceController,
+        keyboardType: TextInputType.number,
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: AppStyles.silver.withAlpha((0.1 * 255).round()),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20.0),
+            borderSide: BorderSide.none,
+          ),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: priceController.clear, // Clears the text input
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            itemPrice = priceController.text;
+            final double newPrice = double.tryParse(itemPrice) ?? 0.0;
+
+            final narociloNotifier =
+                ref.read(narociloNotifierProvider.notifier);
+            narociloNotifier.updatePrice(itemId, newPrice);
+
+            Navigator.of(context).pop(newPrice);
+            SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppStyles.blue,
+          ),
+          child: Text("OK",
+              style: AppStyles.button1.copyWith(color: AppStyles.white)),
+        ),
+      ],
+      actionsAlignment: MainAxisAlignment.center,
+    ),
+  );
+}
+
+void searchByEan(bool nastaviCeno, String input, WidgetRef ref,
+    BuildContext context, Function updateTotalDiscount,
     {double quantity = 1.0}) async {
   RegExp regExp = RegExp(r'\d+');
   Iterable<Match> matches = regExp.allMatches(input);
@@ -19,8 +75,12 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
   final items = ref.watch(itemsProvider);
   List<Item> matchingItems = [];
 
+  final settings = ref.watch(settingsProvider);
+  final hhCene = settings['isCheckedHHCene'] ?? false;
+
   var narociloBox = Hive.box('narociloBox');
 
+// ISKANJE PO EAN
   if (numbersToString.length >= 6 && input.isNotEmpty) {
     matchingItems = items.where((item) {
       return item.eanCode == numbersToString;
@@ -31,6 +91,32 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       NarociloItem newNarociloItem =
           NarociloItem(product: matchingItem, quantity: quantity);
 
+      // HH cene
+      if (hhCene == true && newNarociloItem.product.hhPrice != 0.0) {
+        newNarociloItem = NarociloItem(
+          product:
+              matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
+          quantity: quantity,
+        );
+      }
+
+      // NASTAVI CENO ČE JE 0.0
+      if (newNarociloItem.product.price == 0.0 && nastaviCeno) {
+        double? enteredPrice = await nastaviCenoDialog(
+            ref,
+            context,
+            newNarociloItem.product.id,
+            newNarociloItem.product.price.toString(),
+            newNarociloItem.product.name);
+
+        if (enteredPrice == null || enteredPrice == 0.0) return;
+
+        newNarociloItem = NarociloItem(
+          product: matchingItem.copyWith(price: enteredPrice),
+          quantity: quantity,
+        );
+      }
+
       ref
           .read(narociloNotifierProvider.notifier)
           .addToRacun(newNarociloItem, fromTable: false);
@@ -40,6 +126,8 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
     } else {
       ErrorDialogs.showBasicDialog("Ne najdem izdelka s to EAN kodo", context);
     }
+
+    // ISKANJE PO ID
   } else if (numbersToString.length <= 5 && input.isNotEmpty) {
     matchingItems = items.where((item) {
       return int.tryParse(item.id) == int.tryParse(numbersToString);
@@ -49,6 +137,32 @@ void searchByEan(String input, WidgetRef ref, BuildContext context,
       Item matchingItem = matchingItems.first;
       NarociloItem newNarociloItem =
           NarociloItem(product: matchingItem, quantity: quantity);
+
+      // HH CENE
+      if (hhCene == true && newNarociloItem.product.hhPrice != 0.0) {
+        newNarociloItem = NarociloItem(
+          product:
+              matchingItem.copyWith(price: newNarociloItem.product.hhPrice),
+          quantity: quantity,
+        );
+      }
+
+      // NASTAVI CENO ČE JE 0.0
+      if (newNarociloItem.product.price == 0.0 && nastaviCeno) {
+        double? enteredPrice = await nastaviCenoDialog(
+            ref,
+            context,
+            newNarociloItem.product.id,
+            newNarociloItem.product.price.toString(),
+            newNarociloItem.product.name);
+
+        if (enteredPrice == null || enteredPrice == 0.0) return;
+
+        newNarociloItem = NarociloItem(
+          product: matchingItem.copyWith(price: enteredPrice),
+          quantity: quantity,
+        );
+      }
 
       ref
           .read(narociloNotifierProvider.notifier)
