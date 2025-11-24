@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
+import 'package:BiroPOS/controllers/add_to_table.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
@@ -106,7 +107,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
     }
-    _fetchTables();
+    Future.microtask(() async {
+      await _fetchTables();
+    });
     searchController.addListener(() {
       _searchDebouncer.debouce(_onSearchChanged);
     });
@@ -231,7 +234,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   Future<void> _fetchTables() async {
-    if (_tablesFetched) return;
+    //if (_tablesFetched) return;
 
     _tablesFetched = true;
 
@@ -385,7 +388,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _updateFinalSum() {
+    if (!mounted) return;
     final newSum = ref.read(narociloNotifierProvider.notifier).totalSum();
+    if (!mounted) return;
+
     setState(() {
       finalSum = newSum;
     });
@@ -572,7 +578,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _searchByEan(String input) {
-    searchByEan(input, ref, context, _updateTotalDiscount);
+    final settings = ref.watch(settingsProvider);
+    final nastaviCeno = settings['isCheckedMoney'] ?? false;
+    searchByEan(nastaviCeno, input, ref, context, _updateTotalDiscount);
   }
 
   void _checkAndSetSearchMode() {
@@ -735,7 +743,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                     _searchByName();
                                   });
                                 },
-                                navigateToMizaScreen: _navigateToMizaScreen,
+                                navigateToMizaScreen: () {
+                                  navigateToMizaScreen(
+                                      context, ref, searchController, _tables);
+                                },
                                 navigateToNacinPlacilaScreen:
                                     _navigateToNacinPlacilaScreen,
                                 controller: searchController,
@@ -757,7 +768,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         backgroundColors: backgroundColors,
                         searchByName: _searchByName,
                         ref: ref,
-                        navigateToMizaScreen: _navigateToMizaScreen,
+                        navigateToMizaScreen: () {
+                          navigateToMizaScreen(
+                              context, ref, searchController, _tables);
+                        },
                         navigateToNacinPlacilaScreen: () {
                           _checkAndSetSearchMode(); // Update mode based on search text
 
@@ -775,63 +789,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
-
-  void _navigateToMizaScreen() async {
-    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
-    String searchQuery = searchController.text;
-    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
-
-    if (stMize.isNotEmpty) {
-      await TableService.addToExistingTable(stMize, ref, context);
-      searchController.clear();
-      ref.read(searchQueryProvider.notifier).state = '';
-    } else {
-      final table = _tables.firstWhere(
-        (table) => table['prostor'] != '',
-        orElse: () => {},
-      );
-
-      if (currentChosenItems.isNotEmpty) {
-        // Predpostavljam, da želiš preveriti prvi element v tabelah, lahko pa pregleduješ tudi specifičen index.
-
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
-          // Če je 'prostor' prazen, preusmeri na AddToTableScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => AddToTableScreen()),
-          );
-        } else {
-          // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "DodajNaMizo",
-                    )),
-          );
-        }
-      } else {
-        if (table['prostor'] == null ||
-            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const OpenTablesScreen(),
-            ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const ProstoriScreen(
-                      whereTo: "VrniPrazneMize",
-                    )),
-          );
-        }
-      }
-    }
-  }
 
   void _navigateToNacinPlacilaScreen() async {
     Navigator.pushReplacement(context,

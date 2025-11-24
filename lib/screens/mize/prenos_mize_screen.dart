@@ -3,6 +3,7 @@ import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/providers/tableitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
@@ -64,7 +65,8 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
         MaterialPageRoute(builder: (context) => const BlagajnaScreen()),
       );
     }
-
+    _prenosMizeController.clear();
+    clearSelectedItem(ref);
     ref.read(narociloNotifierProvider.notifier).clearChosenItems();
     ref.read(tableNotifierProvider.notifier).state = [];
   }
