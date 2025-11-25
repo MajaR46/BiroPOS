@@ -40,9 +40,11 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
   void initState() {
     super.initState();
     _fetchTables();
+    /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
+    */
   }
 
   Future<void> _fetchTables() async {
@@ -114,10 +116,7 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
-                onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const BlagajnaScreen())),
+                onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(
                   Icons.arrow_back_ios_new_rounded,
                   color: AppStyles.black,
