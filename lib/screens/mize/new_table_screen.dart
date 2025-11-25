@@ -34,9 +34,11 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   @override
   void initState() {
     super.initState();
+    /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
+    */
   }
 
   void _clearText() {

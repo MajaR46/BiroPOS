@@ -273,6 +273,8 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     bool obstajaKarPlacilo =
         paymentMethods.any((method) => method.kodaNacinaPlacila == "02");
     String mizaButton;
+    List<Map<String, String>> _tables = [];
+    bool _tablesFetched = false;
 
     final chosenItems = ref.watch(narociloNotifierProvider);
     final newSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
@@ -281,6 +283,22 @@ class _KeyboardState extends ConsumerState<Keyboard> {
       mizaButton = "MIZA";
     } else {
       mizaButton = "NA MIZO";
+
+      Future<void> _fetchTables() async {
+        //if (_tablesFetched) return;
+
+        _tablesFetched = true;
+
+        try {
+          List<Map<String, String>> tables = await TableService.fetchTables();
+          setState(() {
+            _tables = tables;
+          });
+        } catch (e) {
+          print("Napaka pri pridobivanju tabel: $e");
+          // Lahko dodaš logiko za napako, če želiš
+        }
+      }
     }
 
     return Container(
