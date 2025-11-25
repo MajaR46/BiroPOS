@@ -799,8 +799,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     String searchQuery = searchController.text;
     String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
     await _fetchTables();
+    final settings = ref.watch(settingsProvider);
+    final isCheckedDirektneMize = settings['isCheckedDirektneMize'] ?? false;
 
-    if (stMize.isNotEmpty) {
+    if (stMize.isNotEmpty && isCheckedDirektneMize) {
       await TableService.addToExistingTable(stMize, ref, context);
       searchController.clear();
       ref.read(searchQueryProvider.notifier).state = '';
