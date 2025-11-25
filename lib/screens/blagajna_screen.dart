@@ -107,9 +107,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       // Preverimo, če so podatki že v pomnilniku
       _handleData();
     }
+    /*
     Future.microtask(() async {
       await _fetchTables();
-    });
+    });*/
     searchController.addListener(() {
       _searchDebouncer.debouce(_onSearchChanged);
     });
@@ -743,10 +744,12 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                     _searchByName();
                                   });
                                 },
-                                navigateToMizaScreen: () {
+                                navigateToMizaScreen:
+                                    _navigateToMizaScreen /*() {
                                   navigateToMizaScreen(
                                       context, ref, searchController, _tables);
-                                },
+                                }*/
+                                ,
                                 navigateToNacinPlacilaScreen:
                                     _navigateToNacinPlacilaScreen,
                                 controller: searchController,
@@ -768,10 +771,11 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                         backgroundColors: backgroundColors,
                         searchByName: _searchByName,
                         ref: ref,
-                        navigateToMizaScreen: () {
-                          navigateToMizaScreen(
-                              context, ref, searchController, _tables);
-                        },
+                        navigateToMizaScreen: _navigateToMizaScreen,
+
+                        /* navigateToMizaScreen(
+                              context, ref, searchController, _tables);*/
+
                         navigateToNacinPlacilaScreen: () {
                           _checkAndSetSearchMode(); // Update mode based on search text
 
@@ -789,6 +793,62 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
+  ///
+  void _navigateToMizaScreen() async {
+    List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
+    String searchQuery = searchController.text;
+    String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
+    await _fetchTables();
+
+    if (stMize.isNotEmpty) {
+      await TableService.addToExistingTable(stMize, ref, context);
+      searchController.clear();
+      ref.read(searchQueryProvider.notifier).state = '';
+    } else {
+      final table = _tables.firstWhere(
+        (table) => table['prostor'] != '',
+        orElse: () => {},
+      );
+
+      if (currentChosenItems.isNotEmpty) {
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
+          // Če je 'prostor' prazen, preusmeri na AddToTableScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddToTableScreen()),
+          );
+        } else {
+          // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "DodajNaMizo",
+                    )),
+          );
+        }
+      } else {
+        if (table['prostor'] == null ||
+            table['prostor']!.isEmpty && table['prostor'] != "Miza") {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const OpenTablesScreen(),
+            ),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ProstoriScreen(
+                      whereTo: "VrniPrazneMize",
+                    )),
+          );
+        }
+      }
+    }
+  }
 
   void _navigateToNacinPlacilaScreen() async {
     Navigator.pushReplacement(context,

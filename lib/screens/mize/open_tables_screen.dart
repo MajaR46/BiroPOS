@@ -32,9 +32,11 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   void initState() {
     super.initState();
     _fetchOpenTables();
+    /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
+    */
   }
 
   Future<void> _fetchOpenTables() async {
@@ -126,16 +128,7 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded,
                     color: AppStyles.black),
-                onPressed: () {
-                  if (widget.prostor?.isEmpty ?? true) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const BlagajnaScreen()));
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onPressed: () => Navigator.of(context).pop(),
               ),
               title: Text("Odprte mize",
                   style: AppStyles.heading3.copyWith(color: AppStyles.black)),

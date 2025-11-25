@@ -42,9 +42,11 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   void initState() {
     super.initState();
     _loadTables();
+    /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
+    */
   }
 
   Future<void> _loadTables() async {
@@ -90,16 +92,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded,
                   color: AppStyles.black),
-              onPressed: () {
-                if (widget.prostor?.isEmpty ?? true) {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const BlagajnaScreen()));
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
+              onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(
               "Dodaj na mizo",
