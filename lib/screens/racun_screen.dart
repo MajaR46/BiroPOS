@@ -477,8 +477,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
     print("stmize $stMize");
     await _fetchTables();
+    final settings = ref.watch(settingsProvider);
+    final isCheckedDirektneMize = settings['isCheckedDirektneMize'] ?? false;
 
-    if (stMize.isNotEmpty) {
+    if (stMize.isNotEmpty && isCheckedDirektneMize) {
       await TableService.addToExistingTable(stMize, ref, context);
       searchController.clear();
       ref.read(searchQueryProvider.notifier).state = '';
