@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BiroPOS/components/blagajna_banner.dart';
 import 'package:BiroPOS/components/category_list.dart';
+import 'package:BiroPOS/components/clock_widget.dart';
 import 'package:BiroPOS/controllers/add_to_table.dart';
 import 'package:BiroPOS/controllers/klic.dart';
 import 'package:BiroPOS/controllers/save_data_controller.dart';
@@ -77,30 +78,17 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   bool _isKeyboardVisible = true;
   bool _isOnline = true;
   String formattedDate = '';
-  String formattedTime = '';
-  late Timer _timer;
+//  String formattedTime = '';
+  //late Timer _timer;
 
 // V _BlagajnaScreenState class
   final Debouncer _searchDebouncer =
       Debouncer(miliseconds: 350); // Prilagodite čas po potrebi (npr. 500ms)
 
-  void _updateTime() {
-    // Using 'mounted' check as a safeguard, although not strictly necessary
-    // if the timer is cancelled correctly in dispose().
-    if (mounted) {
-      setState(() {
-        formattedTime = DateFormat("HH:mm").format(DateTime.now());
-      });
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    _updateTime(); // Set the initial time immediately
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) {
-      _updateTime(); // Update the time every second
-    });
+
     checkConnection();
     _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
@@ -165,7 +153,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
     searchController.removeListener(_searchListener);
     searchController.removeListener(_searchListener2);
     searchController.removeListener(_onSearchChanged);
@@ -420,6 +407,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   }
 
   void _searchByName() {
+    if (!mounted) return;
     updateNumbersString(searchController, ref);
 
     final iskalniNizString = ref.watch(iskalniNiz);
@@ -660,14 +648,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                 )
               ]),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
-                  child: Text(
-                    formattedTime,
-                    style: AppStyles.paragraph3.copyWith(
-                        color: AppStyles.blue, fontWeight: FontWeight.bold),
-                  ),
-                ),
+                const Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: ClockWidget()),
               ],
             ),
           ),
@@ -740,6 +723,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                           );
                                         }),
                                   ).then((_) {
+                                    if (!mounted) return;
                                     _updateFinalSum();
                                     _searchByName();
                                   });
