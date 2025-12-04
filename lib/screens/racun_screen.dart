@@ -529,12 +529,12 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   }
 
   void _navigateToNacinPlacilaScreen() async {
-    Navigator.push(context,
+    Navigator.pushReplacement(context,
         MaterialPageRoute(builder: (context) => const NacinPlacilaScreen()));
   }
 
   void _navigateToBlagajnaScreen() async {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
