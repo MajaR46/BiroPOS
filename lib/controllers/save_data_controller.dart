@@ -19,6 +19,7 @@ Future<bool> handleData(WidgetRef ref) async {
     List<String> apiResponseList = await sendRequest(userId!, "BiroPOS.txt");
 
     await _saveBiroPosData(apiResponseList, box);
+    await _saveServiceNastavitve(apiResponseList, ref);
 
     // Categorize and store responses
     categorizeResponse(apiResponseList, ref);
@@ -140,7 +141,7 @@ Future<void> savePodjetjeDavcnaToPrefs() async {
   if (podjetjeList.isNotEmpty) {
     // Access the 'podjetjeDavcna' field of the first 'Podjetje' object
     String podjetjeDavcna = podjetjeList[0].davcna;
-
+    print("davcna $podjetjeDavcna");
     // Save the 'podjetjeDavcna' value to SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('podjetjeDavcna', podjetjeDavcna);
@@ -155,4 +156,18 @@ Future<void> saveOrderNumber(int orderNumber) async {
 Future<int> loadOrderNumber() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getInt('orderNumber') ?? 1;
+}
+
+Future<void> _saveServiceNastavitve(List<String> items, WidgetRef ref) async {
+  print("response $items");
+  for (String item in items) {
+    if (item.startsWith('N')) {
+      String vprasajZaCeno = item.split('|')[1];
+      bool vprasajZaCenoBool = vprasajZaCeno == '1';
+
+      ref
+          .read(settingsProvider.notifier)
+          .toggleIsCheckedMoney(vprasajZaCenoBool);
+    }
+  }
 }

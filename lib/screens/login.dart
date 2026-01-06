@@ -73,7 +73,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     _initializeBluetooth();
 
-    // Tukaj takoj nastavimo datum in uro, da se prikažeta ob nalaganju
     DateTime currentDate = DateTime.now();
     formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
     formattedTime = DateFormat("HH:mm").format(currentDate);
