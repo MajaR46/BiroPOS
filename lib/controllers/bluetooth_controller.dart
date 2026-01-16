@@ -126,8 +126,6 @@ class BluetoothService {
         dataLines.insertAll(velikostIndex + 1, ['#VELIKOST-END#']);
       }
 
-      print(
-          'BluetoothService: sendData with dataLines before processing: $dataLines');
       // Send data to platform method
       String result;
       try {
@@ -138,14 +136,14 @@ class BluetoothService {
         print('BluetoothService: sendData success: $result');
         if (showDialog == true) {
           print("to sem pokazal");
-          await ErrorDialogs.showResponseDialog(response, context!);
+          ErrorDialogs.showResponseDialog(response, context!);
         }
         print("PRINT 9");
       } on PlatformException catch (e) {
         String errorMessage = 'Napaka pri pošiljanju podatkov: ${e.message}';
         // await ErrorDialogs.showBluetoothErrorDialog(context!, response);
 
-        await ErrorDialogs.showResponseDialog(response, context!);
+        ErrorDialogs.showResponseDialog(response, context!);
         print("PRINT 1");
         if (dataLines.any((line) => line.contains("#NAPAKA#"))) {
           errorMessage += ', odziv strežnika: ${dataLines.join(', ')}';
@@ -165,7 +163,7 @@ class BluetoothService {
       final errorMessage = 'Napaka: ${e.toString()}';
 
       //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-      await ErrorDialogs.showResponseDialog(response, context!);
+      ErrorDialogs.showResponseDialog(response, context!);
       print("PRINT 4");
 
       return errorMessage; // Return error message

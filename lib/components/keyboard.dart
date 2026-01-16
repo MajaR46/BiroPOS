@@ -207,7 +207,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         ref.read(searchQueryProvider.notifier).state = '';
         ref.read(isSearchingProvider.notifier).state = false;
       } catch (e) {
-        ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
+        ErrorDialogs.showBasicDialog("Težava z bluetooth 1 $e", context);
       }
     });
   }

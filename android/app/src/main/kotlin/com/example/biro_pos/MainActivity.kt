@@ -414,7 +414,6 @@ class MainActivity : FlutterActivity() {
             toSend: MutableList<Byte>,
             qrCodeData: String
     ): MutableList<Byte> {
-        Log.d("Bluetooth", "Generating QR code for BlueTooth Printer...")
 
         // 1. Select the model: QR Code Model 2
         toSend.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00).toList())
