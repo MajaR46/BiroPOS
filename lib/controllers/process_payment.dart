@@ -108,11 +108,9 @@ class ProcessPayment {
       List<String> response = [];
 
       if (isBesteronSucess) {
-        print("Kličem createOrder za običajni račun");
         response = await ref
             .read(orderProvider)
             .createOrder(context, ref, paymentType, davcnaSt);
-        print("Odgovor createOrder: $response");
       }
 
       if (receiptCode == true) {
@@ -133,6 +131,7 @@ class ProcessPayment {
       }
       if (isBesteronSucess == true) {
         if (bluetoothPrintanje) {
+          print("A");
           await _processBluetoothPrinting(
             context,
             modifiedResponse,
@@ -140,6 +139,7 @@ class ProcessPayment {
             paymentType: paymentType,
             finalSum: finalSum,
           );
+          print("B");
           if (isBesteronSucess && bluetoothSucess) {
             ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
             clearSelectedItem(ref);

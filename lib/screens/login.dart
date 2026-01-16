@@ -58,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.28.2';
+  String verzijaPrograma = '5.28.3';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -73,7 +73,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     _initializeBluetooth();
 
-    // Tukaj takoj nastavimo datum in uro, da se prikažeta ob nalaganju
     DateTime currentDate = DateTime.now();
     formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
     formattedTime = DateFormat("HH:mm").format(currentDate);

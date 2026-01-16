@@ -207,7 +207,7 @@ class _KeyboardState extends ConsumerState<Keyboard> {
         ref.read(searchQueryProvider.notifier).state = '';
         ref.read(isSearchingProvider.notifier).state = false;
       } catch (e) {
-        ErrorDialogs.showBasicDialog("Težava z bluetooth $e", context);
+        ErrorDialogs.showBasicDialog("Težava z bluetooth 1 $e", context);
       }
     });
   }
@@ -275,10 +275,17 @@ class _KeyboardState extends ConsumerState<Keyboard> {
     String mizaButton;
     List<Map<String, String>> _tables = [];
     bool _tablesFetched = false;
+    bool _disableButton = false;
 
     final chosenItems = ref.watch(narociloNotifierProvider);
     final newSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
 
+    for (NarociloItem item in chosenItems) {
+      if (item.isFromTable == true) {
+        _disableButton = true;
+        break;
+      }
+    }
     if (chosenItems.isEmpty) {
       mizaButton = "MIZA";
     } else {
@@ -511,12 +518,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                 Padding(
                   padding: const EdgeInsets.all(2.0),
                   child: KeyboardRedirect(
-                      backgroundColor: AppStyles.brightPurple,
-                      text: mizaButton,
-                      visinaGumba: visinaGumba,
-                      sirinaGumba: sirinaGumba,
-                      fontGumb: fontGumb,
-                      onPressed: widget.navigateToMizaScreen),
+                    backgroundColor: AppStyles.brightPurple,
+                    text: mizaButton,
+                    visinaGumba: visinaGumba,
+                    sirinaGumba: sirinaGumba,
+                    fontGumb: fontGumb,
+                    onPressed: _disableButton
+                        ? null
+                        : () => widget.navigateToMizaScreen(),
+                  ),
                 ),
               if (!prikazujSamoNarocila)
                 Padding(
@@ -726,7 +736,7 @@ class KeyboardMultiply extends ConsumerWidget {
 class KeyboardRedirect extends StatelessWidget {
   final Color backgroundColor;
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final double sirinaGumba;
   final double visinaGumba;
   final double fontGumb;
@@ -735,7 +745,7 @@ class KeyboardRedirect extends StatelessWidget {
       {super.key,
       required this.backgroundColor,
       required this.text,
-      required this.onPressed,
+      this.onPressed,
       required this.visinaGumba,
       required this.sirinaGumba,
       required this.fontGumb});
@@ -752,10 +762,13 @@ class KeyboardRedirect extends StatelessWidget {
               elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15))),
-          onPressed: () {
-            HapticFeedback.vibrate();
-            onPressed();
-          },
+          onPressed: onPressed == null
+              ? null // Če je onPressed null, daj gumbu null, da postane disabled (siv)
+              : () {
+                  // Če pa ni null, izvedi vibracijo in pokliči funkcijo
+                  HapticFeedback.vibrate();
+                  onPressed!(); // ! pove Dartu, da smo preverili in ni null
+                },
           child: Center(
             child: Text(
               text,

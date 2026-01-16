@@ -22,6 +22,9 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import androidx.activity.enableEdgeToEdge
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "bluetooth_channel"
@@ -411,7 +414,6 @@ class MainActivity : FlutterActivity() {
             toSend: MutableList<Byte>,
             qrCodeData: String
     ): MutableList<Byte> {
-        Log.d("Bluetooth", "Generating QR code for BlueTooth Printer...")
 
         // 1. Select the model: QR Code Model 2
         toSend.addAll(byteArrayOf(0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00).toList())
@@ -688,22 +690,29 @@ class MainActivity : FlutterActivity() {
             result.error("NO_DEVICE", "No device connected.", null)
         }
     }
+private var keepAliveExecutor: ScheduledExecutorService? = null
 
-    private fun startKeepAlive() {
-        Thread {
-                    while (bluetoothSocket?.isConnected == true) {
-                        try {
-                            outputStream?.write(byteArrayOf(0x00)) // Pošlje prazen bajt
-                            outputStream?.flush()
-                            Thread.sleep(60000) // Počaka 2 minuti
-                        } catch (e: IOException) {
-                            Log.e("Bluetooth", "KeepAlive error", e)
-                            break
-                        }
-                    }
-                }
-                .start()
-    }
+private fun startKeepAlive() {
+    stopKeepAlive()
+
+    keepAliveExecutor = Executors.newSingleThreadScheduledExecutor()
+    keepAliveExecutor?.scheduleAtFixedRate({
+        try {
+            if (bluetoothSocket?.isConnected == true) {
+                outputStream?.write(byteArrayOf(0x00))
+                outputStream?.flush()
+            }
+        } catch (e: IOException) {
+            Log.e("Bluetooth", "KeepAlive error", e)
+            stopKeepAlive()
+        }
+    }, 1, 60, TimeUnit.SECONDS)
+}
+
+private fun stopKeepAlive() {
+    keepAliveExecutor?.shutdownNow()
+    keepAliveExecutor = null
+}
 
     // ----------------------------------USB---------------------------------------------------
     private fun connectUsbPrinter(result: MethodChannel.Result) {
