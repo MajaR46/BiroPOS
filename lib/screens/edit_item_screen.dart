@@ -41,7 +41,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
 
   void initState() {
     super.initState();
-    checkConnection();
+    // checkConnection();
 
     _loadItemData(); // Naloži podatke o postavki
     _handleData(); // Naloži dodatke
@@ -185,7 +185,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: GestureDetector(
-            onTap: checkConnection,
+            //onTap: checkConnection,
             child: AppBar(
               backgroundColor: AppStyles.white,
               leading: IconButton(
@@ -196,6 +196,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
               title: Text("Opis",
                   style: AppStyles.heading3.copyWith(color: AppStyles.black)),
               centerTitle: true,
+              /*
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -208,6 +209,7 @@ class _EditItemScreenState extends ConsumerState<EditItemScreen> {
                   ),
                 )
               ],
+              */
             ),
           ),
         ),

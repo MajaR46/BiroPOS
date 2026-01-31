@@ -89,7 +89,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   void initState() {
     super.initState();
 
-    checkConnection();
+    //checkConnection();
     _loadNarocilaFromHive();
     if (izdelki.isEmpty) {
       // Preverimo, če so podatki že v pomnilniku
@@ -623,7 +623,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           preferredSize: const Size.fromHeight(32.0),
           child: GestureDetector(
             onDoubleTap: _hideKeyboard,
-            onTap: checkConnection,
+            //onTap: checkConnection,
             child: AppBar(
               centerTitle: true,
               toolbarHeight: 32.0,
@@ -639,6 +639,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                 const SizedBox(
                   width: 8,
                 ),
+                /*
                 Text(
                   _isOnline ? "Online" : "Offline",
                   style: AppStyles.paragraph3.copyWith(
@@ -646,6 +647,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 )
+                */
               ]),
               actions: [
                 const Padding(

@@ -37,7 +37,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
     super.initState();
     _refreshPage();
     _getPreferences();
-    checkConnection();
+    //checkConnection();
   }
 
   Future<void> _getPreferences() async {
@@ -140,7 +140,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             title: Text(
@@ -153,6 +153,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
                   color: AppStyles.black),
               onPressed: () => Navigator.of(context).pop(),
             ),
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -165,6 +166,7 @@ class _PregledNarocilScreenState extends ConsumerState<PregledNarocilScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

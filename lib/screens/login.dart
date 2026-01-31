@@ -58,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.28.3';
+  String verzijaPrograma = '5.28.4';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -240,17 +240,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _handleTestConnection() async {
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
-    checkConnection();
 
     try {
+      // Izvedemo samo en klic na strežnik
       List<String> responseList = await sendRequest(userId, "echo");
 
-      if (responseList.isEmpty) {
-        responseList = ["Povezava ni uspela", "N/A", "N/A"];
+      if (responseList.isNotEmpty && responseList[0] != "Napaka") {
+        // Če smo dobili odgovor, vemo da smo ONLINE
+        setState(() {
+          _isOnline = true;
+        });
+        _showEchoDialog(responseList);
+      } else {
+        setState(() {
+          _isOnline = false;
+        });
+        _showEchoDialog(["Povezava ni uspela", "N/A", "N/A"]);
       }
-
-      _showEchoDialog(responseList);
     } catch (e) {
+      // V primeru napake (timeout, socket exception) smo OFFLINE
+      setState(() {
+        _isOnline = false;
+      });
       _showEchoDialog(["Napaka pri povezavi", "N/A", "N/A"]);
     }
   }
@@ -316,7 +327,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Column(
           children: [
             GestureDetector(
-              onTap: checkConnection,
+              //onTap: checkConnection,
               child: Row(
                 children: [
                   Expanded(

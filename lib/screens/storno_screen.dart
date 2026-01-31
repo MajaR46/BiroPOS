@@ -34,7 +34,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
   @override
   void initState() {
     super.initState();
-    checkConnection();
+    //checkConnection();
   }
 
   _handleData() async {
@@ -79,7 +79,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: GestureDetector(
-            onTap: checkConnection,
+            //onTap: checkConnection,
             child: AppBar(
               backgroundColor: AppStyles.white,
               title: Text(
@@ -95,6 +95,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
                   Navigator.of(context).pop();
                 },
               ),
+              /*
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -107,6 +108,7 @@ class _StornoScreenState extends ConsumerState<StornoScreen> {
                   ),
                 )
               ],
+              */
             ),
           ),
         ),

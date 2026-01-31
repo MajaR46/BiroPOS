@@ -28,7 +28,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
   @override
   void initState() {
     super.initState();
-    checkConnection();
+    //checkConnection();
   }
 
   void _clearText() {
@@ -94,7 +94,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: GestureDetector(
-            onTap: checkConnection,
+            //onTap: checkConnection,
             child: AppBar(
               backgroundColor: AppStyles.white,
               title: Text(
@@ -110,6 +110,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
                   Navigator.of(context).pop();
                 },
               ),
+              /*
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -122,6 +123,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
                   ),
                 )
               ],
+              */
             ),
           ),
         ),

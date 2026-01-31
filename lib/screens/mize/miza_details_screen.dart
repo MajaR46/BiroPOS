@@ -220,7 +220,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
@@ -232,6 +232,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                 style: AppStyles.heading3.copyWith(color: AppStyles.black)),
             centerTitle: true,
             actions: [
+              /*
               Padding(
                 padding: const EdgeInsets.only(right: 16.0),
                 child: Text(
@@ -242,6 +243,7 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
                   ),
                 ),
               ),
+              */
               Padding(
                 padding: const EdgeInsets.only(right: 16),
                 child: Container(

@@ -90,7 +90,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: GestureDetector(
-            onTap: checkConnection,
+            // onTap: checkConnection,
             child: AppBar(
               backgroundColor: AppStyles.white,
               title: Text(
@@ -103,6 +103,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
                     color: AppStyles.black),
                 onPressed: () => Navigator.of(context).pop(),
               ),
+              /*
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -115,6 +116,7 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
                   ),
                 )
               ],
+              */
             ),
           ),
         ),

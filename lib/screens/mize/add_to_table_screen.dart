@@ -86,7 +86,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
@@ -99,6 +99,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
               style: AppStyles.heading3.copyWith(color: AppStyles.black),
             ),
             centerTitle: true,
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -111,6 +112,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

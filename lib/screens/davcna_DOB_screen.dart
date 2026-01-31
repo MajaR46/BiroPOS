@@ -35,7 +35,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
   void initState() {
     super.initState();
     orderService = ref.read(orderProvider);
-    checkConnection();
+    //checkConnection();
   }
 
   void _clearText() {
@@ -100,7 +100,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             title: Text(
@@ -113,6 +113,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
                   color: AppStyles.black),
               onPressed: () => Navigator.of(context).pop(),
             ),
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -125,6 +126,7 @@ class _DavcnaDOBScreenState extends ConsumerState<DavcnaDOBScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

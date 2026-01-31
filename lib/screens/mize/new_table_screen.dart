@@ -99,7 +99,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
@@ -110,6 +110,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
             title: Text("Nova miza",
                 style: AppStyles.heading3.copyWith(color: AppStyles.black)),
             centerTitle: true,
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -122,6 +123,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

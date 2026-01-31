@@ -70,7 +70,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   void initState() {
     super.initState();
     _loadPreferences();
-    checkConnection();
+    //checkConnection();
   }
 
   void checkConnection() async {
@@ -223,7 +223,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
@@ -239,6 +239,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             title: Text("Nastavitve",
                 style: AppStyles.heading3.copyWith(color: AppStyles.black)),
             centerTitle: true,
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -251,6 +252,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

@@ -38,9 +38,11 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
     super.initState();
     imeMize = widget.imeMize;
     _fetchSingleTable();
+    /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
     });
+    */
   }
 
   Future<void> _fetchSingleTable() async {
@@ -162,7 +164,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             leading: IconButton(
@@ -173,6 +175,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
             title: Text("Razdeli račun za: $imeMize",
                 style: AppStyles.heading3.copyWith(color: AppStyles.black)),
             centerTitle: true,
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -185,6 +188,7 @@ class _SplitRacunScreenState extends ConsumerState<SplitRacunScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),
