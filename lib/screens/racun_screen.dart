@@ -72,7 +72,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       await _fetchTables();
     });
     */
-    checkConnection();
+    //checkConnection();
     _loadDropdownValue();
     Future.microtask(() {
       final orderService = ref.read(orderProvider);
@@ -362,13 +362,14 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             automaticallyImplyLeading: false,
             title: Text("Račun",
                 style: AppStyles.heading3.copyWith(color: AppStyles.black)),
             centerTitle: true,
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -381,6 +382,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),

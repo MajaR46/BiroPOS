@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 Future<List<String>> sendRequest(String userSifra, String txtData) async {
   final prefs = await SharedPreferences.getInstance();
@@ -11,6 +12,12 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
   String ip = prefs.getString('IP') ?? '';
   String port = prefs.getString('Port') ?? '';
   String podjetjeDavcna = prefs.getString('podjetjeDavcna') ?? '';
+  var uuid = const Uuid();
+  String guid = uuid.v4();
+
+//original je 5,17,3,33,26,20 --> vse -1 ker je list
+  String guidCheck =
+      guid[4] + guid[16] + guid[2] + guid[32] + guid[25] + guid[19];
 
   String url = 'http://$ip:$port/api/biropos';
 
@@ -19,7 +26,9 @@ Future<List<String>> sendRequest(String userSifra, String txtData) async {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
     'User-Agent': 'BiroPOS URI Client/2.0',
-    'company-tax': podjetjeDavcna
+    'company-tax': podjetjeDavcna,
+    'api-guid': guid,
+    'api-guid-check': guidCheck
   };
 
   final String formattedDate =

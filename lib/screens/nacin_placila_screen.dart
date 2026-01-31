@@ -42,7 +42,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
   @override
   void initState() {
     super.initState();
-    checkConnection();
+    // checkConnection();
 
     Future.microtask(() {
       final orderService = ref.watch(orderProvider);
@@ -167,7 +167,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(56.0),
           child: GestureDetector(
-            onTap: checkConnection,
+            //onTap: checkConnection,
             child: AppBar(
               backgroundColor: AppStyles.white,
               title: Text(
@@ -183,6 +183,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                     MaterialPageRoute(
                         builder: (context) => const BlagajnaScreen())),
               ),
+              /*
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(right: 24.0),
@@ -195,6 +196,7 @@ class _NacinPlacilaScreenState extends ConsumerState<NacinPlacilaScreen> {
                   ),
                 )
               ],
+              */
             ),
           ),
         ),

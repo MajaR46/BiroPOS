@@ -34,7 +34,7 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
   @override
   void initState() {
     super.initState();
-    checkConnection();
+    //checkConnection();
   }
 
   void checkConnection() async {
@@ -69,7 +69,7 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             title: Text(
@@ -82,6 +82,7 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
                   color: AppStyles.black),
               onPressed: () => Navigator.of(context).pop(),
             ),
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -93,7 +94,7 @@ class _DavcnaStrankaScreenState extends ConsumerState<DavcnaStrankaScreen> {
                   ),
                 ),
               )
-            ],
+            ],*/
           ),
         ),
       ),

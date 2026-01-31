@@ -36,7 +36,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   void initState() {
     super.initState();
     _handleData();
-    checkConnection();
+    //checkConnection();
   }
 
   void checkConnection() async {
@@ -171,7 +171,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56.0),
         child: GestureDetector(
-          onTap: checkConnection,
+          //onTap: checkConnection,
           child: AppBar(
             backgroundColor: AppStyles.white,
             title: Text(
@@ -187,6 +187,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
                 Navigator.of(context).pop();
               },
             ),
+            /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -199,6 +200,7 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
                 ),
               )
             ],
+            */
           ),
         ),
       ),
