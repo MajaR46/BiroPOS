@@ -25,7 +25,9 @@ import 'package:uuid/uuid.dart';
 
 class MizaDetailsScreen extends ConsumerStatefulWidget {
   final String imeMize;
-  const MizaDetailsScreen({super.key, required this.imeMize});
+  final bool popThreeTimes;
+  const MizaDetailsScreen(
+      {super.key, required this.imeMize, this.popThreeTimes = false});
 
   @override
   ConsumerState<MizaDetailsScreen> createState() => _MizaDetailsScreenState();
@@ -143,23 +145,32 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
   }
 
   void _ok() async {
+    // Prikaz dolžine naročil
+    print(ref.read(narociloNotifierProvider).length);
+
+    // Priprava elementov za obdelavo
     final itemsToProcess =
         (izbraniIzdelki.isNotEmpty ? izbraniIzdelki : izdelki)
             .where((item) => item.disabled != true)
             .toList();
+
+    // Dodajanje na račun
     await _dodajNaRacun(itemsToProcess);
 
-    clearSelectedItem(ref);
-
+    // Določitev orientacije
     var orientation = MediaQuery.of(context).orientation;
 
+    // Preusmeritev na ustrezno stran
     if (orientation == Orientation.portrait) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const RacunScreen(),
-        ),
-      );
+      print("prvi pop");
+      Navigator.pop(context);
+      print("drugi pop");
+      Navigator.pop(context);
+
+      print("pop : ${widget.popThreeTimes}");
+      if (widget.popThreeTimes) {
+        Navigator.pop(context);
+      }
     } else if (orientation == Orientation.landscape) {
       Navigator.push(
         context,
@@ -205,16 +216,8 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     });
   }
 
-  void checkConnection() async {
-    bool isOnline = await testConnection(userId);
-    if (mounted) {
-      ref.read(onlineStatusProvider.notifier).state = isOnline;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    _isOnline = ref.watch(onlineStatusProvider);
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(

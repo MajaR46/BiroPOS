@@ -19,7 +19,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class AddToTableScreen extends ConsumerStatefulWidget {
   final String? prostor;
-  const AddToTableScreen({super.key, this.prostor});
+  final bool popThreeTimes;
+  const AddToTableScreen({super.key, this.prostor, this.popThreeTimes = false});
 
   static Map<String, double> tableSums = {};
 
@@ -142,15 +143,11 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                               onTap: () {
                                 TableService.addToExistingTable(
                                     tableNumber, ref, context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const BlagajnaScreen()),
-                                );
+                                if (widget.popThreeTimes) {
+                                  Navigator.pop(context);
+                                }
+                                Navigator.pop(context);
                                 HapticFeedback.vibrate();
-
-                                ;
                               },
                               child: Card(
                                 color: AppStyles.silver
@@ -214,9 +211,10 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                         String? newTableNumber = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                const NewTableScreen(), // Pass items here
-                          ),
+                              builder: (context) => NewTableScreen(
+                                  popThreeTimes:
+                                      widget.popThreeTimes) // Pass items here
+                              ),
                         );
 
                         if (newTableNumber != null &&

@@ -18,9 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive/hive.dart';
 
 class NewTableScreen extends ConsumerStatefulWidget {
-  const NewTableScreen({
-    Key? key,
-  }) : super(key: key);
+  final bool popThreeTimes;
+  const NewTableScreen({super.key, this.popThreeTimes = false});
 
   @override
   ConsumerState<NewTableScreen> createState() => _NewTableScreenState();
@@ -171,10 +170,13 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               child: OKButton(
                 onPressed: () {
                   _addToNewTable(_newTableController.text);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const BlagajnaScreen()));
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+
+                  if (widget.popThreeTimes) {
+                    Navigator.pop(context);
+                  }
+
                   HapticFeedback.vibrate();
                 },
                 text: 'OK',

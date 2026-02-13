@@ -17,6 +17,7 @@ import 'package:BiroPOS/providers/selectedcategory_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:restart_app/restart_app.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
@@ -473,12 +474,15 @@ class _KeyboardState extends ConsumerState<Keyboard> {
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: KeyboardRedirect(
-                    backgroundColor: AppStyles.blue,
-                    text: widget.racunArtikliButton,
-                    visinaGumba: visinaGumba,
-                    sirinaGumba: sirinaGumba,
-                    fontGumb: fontGumb,
-                    onPressed: widget.navigateToRacun),
+                  backgroundColor: AppStyles.blue,
+                  text: widget.racunArtikliButton,
+                  visinaGumba: visinaGumba,
+                  sirinaGumba: sirinaGumba,
+                  fontGumb: fontGumb,
+                  onPressed: () {
+                    widget.navigateToRacun();
+                  },
+                ),
               ),
               if (!prikazujSamoNarocila)
                 Padding(
@@ -525,7 +529,9 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                     fontGumb: fontGumb,
                     onPressed: _disableButton
                         ? null
-                        : () => widget.navigateToMizaScreen(),
+                        : () => {
+                              widget.navigateToMizaScreen(),
+                            },
                   ),
                 ),
               if (!prikazujSamoNarocila)

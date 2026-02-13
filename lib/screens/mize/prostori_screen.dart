@@ -14,11 +14,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProstoriScreen extends ConsumerStatefulWidget {
   final String whereTo;
+  final bool popThreeTimes;
 
-  const ProstoriScreen({
-    required this.whereTo,
-    super.key,
-  });
+  const ProstoriScreen(
+      {required this.whereTo, super.key, this.popThreeTimes = false});
 
   @override
   ConsumerState<ProstoriScreen> createState() => _ProstoriScreenState();
@@ -174,7 +173,10 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 AddToTableScreen(
-                                                    prostor: prostor)));
+                                                  prostor: prostor,
+                                                  popThreeTimes:
+                                                      widget.popThreeTimes,
+                                                )));
                                   } else if (widget.whereTo ==
                                       "VrniPrazneMize") {
                                     Navigator.push(
@@ -182,8 +184,9 @@ class _ProstoriScreenState extends ConsumerState<ProstoriScreen> {
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 OpenTablesScreen(
-                                                  prostor: prostor,
-                                                )));
+                                                    prostor: prostor,
+                                                    popThreeTimes:
+                                                        widget.popThreeTimes)));
                                   }
                                   HapticFeedback.vibrate();
                                 },

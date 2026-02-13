@@ -730,8 +730,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                     _searchByName();
                                   });
                                 },
-                                navigateToMizaScreen:
-                                    _navigateToMizaScreen /*() {
+                                navigateToMizaScreen: _navigateToMizaScreen
+                                /*() {
                                   navigateToMizaScreen(
                                       context, ref, searchController, _tables);
                                 }*/
@@ -781,6 +781,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
   /////////////////////////////////////////////////////////////////// NAVIGATE FUNCTIONS ////////////////////////////////////////////////////
   ///
   void _navigateToMizaScreen() async {
+    //Navigator.of(context).popUntil((route) => route.isFirst);
     List<NarociloItem> currentChosenItems = ref.read(narociloNotifierProvider);
     String searchQuery = searchController.text;
     String stMize = searchQuery.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -804,7 +805,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           // Če je 'prostor' prazen, preusmeri na AddToTableScreen
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddToTableScreen()),
+            MaterialPageRoute(
+                builder: (context) => AddToTableScreen(
+                      popThreeTimes: false,
+                    )),
           );
         } else {
           // Če 'prostor' ni prazen, preusmeri na ProstoriScreen
@@ -813,6 +817,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             MaterialPageRoute(
                 builder: (context) => const ProstoriScreen(
                       whereTo: "DodajNaMizo",
+                      popThreeTimes: true,
                     )),
           );
         }
@@ -822,7 +827,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const OpenTablesScreen(),
+              builder: (context) => const OpenTablesScreen(
+                popThreeTimes: false,
+              ),
             ),
           );
         } else {
@@ -831,6 +838,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
             MaterialPageRoute(
                 builder: (context) => const ProstoriScreen(
                       whereTo: "VrniPrazneMize",
+                      popThreeTimes: true,
                     )),
           );
         }

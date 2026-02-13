@@ -24,6 +24,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
         davcnaSt: davcnaSt,
         isFromTable: fromTable,
       );
+
       state = [...state, newItem];
       await narociloBox.add(newItem); // Dodaj v Hive
       return;
@@ -89,7 +90,6 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
     if (indexToRemove != -1) {
       List<NarociloItem> updatedState = List.from(state);
 
-      // Najprej odstranimo iz Hive (če obstaja enak element v njem)
       final hiveIndex = narociloBox.values.toList().indexWhere((item) =>
           item.product.id == narociloItem.product.id &&
           item.description == narociloItem.description &&
@@ -98,13 +98,12 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
 
       if (hiveIndex != -1) {
         await narociloBox.deleteAt(hiveIndex);
-      }
+      } else {}
 
-      // Nato še iz Riverpod state
       updatedState.removeAt(indexToRemove);
       state = updatedState;
       totalSum();
-    }
+    } else {}
   }
 
   double totalSum() {
