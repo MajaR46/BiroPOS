@@ -478,9 +478,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final isCheckedDirektneMize = settings['isCheckedDirektneMize'] ?? false;
 
     if (stMize.isNotEmpty && isCheckedDirektneMize) {
+      final narociloNotifier = ref.read(narociloNotifierProvider.notifier);
       await TableService.addToExistingTable(stMize, ref, context);
-      searchController.clear();
-      ref.read(searchQueryProvider.notifier).state = '';
+
+      if (mounted) {
+        searchController.clear();
+        ref.read(searchQueryProvider.notifier).state = '';
+      }
     } else {
       final table = _tables.firstWhere(
         (table) => table['prostor'] != '',
