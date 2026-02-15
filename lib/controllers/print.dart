@@ -88,17 +88,13 @@ class Print {
           ErrorDialogs.showBasicDialog(
               "Napaka pri pošiljanju podatkov preko Bluetootha $e", context);
         } finally {
-          // Set total to zero in case of error or success
-          ref.read(totalSumProvider.notifier).state =
-              ref.read(narociloNotifierProvider.notifier).totalSum();
+          final totalSum = ref.read(totalSumProvider);
         }
       } catch (e) {
         // Splošna napaka pri obdelavi plačila
         ErrorDialogs.showBasicDialog("Napaka pri obdelavi plačila $e", context);
       } finally {
-        // Set total to zero in case of error or success
-        ref.read(totalSumProvider.notifier).state =
-            ref.read(narociloNotifierProvider.notifier).totalSum();
+        final totalSum = ref.read(totalSumProvider);
       }
     }
 

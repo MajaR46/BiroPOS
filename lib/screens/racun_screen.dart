@@ -86,7 +86,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _updateTotalDiscount();
+    //_updateTotalDiscount();
 
     if (!_isDiscountDialogOpen && ModalRoute.of(context)?.isCurrent == true) {
       FocusScope.of(context).requestFocus(_barcodeFocusNode);
@@ -434,12 +434,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                   racunArtikliButton: "ARTIKLI",
                   opisDiscountButton: "%",
                   controller: searchController,
-                  navigateToMizaScreen:
-                      /*
-                    navigateToMizaScreen(
-                        context, ref, searchController, _tables);
-                        */
-                      _navigateToMizaScreen,
+                  navigateToMizaScreen: _navigateToMizaScreen,
                   navigateToNacinPlacilaScreen: () {
                     // <-- TUKAJ JE LOGIKA ZA GUMB "OK"
                     // Preberemo vrednost iz providerja
@@ -483,9 +478,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final isCheckedDirektneMize = settings['isCheckedDirektneMize'] ?? false;
 
     if (stMize.isNotEmpty && isCheckedDirektneMize) {
+      final narociloNotifier = ref.read(narociloNotifierProvider.notifier);
       await TableService.addToExistingTable(stMize, ref, context);
-      searchController.clear();
-      ref.read(searchQueryProvider.notifier).state = '';
+
+      if (mounted) {
+        searchController.clear();
+        ref.read(searchQueryProvider.notifier).state = '';
+      }
     } else {
       final table = _tables.firstWhere(
         (table) => table['prostor'] != '',
@@ -497,7 +496,10 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             table['prostor']!.isEmpty && table['prostor'] != 'Miza') {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddToTableScreen()),
+            MaterialPageRoute(
+                builder: (context) => AddToTableScreen(
+                      popThreeTimes: false,
+                    )),
           );
         } else {
           Navigator.push(
@@ -505,6 +507,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             MaterialPageRoute(
                 builder: (context) => const ProstoriScreen(
                       whereTo: "DodajNaMizo",
+                      popThreeTimes: true,
                     )),
           );
         }
@@ -514,7 +517,9 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const OpenTablesScreen(),
+              builder: (context) => const OpenTablesScreen(
+                popThreeTimes: false,
+              ),
             ),
           );
         } else {
@@ -523,6 +528,7 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
             MaterialPageRoute(
                 builder: (context) => const ProstoriScreen(
                       whereTo: "VrniPrazneMize",
+                      popThreeTimes: true,
                     )),
           );
         }

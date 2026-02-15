@@ -14,7 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class OpenTablesScreen extends ConsumerStatefulWidget {
   final String? prostor;
-  const OpenTablesScreen({super.key, this.prostor});
+  final bool popThreeTimes;
+  const OpenTablesScreen({super.key, this.prostor, this.popThreeTimes = false});
 
   @override
   ConsumerState<OpenTablesScreen> createState() => _OpenTablesScreenState();
@@ -32,6 +33,7 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
   void initState() {
     super.initState();
     _fetchOpenTables();
+
     /*
     Future.delayed(const Duration(seconds: 4), () {
       checkConnection();
@@ -102,7 +104,10 @@ class _OpenTablesScreenState extends ConsumerState<OpenTablesScreen> {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => MizaDetailsScreen(imeMize: imeMize!)));
+              builder: (context) => MizaDetailsScreen(
+                    imeMize: imeMize!,
+                    popThreeTimes: widget.popThreeTimes,
+                  )));
     }
   }
 
