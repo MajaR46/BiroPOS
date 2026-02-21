@@ -27,7 +27,7 @@ class Print {
 
   static Future<void> printText(
       BuildContext context, List<String> text, WidgetRef ref) async {
-    final settings = ref.watch(settingsProvider);
+    final settings = ref.read(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
     final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
     final ethernetPrintanje = settings['isCheckedEthernetPrint'] ?? false;

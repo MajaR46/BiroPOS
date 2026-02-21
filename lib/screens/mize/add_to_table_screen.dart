@@ -1,5 +1,6 @@
 import 'package:BiroPOS/components/narocilo.dart';
 import 'package:BiroPOS/controllers/klic.dart';
+import 'package:BiroPOS/controllers/print.dart';
 import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/table_controller.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
@@ -82,6 +83,10 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   @override
   Widget build(BuildContext context) {
     _isOnline = ref.watch(onlineStatusProvider);
+    final settings = ref.watch(settingsProvider);
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
+
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(
@@ -140,13 +145,22 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 2),
                             child: GestureDetector(
-                              onTap: () {
-                                TableService.addToExistingTable(
+                              onTap: () async {
+                                await TableService.addToExistingTable(
                                     tableNumber, ref, context);
+
+                                if (!mounted) return;
+
+                                if (bluetoothPrintanje && tiskajNarocilo) {
+                                  print("tuki");
+                                  Navigator.pop(context);
+                                }
                                 if (widget.popThreeTimes) {
                                   Navigator.pop(context);
                                 }
+
                                 Navigator.pop(context);
+
                                 HapticFeedback.vibrate();
                               },
                               child: Card(
@@ -199,44 +213,45 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
                         },
                       ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16, bottom: 24, top: 8),
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: SizedBox(
-                    height: 50,
-                    width: 120,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        String? newTableNumber = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => NewTableScreen(
-                                  popThreeTimes:
-                                      widget.popThreeTimes) // Pass items here
-                              ),
-                        );
+              if (widget.prostor == null || widget.prostor!.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(right: 16, bottom: 24, top: 8),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: SizedBox(
+                      height: 50,
+                      width: 120,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          String? newTableNumber = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => NewTableScreen(
+                                    popThreeTimes:
+                                        widget.popThreeTimes) // Pass items here
+                                ),
+                          );
 
-                        if (newTableNumber != null &&
-                            newTableNumber.isNotEmpty) {
-                          TableService.addToExistingTable(
-                              newTableNumber, ref, context);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppStyles.blue,
-                        padding: EdgeInsets.zero,
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        "NOVA MIZA",
-                        style:
-                            AppStyles.button1.copyWith(color: AppStyles.white),
+                          if (newTableNumber != null &&
+                              newTableNumber.isNotEmpty) {
+                            TableService.addToExistingTable(
+                                newTableNumber, ref, context);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppStyles.blue,
+                          padding: EdgeInsets.zero,
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          "NOVA MIZA",
+                          style: AppStyles.button1
+                              .copyWith(color: AppStyles.white),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ],

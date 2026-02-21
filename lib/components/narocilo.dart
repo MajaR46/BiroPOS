@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 class Narocilo {
   static int stNarocila = 1;
 
-  static Future<void> createNarocilo(
+  static Future<bool> createNarocilo(
       WidgetRef ref, bool isFromTable, BuildContext context,
       [String? tableNumber]) async {
     List<String> narocilo = [];
@@ -18,7 +18,7 @@ class Narocilo {
     String formattedDate = DateFormat("dd.MM.yyyy").format(currentDate);
     String formattedTime = DateFormat("HH:mm").format(currentDate);
     String orderNumberTime = DateFormat("mmss").format(currentDate);
-    final narociloItems = ref.watch(narociloNotifierProvider);
+    final narociloItems = ref.read(narociloNotifierProvider);
     int orderNumber = ref.watch(orderNumberProvider);
     String? user = SessionManager().getLoggedInUserName();
 
@@ -52,17 +52,20 @@ class Narocilo {
 
     ref.read(orderNumberProvider.notifier).setOrderNumber(orderNumber + 1);
 
-    NarociloPrinter().printajNarocilo(narocilo, context, ref);
+    return NarociloPrinter().printajNarocilo(narocilo, context, ref);
   }
 }
 
 class NarociloPrinter {
-  Future<void> printajNarocilo(
+  Future<bool> printajNarocilo(
       List<String> narocilo, BuildContext context, WidgetRef ref) async {
     try {
+      print("Naroiclo $narocilo");
       await Print.printText(context, narocilo, ref);
+      return true;
     } catch (e) {
       ErrorDialogs.showBasicDialog("Napaka pri tiskanju naročila $e", context);
+      return false;
     }
   }
 }

@@ -44,7 +44,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     _newTableController.clear();
   }
 
-  void _addToNewTable(String tableNumber) async {
+  Future<void> _addToNewTable(String tableNumber) async {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
     final settings = ref.watch(settingsProvider);
@@ -93,6 +93,10 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   @override
   Widget build(BuildContext context) {
     _isOnline = ref.watch(onlineStatusProvider);
+    final settings = ref.watch(settingsProvider);
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
+
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(
@@ -168,14 +172,22 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
             child: Align(
               alignment: Alignment.bottomRight,
               child: OKButton(
-                onPressed: () {
-                  _addToNewTable(_newTableController.text);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                onPressed: () async {
+                  // 2. Izvršimo dodajanje na mizo
+                  await _addToNewTable(_newTableController.text);
+
+                  if (!mounted) return;
 
                   if (widget.popThreeTimes) {
                     Navigator.pop(context);
                   }
+
+                  if (bluetoothPrintanje && tiskajNarocilo) {
+                    print("tuki");
+                    Navigator.pop(context);
+                  }
+                  Navigator.pop(context);
+                  Navigator.pop(context);
 
                   HapticFeedback.vibrate();
                 },
