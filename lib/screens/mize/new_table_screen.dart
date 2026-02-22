@@ -29,6 +29,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   final TextEditingController _newTableController = TextEditingController();
   bool _isOnline = true;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
+  bool _isAddingToTable = false;
 
   @override
   void initState() {
@@ -173,8 +174,20 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               alignment: Alignment.bottomRight,
               child: OKButton(
                 onPressed: () async {
+                  setState(() {
+                    _isAddingToTable = true;
+                  });
+
+                  try {
+                    await _addToNewTable(_newTableController.text);
+                  } finally {
+                    if (mounted) {
+                      setState(() {
+                        _isAddingToTable = false;
+                      });
+                    }
+                  }
                   // 2. Izvršimo dodajanje na mizo
-                  await _addToNewTable(_newTableController.text);
 
                   if (!mounted) return;
 
@@ -189,12 +202,35 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
                   Navigator.pop(context);
                   Navigator.pop(context);
 
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky,
+                  );
+
                   HapticFeedback.vibrate();
                 },
                 text: 'OK',
               ),
             ),
           ),
+          if (_isAddingToTable)
+            Positioned.fill(
+              child: AbsorbPointer(
+                absorbing: true,
+                child: Container(
+                  color: Colors.black.withOpacity(0.4),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

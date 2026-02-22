@@ -34,7 +34,7 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
   Map<String, List<String>> tableItems = {};
   bool _isOnline = true;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
-
+  bool _isAddingToTable = false;
   late List<dynamic> chosenItems;
 
   bool _isLoading = true;
@@ -88,24 +88,24 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
     final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
 
     return Scaffold(
-      backgroundColor: AppStyles.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56.0),
-        child: GestureDetector(
-          //onTap: checkConnection,
-          child: AppBar(
-            backgroundColor: AppStyles.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppStyles.black),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            title: Text(
-              "Dodaj na mizo",
-              style: AppStyles.heading3.copyWith(color: AppStyles.black),
-            ),
-            centerTitle: true,
-            /*
+        backgroundColor: AppStyles.white,
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(56.0),
+          child: GestureDetector(
+            //onTap: checkConnection,
+            child: AppBar(
+              backgroundColor: AppStyles.white,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                    color: AppStyles.black),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              title: Text(
+                "Dodaj na mizo",
+                style: AppStyles.heading3.copyWith(color: AppStyles.black),
+              ),
+              centerTitle: true,
+              /*
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 24.0),
@@ -119,143 +119,176 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
               )
             ],
             */
+            ),
           ),
         ),
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                        itemCount: _tables.length,
-                        itemBuilder: (context, index) {
-                          final tableData = _tables[index];
-                          String tableNumber = tableData['miza'] ?? '';
-                          String prostor = tableData['prostor'] ?? '';
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ListView.builder(
+                          itemCount: _tables.length,
+                          itemBuilder: (context, index) {
+                            final tableData = _tables[index];
+                            String tableNumber = tableData['miza'] ?? '';
+                            String prostor = tableData['prostor'] ?? '';
 
-                          double tableFinalSum = tableData['cena'] != null
-                              ? double.tryParse(tableData['cena'].toString()) ??
-                                  0.0
-                              : 0.0;
+                            double tableFinalSum = tableData['cena'] != null
+                                ? double.tryParse(
+                                        tableData['cena'].toString()) ??
+                                    0.0
+                                : 0.0;
 
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 2),
-                            child: GestureDetector(
-                              onTap: () async {
-                                await TableService.addToExistingTable(
-                                    tableNumber, ref, context);
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 2),
+                              child: GestureDetector(
+                                onTap: () async {
+                                  setState(() {
+                                    _isAddingToTable = true;
+                                  });
 
-                                if (!mounted) return;
+                                  try {
+                                    await TableService.addToExistingTable(
+                                        tableNumber, ref, context);
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _isAddingToTable = false;
+                                      });
+                                    }
+                                  }
 
-                                if (bluetoothPrintanje && tiskajNarocilo) {
-                                  print("tuki");
+                                  if (!mounted) return;
+
+                                  if (bluetoothPrintanje && tiskajNarocilo) {
+                                    Navigator.pop(context);
+                                  }
+
+                                  if (widget.popThreeTimes) {
+                                    Navigator.pop(context);
+                                  }
+
                                   Navigator.pop(context);
-                                }
-                                if (widget.popThreeTimes) {
-                                  Navigator.pop(context);
-                                }
 
-                                Navigator.pop(context);
-
-                                HapticFeedback.vibrate();
-                              },
-                              child: Card(
-                                color: AppStyles.silver
-                                    .withAlpha((0.1 * 255).round()),
-                                elevation: 0,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 24),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'Miza $tableNumber',
-                                            style: AppStyles.heading3,
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            '${tableFinalSum.toStringAsFixed(2)} €',
-                                            style: AppStyles.heading3.copyWith(
-                                                fontWeight: FontWeight.normal),
-                                          ),
-                                        ],
-                                      ),
-                                      if (prostor.isNotEmpty)
+                                  HapticFeedback.vibrate();
+                                },
+                                child: Card(
+                                  color: AppStyles.silver
+                                      .withAlpha((0.1 * 255).round()),
+                                  elevation: 0,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 24),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
                                         Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            if (prostor != "Miza")
-                                              Expanded(
-                                                  child: Align(
-                                                alignment: Alignment.center,
-                                                child: Text(
-                                                  prostor,
-                                                  style: AppStyles.paragraph3,
-                                                ),
-                                              ))
+                                            Text(
+                                              'Miza $tableNumber',
+                                              style: AppStyles.heading3,
+                                            ),
+                                            const Spacer(),
+                                            Text(
+                                              '${tableFinalSum.toStringAsFixed(2)} €',
+                                              style: AppStyles.heading3
+                                                  .copyWith(
+                                                      fontWeight:
+                                                          FontWeight.normal),
+                                            ),
                                           ],
-                                        )
-                                    ],
+                                        ),
+                                        if (prostor.isNotEmpty)
+                                          Row(
+                                            children: [
+                                              if (prostor != "Miza")
+                                                Expanded(
+                                                    child: Align(
+                                                  alignment: Alignment.center,
+                                                  child: Text(
+                                                    prostor,
+                                                    style: AppStyles.paragraph3,
+                                                  ),
+                                                ))
+                                            ],
+                                          )
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              if (widget.prostor == null || widget.prostor!.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 16, bottom: 24, top: 8),
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: SizedBox(
-                      height: 50,
-                      width: 120,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          String? newTableNumber = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => NewTableScreen(
-                                    popThreeTimes:
-                                        widget.popThreeTimes) // Pass items here
-                                ),
-                          );
-
-                          if (newTableNumber != null &&
-                              newTableNumber.isNotEmpty) {
-                            TableService.addToExistingTable(
-                                newTableNumber, ref, context);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppStyles.blue,
-                          padding: EdgeInsets.zero,
-                          elevation: 0,
+                            );
+                          },
                         ),
-                        child: Text(
-                          "NOVA MIZA",
-                          style: AppStyles.button1
-                              .copyWith(color: AppStyles.white),
+                ),
+                if (widget.prostor == null || widget.prostor!.isEmpty)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(right: 16, bottom: 24, top: 8),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: SizedBox(
+                        height: 50,
+                        width: 120,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            String? newTableNumber = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => NewTableScreen(
+                                      popThreeTimes: widget
+                                          .popThreeTimes) // Pass items here
+                                  ),
+                            );
+
+                            if (newTableNumber != null &&
+                                newTableNumber.isNotEmpty) {
+                              TableService.addToExistingTable(
+                                  newTableNumber, ref, context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppStyles.blue,
+                            padding: EdgeInsets.zero,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            "NOVA MIZA",
+                            style: AppStyles.button1
+                                .copyWith(color: AppStyles.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            if (_isAddingToTable)
+              Positioned.fill(
+                child: AbsorbPointer(
+                  absorbing: true,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.4),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 5,
                         ),
                       ),
                     ),
                   ),
                 ),
-            ],
-          ),
-        ],
-      ),
-    );
+              ),
+          ],
+        ));
   }
 }

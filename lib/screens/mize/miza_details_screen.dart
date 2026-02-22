@@ -191,7 +191,10 @@ class _MizaDetailsScreenState extends ConsumerState<MizaDetailsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PrenosMizeScreen(tableNumber: imeMize),
+        builder: (context) => PrenosMizeScreen(
+          tableNumber: imeMize,
+          popThreeTimes: widget.popThreeTimes,
+        ),
       ),
     );
   }

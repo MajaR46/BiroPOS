@@ -4,17 +4,21 @@ import 'package:BiroPOS/controllers/sessionmanager.dart';
 import 'package:BiroPOS/controllers/test_connection.dart';
 import 'package:BiroPOS/providers/narociloitem_provider.dart';
 import 'package:BiroPOS/providers/selecteditem_provider.dart';
+import 'package:BiroPOS/providers/settings_provider.dart';
 import 'package:BiroPOS/providers/status_provider.dart';
 import 'package:BiroPOS/providers/tableitem_provider.dart';
 import 'package:BiroPOS/screens/blagajna_screen.dart';
 import 'package:BiroPOS/utils/error_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:BiroPOS/app_styles.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class PrenosMizeScreen extends ConsumerStatefulWidget {
   final String tableNumber;
-  const PrenosMizeScreen({super.key, required this.tableNumber});
+  final bool popThreeTimes;
+  const PrenosMizeScreen(
+      {super.key, required this.tableNumber, this.popThreeTimes = false});
 
   @override
   ConsumerState<PrenosMizeScreen> createState() => _PrenosMizeScreenState();
@@ -61,12 +65,6 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
               newTableNumber, // Pass the new table number from the controller
             );
 
-    if (serverResponse.isNotEmpty) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const BlagajnaScreen()),
-      );
-    }
     _prenosMizeController.clear();
     clearSelectedItem(ref);
     ref.read(narociloNotifierProvider.notifier).clearChosenItems();
@@ -83,6 +81,10 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
   @override
   Widget build(BuildContext context) {
     _isOnline = ref.watch(onlineStatusProvider);
+
+    final settings = ref.watch(settingsProvider);
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -170,7 +172,26 @@ class _PrenosMizeScreenState extends ConsumerState<PrenosMizeScreen> {
               child: Align(
                 alignment: Alignment.bottomRight,
                 child: OKButton(
-                  onPressed: _prenosMize,
+                  onPressed: () async {
+                    await _prenosMize();
+
+                    if (!mounted) return;
+
+                    if (widget.popThreeTimes) {
+                      Navigator.pop(context);
+                    }
+
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+
+                    await Future.delayed(const Duration(milliseconds: 50));
+                    SystemChrome.setEnabledSystemUIMode(
+                      SystemUiMode.immersiveSticky,
+                    );
+
+                    HapticFeedback.vibrate();
+                  },
                   text: 'OK',
                 ),
               ),
