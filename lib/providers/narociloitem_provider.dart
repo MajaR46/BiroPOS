@@ -222,7 +222,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
   }
 
   // Clears all items in the list
-  void clearChosenItems() async {
+  Future<void> clearChosenItems() async {
     final narociloBox = Hive.box('narociloBox');
     await narociloBox.clear();
     state = [];

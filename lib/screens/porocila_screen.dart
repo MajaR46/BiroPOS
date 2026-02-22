@@ -95,10 +95,16 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
   }
 
   _porocilaPOS() async {
-    final besteronResponse = await besteronPorocilo();
+    try {
+      final besteronResponse = await besteronPorocilo();
 
-    await Print.printText(context, besteronResponse, ref);
-    print("besteron response ${besteronResponse.toString()}");
+      await Print.printText(context, besteronResponse, ref);
+      print("besteron response ${besteronResponse.toString()}");
+    } catch (e) {
+      if (context.mounted) {
+        ErrorDialogs.showBasicDialog("Napaka: ${e.toString()}", context);
+      }
+    }
   }
 
   Future<void> _vrniPOSZnesek() async {
@@ -148,18 +154,25 @@ class _PorocilaScreenState extends ConsumerState<PorocilaScreen> {
 
     if (vraciloAmount == null) return;
 
-    final besteronResponse = await besteronVracilo(vraciloAmount);
-    String result = besteronResponse['result'];
-    String besteronRacun = besteronResponse['receipt'];
+    try {
+      final besteronResponse = await besteronVracilo(vraciloAmount);
+      String result = besteronResponse['result'];
+      String besteronRacun = besteronResponse['receipt'];
 
-    if (result != "Success") {
+      if (result != "Success") {
+        if (context.mounted) {
+          ErrorDialogs.showBasicDialog(
+              "Napaka pri komunikaciji z Besteronom", context);
+        }
+      }
+
+      await Print.printText(context, [besteronRacun], ref);
+    } catch (e) {
       if (context.mounted) {
-        ErrorDialogs.showBasicDialog(
-            "Napaka pri komunikaciji z Besteronom", context);
+        ErrorDialogs.showBasicDialog("Napaka: ${e.toString()}", context);
       }
     }
 
-    await Print.printText(context, [besteronRacun], ref);
     vraciloController.text = '';
   }
 

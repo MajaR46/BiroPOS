@@ -65,35 +65,34 @@ class TableService {
     clearSelectedItem(ref);
   }
   */
-  static Future<void> addToExistingTable(
+  static Future<bool> addToExistingTable(
       String tableNumber, WidgetRef ref, BuildContext context) async {
-    // 1. SHRAMBA NOTIFIERJEV PRED AWAIT-OM
-    // To so globalni objekti in bodo delovali tudi, če se widget zapre.
     final narociloNotifier = ref.read(narociloNotifierProvider.notifier);
     final tableNotifier = ref.read(tableNotifierProvider.notifier);
     final searchQueryNotifier = ref.read(searchQueryProvider.notifier);
     final isSearchingNotifier = ref.read(isSearchingProvider.notifier);
     final iskalniNizNotifier = ref.read(iskalniNiz.notifier);
-    final selectedItemNotifier = ref
-        .read(selectedItemProvider.notifier); // Namesto clearSelectedItem(ref)
+    final selectedItemNotifier = ref.read(selectedItemProvider.notifier);
 
     final settings = ref.read(settingsProvider);
     final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
 
     try {
-      // 2. IZVEDBA ASINHRONIH OPERACIJ
-      // Pozor: tableNotifier.addToExistingTable verjetno tudi uporablja context.
-      // Če se widget zapre med klicem, lahko context povzroči težave.
       await tableNotifier.addToExistingTable(context, tableNumber);
 
+      bool printSucess = true;
+
       if (tiskajNarocilo == true) {
-        // Če Narocilo.createNarocilo znotraj sebe uporablja "ref" po await-u,
-        // bo tudi tam vrglo napako. Idealno bi bilo, da tudi tja pošlješ notifierje.
-        await Narocilo.createNarocilo(ref, true, context, tableNumber);
+        printSucess =
+            await Narocilo.createNarocilo(ref, true, context, tableNumber);
       }
 
-      // 3. UPORABA SHRANJENIH NOTIFIERJEV (Tukaj ne uporabljamo več "ref")
-      narociloNotifier.clearChosenItems();
+      if (!printSucess) {
+        return false;
+      }
+
+      // ČIŠČENJE
+      await narociloNotifier.clearChosenItems();
 
       var narociloBox = Hive.box('narociloBox');
       await narociloBox.clear();
@@ -102,11 +101,11 @@ class TableService {
       iskalniNizNotifier.state = '';
       searchQueryNotifier.state = '';
       isSearchingNotifier.state = false;
-
-      // Ročno počistimo izbran izdelek brez uporabe ref
       selectedItemNotifier.state = null;
+      return true;
     } catch (e) {
       print("Napaka pri dodajanju na mizo: $e");
+      return false;
     }
   }
 }

@@ -29,6 +29,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   final TextEditingController _newTableController = TextEditingController();
   bool _isOnline = true;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
+  bool _isAddingToTable = false;
 
   @override
   void initState() {
@@ -44,7 +45,7 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
     _newTableController.clear();
   }
 
-  void _addToNewTable(String tableNumber) async {
+  Future<void> _addToNewTable(String tableNumber) async {
     List<NarociloItem> chosenItems = ref.read(narociloNotifierProvider);
     String? userId = SessionManager().getLoggedInUserSifra() ?? '';
     final settings = ref.watch(settingsProvider);
@@ -93,6 +94,10 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
   @override
   Widget build(BuildContext context) {
     _isOnline = ref.watch(onlineStatusProvider);
+    final settings = ref.watch(settingsProvider);
+    final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
+    final tiskajNarocilo = settings['isCheckedTiskajNarocilo'] ?? false;
+
     return Scaffold(
       backgroundColor: AppStyles.white,
       appBar: PreferredSize(
@@ -168,14 +173,39 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
             child: Align(
               alignment: Alignment.bottomRight,
               child: OKButton(
-                onPressed: () {
-                  _addToNewTable(_newTableController.text);
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                onPressed: () async {
+                  setState(() {
+                    _isAddingToTable = true;
+                  });
+
+                  try {
+                    await _addToNewTable(_newTableController.text);
+                  } finally {
+                    if (mounted) {
+                      setState(() {
+                        _isAddingToTable = false;
+                      });
+                    }
+                  }
+                  // 2. Izvršimo dodajanje na mizo
+
+                  if (!mounted) return;
 
                   if (widget.popThreeTimes) {
                     Navigator.pop(context);
                   }
+
+                  if (bluetoothPrintanje && tiskajNarocilo) {
+                    print("tuki");
+                    Navigator.pop(context);
+                  }
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+
+                  await Future.delayed(const Duration(milliseconds: 50));
+                  SystemChrome.setEnabledSystemUIMode(
+                    SystemUiMode.immersiveSticky,
+                  );
 
                   HapticFeedback.vibrate();
                 },
@@ -183,6 +213,24 @@ class _NewTableScreenState extends ConsumerState<NewTableScreen> {
               ),
             ),
           ),
+          if (_isAddingToTable)
+            Positioned.fill(
+              child: AbsorbPointer(
+                absorbing: true,
+                child: Container(
+                  color: Colors.black.withOpacity(0.4),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
