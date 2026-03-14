@@ -177,7 +177,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       Navigator.pushReplacement(context,
           MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
     } else if (inputPassword == "999") {
-      SystemNavigator.pop();
+      if (Platform.isAndroid) {
+        SystemNavigator.pop();
+      } else {
+        exit(0);
+      }
     } else {
       ErrorDialogs.showBasicDialog("Nepravilno geslo", context);
       _logininputcontroller.clear();
