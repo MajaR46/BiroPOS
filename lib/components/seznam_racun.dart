@@ -64,6 +64,7 @@ class _SeznamRacunState extends ConsumerState<SeznamRacun> {
                     HapticFeedback.vibrate();
                   },
                   child: Container(
+                    key: ValueKey(item.uniqueId),
                     decoration: BoxDecoration(
                         color: isSelected
                             ? AppStyles.lightBlue.withOpacity(0.2)
