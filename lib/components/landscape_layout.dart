@@ -190,8 +190,14 @@ class _LandscapeLayoutState extends ConsumerState<LandscapeLayout> {
               onPressed: () {
                 HapticFeedback.vibrate();
 
-                _submit(uniqueId ?? '', productId, itemDescription, itemPrice,
-                    isFinalDiscount, double.tryParse(discountController.text));
+                _submit(
+                    uniqueId ?? '',
+                    productId,
+                    itemDescription,
+                    itemPrice,
+                    isFinalDiscount,
+                    double.tryParse(
+                        discountController.text.replaceAll(',', '.')));
                 SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();
