@@ -300,8 +300,13 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
               onPressed: () {
                 HapticFeedback.vibrate();
 
-                _submit(productId, itemDescription, itemPrice, isFinalDiscount,
-                    double.tryParse(discountController.text));
+                _submit(
+                    productId,
+                    itemDescription,
+                    itemPrice,
+                    isFinalDiscount,
+                    double.tryParse(
+                        discountController.text.replaceAll(',', '.')));
                 SystemChrome.setEnabledSystemUIMode(
                     SystemUiMode.immersiveSticky);
                 Navigator.of(context).pop();

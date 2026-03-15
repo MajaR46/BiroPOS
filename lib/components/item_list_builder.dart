@@ -88,7 +88,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
         actions: [
           TextButton(
             onPressed: () {
-              itemPrice = priceController.text;
+              itemPrice = priceController.text.replaceAll(',', '.');
               final double newPrice = double.tryParse(itemPrice) ?? 0.0;
 
               final narociloNotifier =
@@ -117,7 +117,8 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
 
     if (itemPrice == '0,00' && nastaviCeno) {
       openDialog(itemID, itemPrice, itemName).then((_) {
-        double enteredPrice = double.tryParse(priceController.text) ?? 0.0;
+        double enteredPrice =
+            double.tryParse(priceController.text.replaceAll(',', '.')) ?? 0.0;
         if (enteredPrice > 0) {
           widget.onSelectItem({
             'name': item['name'],

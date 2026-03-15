@@ -1,5 +1,6 @@
 import 'package:BiroPOS/models/narociloitem.dart';
 import 'package:BiroPOS/providers/davcna_provider.dart';
+import 'package:BiroPOS/providers/selecteditem_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
@@ -26,6 +27,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       );
       state = [...state, newItem];
       await narociloBox.add(newItem); // Dodaj v Hive
+      ref.read(selectedItemProvider.notifier).state = newItem;
       return;
     }
 
@@ -64,6 +66,8 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       if (hiveIndex != -1) {
         await narociloBox.putAt(hiveIndex, updatedItem);
       }
+
+      ref.read(selectedItemProvider.notifier).state = updatedItem;
     } else {
       // Če ni popolnega ujemanja (ali je opis drugačen), dodaj kot novo postavko
       // NarociloItem konstruktor bo sam generiral nov uniqueId
@@ -74,6 +78,7 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
       );
       state = [...state, newItem];
       await narociloBox.add(newItem);
+      ref.read(selectedItemProvider.notifier).state = newItem;
     }
   }
 

@@ -658,9 +658,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                           ApiKeyCheckbox(
-                            value: ref.watch(
-                                    settingsProvider)['isCheckedVecjiPrint'] ??
-                                false,
+                            value: _isCheckedVecjiPrint,
                             onChanged: (bool? value) {
                               setState(() {
                                 _isCheckedVecjiPrint = value ?? false;
