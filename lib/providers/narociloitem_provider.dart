@@ -53,7 +53,8 @@ class NarociloNotifier extends Notifier<List<NarociloItem>> {
         quantity: existingItem.quantity + narociloItem.quantity,
         // Ohranimo popust in ostale lastnosti obstoječega, razen če jih eksplicitno spreminjamo
         davcnaSt: davcnaSt ?? existingItem.davcnaSt,
-        isFromTable: fromTable, // Posodobi glede na novo dodajanje
+        isFromTable: existingItem.isFromTable ||
+            fromTable, // Posodobi glede na novo dodajanje
       );
       // Zamenjaj element v listi
       final newState = List<NarociloItem>.from(state);
