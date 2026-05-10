@@ -28,6 +28,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sunmi_printer_plus/sunmi_printer_plus.dart';
+import 'package:http/http.dart' as http;
 
 enum ResponseCategory { osebje }
 
@@ -58,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.30.7';
+  String verzijaPrograma = '5.30.8';
   String formattedDate = '';
   String formattedTime = '';
   late Timer _timer;
@@ -282,6 +283,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       String apiKey = prefs.getString('apiKey') ?? '';
       String ip = prefs.getString('IP') ?? '';
       String port = prefs.getString('Port') ?? '';
+      String? tid = prefs.getString('TID');
+      String? ds = prefs.getString('podjetjeDavcna');
 
       // Set default values if any of them are empty
       if (apiKey.isEmpty || ip.isEmpty || port.isEmpty) {
@@ -296,6 +299,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           lastRefresh = currentDate.toIso8601String();
         });
 
+        if (tid != null && tid.isNotEmpty) {
+          final url = Uri.parse(
+              'https://www.biropos.si/besteron/tid.php?ds=$ds&tid=$tid');
+          unawaited(http.get(url).then((response) {
+            if (response.statusCode == 200) {
+              print("TID klic OK: ${response.body}");
+            } else {
+              print("Napaka pri TID klicu: ${response.statusCode}");
+            }
+          }).catchError((e) {
+            print("Napaka pri TID klicu: $e");
+          }));
+        }
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('refreshDate', lastRefresh!);
 
