@@ -64,7 +64,6 @@ class ProcessPayment {
             .timeout(const Duration(seconds: 90), onTimeout: () {
           throw TimeoutException("Besteron Timeout");
         });
-
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
 
@@ -83,7 +82,21 @@ class ProcessPayment {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
         } else if (usbPrintanje) {
-          await UsbPrint.sendDataUsb([besteronRacun]);
+          try {
+            Future.microtask(() async {
+              try {
+                await UsbPrint.sendDataUsb([besteronRacun]);
+              } catch (e) {}
+            });
+          } catch (printError) {
+            // Ujamemo napako tiskalnika, da NE prekine funkcije return-om od Besterona
+            ErrorDialogs.showBasicDialog(
+                "Opozorilo: Napaka pri USB tiskanju Besteron potrdila: $printError",
+                context);
+
+            print(
+                "Opozorilo: Napaka pri USB tiskanju Besteron potrdila: $printError");
+          }
         } else if (ethernetPrintanje) {
           printReceipt(besteronRacun, context, ref, isBesteronSucess);
         } else if (Platform.isWindows) {
@@ -118,6 +131,7 @@ class ProcessPayment {
       } else {
         modifiedResponse = response;
       }
+
       int index = modifiedResponse
           .indexWhere((line) => line.contains("#VELIKOST-END#"));
       if (index != -1) {
@@ -146,8 +160,9 @@ class ProcessPayment {
             clearSearchQuery(ref);
           }
         } else if (usbPrintanje) {
-          await _processUsbPrinting(modifiedResponse, isBesteronSucess);
-          if (isBesteronSucess) {
+          await _processUsbPrinting(
+              context, modifiedResponse, isBesteronSucess);
+          if (isBesteronSucess && usbSucess) {
             ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
             clearSelectedItem(ref);
             clearSearchQuery(ref);
@@ -257,11 +272,16 @@ class ProcessPayment {
     }
   }
 
-  Future<void> _processUsbPrinting(
-      List<String> response, bool isBesteronSucess) async {
+  Future<void> _processUsbPrinting(BuildContext context, List<String> response,
+      bool isBesteronSucess) async {
     final filteredResponse = Utils.filterEmptyLines(response);
 
-    await UsbPrint.sendDataUsb(filteredResponse);
+    try {
+      await UsbPrint.sendDataUsb(filteredResponse);
+      usbSucess = true; // <-- DODAJ TO
+    } catch (e) {
+      usbSucess = false; // <-- IN TO
+    }
   }
 
   Future<void> _processEthernetPrinting(List<String> modifiedResponse,
