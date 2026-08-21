@@ -86,7 +86,10 @@ class ProcessPayment {
             Future.microtask(() async {
               try {
                 await UsbPrint.sendDataUsb([besteronRacun]);
-              } catch (e) {}
+              } catch (e) {
+                ErrorDialogs.showBasicDialog(
+                    "Napaka pri USB tiskanju: $e", context);
+              }
             });
           } catch (printError) {
             // Ujamemo napako tiskalnika, da NE prekine funkcije return-om od Besterona
@@ -277,7 +280,13 @@ class ProcessPayment {
     final filteredResponse = Utils.filterEmptyLines(response);
 
     try {
-      await UsbPrint.sendDataUsb(filteredResponse);
+      Future.microtask(() async {
+        try {
+          await UsbPrint.sendDataUsb(filteredResponse);
+        } catch (e) {
+          ErrorDialogs.showBasicDialog("Napaka pri USB tiskanju: $e", context);
+        }
+      });
       usbSucess = true; // <-- DODAJ TO
     } catch (e) {
       usbSucess = false; // <-- IN TO
