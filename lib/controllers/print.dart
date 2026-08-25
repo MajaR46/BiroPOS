@@ -26,7 +26,8 @@ class Print {
   Print(this.ref);
 
   static Future<void> printText(
-      BuildContext context, List<String> text, WidgetRef ref) async {
+      BuildContext context, List<String> text, WidgetRef ref,
+      {bool clearItemsAfterPrint = true}) async {
     final settings = ref.read(settingsProvider);
     final bluetoothPrintanje = settings['isCheckedBluetoothPrintanje'] ?? true;
     final usbPrintanje = settings['isCheckedUsbPrintanje'] ?? false;
@@ -102,7 +103,13 @@ class Print {
         List<String> response, bool isBesteronSucess) async {
       final filteredResponse = Utils.filterEmptyLines(response);
 
-      await UsbPrint.sendDataUsb(filteredResponse);
+      try {
+        await UsbPrint.sendDataUsb(filteredResponse);
+        usbSucess = true;
+      } catch (e) {
+        ErrorDialogs.showBasicDialog("Napaka pri USB tiskanju $e", context);
+        usbSucess = false;
+      }
     }
 
     Future<void> _processEthernetPrinting(List<String> modifiedResponse,
@@ -192,14 +199,14 @@ class Print {
           modifiedResponse,
           isBesteronSucess,
         );
-        if (isBesteronSucess && bluetoothSucess) {
+        if (isBesteronSucess && bluetoothSucess && clearItemsAfterPrint) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
         }
       } else if (usbPrintanje) {
         await _processUsbPrinting(modifiedResponse, isBesteronSucess);
-        if (isBesteronSucess) {
+        if (isBesteronSucess & usbSucess && clearItemsAfterPrint) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
@@ -207,7 +214,7 @@ class Print {
       } else if (ethernetPrintanje) {
         await _processEthernetPrinting(
             modifiedResponse, context, isBesteronSucess);
-        if (isBesteronSucess && ethernetSucess) {
+        if (isBesteronSucess && ethernetSucess && clearItemsAfterPrint) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
           clearSearchQuery(ref);
@@ -215,7 +222,7 @@ class Print {
       } else if (Platform.isWindows) {
         await _processWindowsPrinting(
             modifiedResponse, context, isBesteronSucess);
-        if (isBesteronSucess && windowsSucess) {
+        if (isBesteronSucess && windowsSucess && clearItemsAfterPrint) {
           ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
           clearSelectedItem(ref);
         }
@@ -230,7 +237,9 @@ class Print {
             isBesteronSucess,
           );
 
-          if (isBesteronSucess && integratedPrinterSucess) {
+          if (isBesteronSucess &&
+              integratedPrinterSucess &&
+              clearItemsAfterPrint) {
             ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
             clearSelectedItem(ref);
             clearSearchQuery(ref);

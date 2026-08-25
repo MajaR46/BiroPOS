@@ -76,7 +76,12 @@ class ProcessPayment {
         final tiskajNarociloPriRacunu =
             settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
         if (tiskajNarociloPriRacunu && isBesteronSucess) {
-          await Narocilo.createNarocilo(ref, false, context);
+          try {
+            await Narocilo.createNarocilo(ref, false, context);
+          } catch (e) {
+            // napaka pri tiskanju naročila naj ne prepreči nadaljevanja
+            debugPrint("Napaka pri tiskanju naročila: $e");
+          }
         }
 
         if (bluetoothPrintanje) {
@@ -146,8 +151,9 @@ class ProcessPayment {
             clearSearchQuery(ref);
           }
         } else if (usbPrintanje) {
-          await _processUsbPrinting(modifiedResponse, isBesteronSucess);
-          if (isBesteronSucess) {
+          await _processUsbPrinting(
+              modifiedResponse, isBesteronSucess, context);
+          if (isBesteronSucess && usbSucess) {
             ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
             clearSelectedItem(ref);
             clearSearchQuery(ref);
@@ -257,11 +263,17 @@ class ProcessPayment {
     }
   }
 
-  Future<void> _processUsbPrinting(
-      List<String> response, bool isBesteronSucess) async {
+  Future<void> _processUsbPrinting(List<String> response, bool isBesteronSucess,
+      BuildContext context) async {
     final filteredResponse = Utils.filterEmptyLines(response);
 
-    await UsbPrint.sendDataUsb(filteredResponse);
+    try {
+      await UsbPrint.sendDataUsb(filteredResponse);
+      usbSucess = true;
+    } catch (e) {
+      usbSucess = false;
+      ErrorDialogs.showBasicDialog("Napaka pri USB tiskanju: $e", context);
+    }
   }
 
   Future<void> _processEthernetPrinting(List<String> modifiedResponse,
