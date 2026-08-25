@@ -794,6 +794,10 @@ private fun stopKeepAlive() {
                 }
                 sendDataToUsb("\r\n")
                 sendDataToUsb("\r\n")
+
+                 activity.runOnUiThread {
+                result.success("Data sent to USB printer")   // ✅ MANJKAJOČI KLIC
+            }
             } catch (e: Exception) {
                 Log.e("USB", "Error sending data to USB printer", e)
                 activity.runOnUiThread {

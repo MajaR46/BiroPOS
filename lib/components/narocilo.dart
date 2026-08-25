@@ -61,7 +61,8 @@ class NarociloPrinter {
       List<String> narocilo, BuildContext context, WidgetRef ref) async {
     try {
       print("Naroiclo $narocilo");
-      await Print.printText(context, narocilo, ref);
+      await Print.printText(context, narocilo, ref,
+          clearItemsAfterPrint: false);
       return true;
     } catch (e) {
       ErrorDialogs.showBasicDialog("Napaka pri tiskanju naročila $e", context);

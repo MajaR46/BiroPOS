@@ -64,6 +64,7 @@ class ProcessPayment {
             .timeout(const Duration(seconds: 90), onTimeout: () {
           throw TimeoutException("Besteron Timeout");
         });
+
         String result = besteronResponse['result'];
         String besteronRacun = besteronResponse['receipt'];
 
@@ -75,31 +76,19 @@ class ProcessPayment {
         final tiskajNarociloPriRacunu =
             settings['isCheckedTiskajNarociloPriRacunu'] ?? false;
         if (tiskajNarociloPriRacunu && isBesteronSucess) {
-          await Narocilo.createNarocilo(ref, false, context);
+          try {
+            await Narocilo.createNarocilo(ref, false, context);
+          } catch (e) {
+            // napaka pri tiskanju naročila naj ne prepreči nadaljevanja
+            debugPrint("Napaka pri tiskanju naročila: $e");
+          }
         }
 
         if (bluetoothPrintanje) {
           await BluetoothService.sendData([besteronRacun], ref,
               addEmptyLines: false, context: context, showDialog: false);
         } else if (usbPrintanje) {
-          try {
-            Future.microtask(() async {
-              try {
-                await UsbPrint.sendDataUsb([besteronRacun]);
-              } catch (e) {
-                ErrorDialogs.showBasicDialog(
-                    "Napaka pri USB tiskanju: $e", context);
-              }
-            });
-          } catch (printError) {
-            // Ujamemo napako tiskalnika, da NE prekine funkcije return-om od Besterona
-            ErrorDialogs.showBasicDialog(
-                "Opozorilo: Napaka pri USB tiskanju Besteron potrdila: $printError",
-                context);
-
-            print(
-                "Opozorilo: Napaka pri USB tiskanju Besteron potrdila: $printError");
-          }
+          await UsbPrint.sendDataUsb([besteronRacun]);
         } else if (ethernetPrintanje) {
           printReceipt(besteronRacun, context, ref, isBesteronSucess);
         } else if (Platform.isWindows) {
@@ -134,7 +123,6 @@ class ProcessPayment {
       } else {
         modifiedResponse = response;
       }
-
       int index = modifiedResponse
           .indexWhere((line) => line.contains("#VELIKOST-END#"));
       if (index != -1) {
@@ -164,7 +152,7 @@ class ProcessPayment {
           }
         } else if (usbPrintanje) {
           await _processUsbPrinting(
-              context, modifiedResponse, isBesteronSucess);
+              modifiedResponse, isBesteronSucess, context);
           if (isBesteronSucess && usbSucess) {
             ref.watch(narociloNotifierProvider.notifier).clearChosenItems();
             clearSelectedItem(ref);
@@ -275,21 +263,16 @@ class ProcessPayment {
     }
   }
 
-  Future<void> _processUsbPrinting(BuildContext context, List<String> response,
-      bool isBesteronSucess) async {
+  Future<void> _processUsbPrinting(List<String> response, bool isBesteronSucess,
+      BuildContext context) async {
     final filteredResponse = Utils.filterEmptyLines(response);
 
     try {
-      Future.microtask(() async {
-        try {
-          await UsbPrint.sendDataUsb(filteredResponse);
-        } catch (e) {
-          ErrorDialogs.showBasicDialog("Napaka pri USB tiskanju: $e", context);
-        }
-      });
-      usbSucess = true; // <-- DODAJ TO
+      await UsbPrint.sendDataUsb(filteredResponse);
+      usbSucess = true;
     } catch (e) {
-      usbSucess = false; // <-- IN TO
+      usbSucess = false;
+      ErrorDialogs.showBasicDialog("Napaka pri USB tiskanju: $e", context);
     }
   }
 
