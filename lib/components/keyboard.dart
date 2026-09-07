@@ -534,21 +534,20 @@ class _KeyboardState extends ConsumerState<Keyboard> {
                             },
                   ),
                 ),
-              if (!prikazujSamoNarocila)
-                Padding(
-                  padding: const EdgeInsets.all(2.0),
-                  child: KeyboardRedirect(
-                    backgroundColor: AppStyles.green,
-                    text: "OK",
-                    visinaGumba: visinaGumba,
-                    sirinaGumba: sirinaGumba,
-                    fontGumb: fontGumb,
-                    onPressed: () {
-                      widget
-                          .navigateToNacinPlacilaScreen(); // Navigate to the payment method screen
-                    },
-                  ),
+              Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: KeyboardRedirect(
+                  backgroundColor: AppStyles.green,
+                  text: "OK",
+                  visinaGumba: visinaGumba,
+                  sirinaGumba: sirinaGumba,
+                  fontGumb: fontGumb,
+                  onPressed: () {
+                    widget
+                        .navigateToNacinPlacilaScreen(); // Navigate to the payment method screen
+                  },
                 ),
+              ),
             ],
           )
         ],
