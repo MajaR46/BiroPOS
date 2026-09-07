@@ -232,6 +232,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                             itemCategoryTextColor: AppStyles.black,
                             textSize: textSize,
                             minCardHeight: minCardHeight,
+                            itemCode: item['itemId'],
                           ),
                         );
                       },
@@ -297,6 +298,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                         : AppStyles.black,
                     textSize: textSize,
                     minCardHeight: minCardHeight,
+                    itemCode: item['itemId'],
                   ),
                 ),
               );
@@ -362,6 +364,7 @@ class _ItemListBuilderState extends ConsumerState<ItemListBuilder> {
                           : AppStyles.black,
                       textSize: textSize,
                       minCardHeight: minCardHeight,
+                      itemCode: item['itemId'],
                     ),
                   ),
                 );

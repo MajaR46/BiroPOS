@@ -20,7 +20,8 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
           'isCheckedMoney': false,
           'isCheckedREP': false,
           'isCheckedDvojnaVrstica': false,
-          'isCheckedDirektneMize': false
+          'isCheckedDirektneMize': false,
+          'isCheckedPrikazSifre': false
         }) {
     _loadSettings();
   }
@@ -52,6 +53,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
         prefs.getBool('isCheckedDvojnaVrstica') ?? false;
     final isCheckedDirektneMize =
         prefs.getBool('isCheckedDirektneMize') ?? false;
+    final isCheckedPrikazSifre = prefs.getBool('isCheckedPrikazSifre') ?? false;
 
     // Update the state with both values
     state = {
@@ -73,6 +75,7 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
       'isCheckedREP': isCheckedREP,
       'isCheckedDvojnaVrstica': isCheckedDvojnaVrstica,
       'isCheckedDirektneMize': isCheckedDirektneMize,
+      'isCheckedPrikazSifre': isCheckedPrikazSifre,
     };
   }
 
@@ -177,6 +180,11 @@ class AppSettings extends StateNotifier<Map<String, bool>> {
   void toggleDirektneMize(bool isEnabled) {
     state = {...state, 'isCheckedDirektneMize': isEnabled};
     _saveSetting('isCheckedDirektneMize', isEnabled);
+  }
+
+  void togglePrikazSifre(bool isEnabled) {
+    state = {...state, 'isCheckedPrikazSifre': isEnabled};
+    _saveSetting('isCheckedPrikazSifre', isEnabled);
   }
 
   // This method saves the state to SharedPreferences.

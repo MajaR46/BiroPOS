@@ -65,6 +65,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
   bool _isOnline = true;
   bool _isCheckedDvojnaVrstica = false;
   bool _isCheckedDirektneMize = false;
+  bool _isCheckedPrikazSifre = false;
   String userId = SessionManager().getLoggedInUserSifra() ?? '';
   @override
   void initState() {
@@ -146,6 +147,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
             prefs.getBool('isCheckedDvojnaVrstica') ?? false;
         _isCheckedDirektneMize =
             prefs.getBool('isCheckedDirektneMize') ?? false;
+        _isCheckedPrikazSifre = prefs.getBool('isCheckedPrikazSifre') ?? false;
       });
     } catch (e) {
       print('Error loading preferences: $e');
@@ -210,6 +212,7 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
     await prefs.setBool('isCheckedREP', _isCheckedREP);
     await prefs.setBool('isCheckedDvojnaVrstica', _isCheckedDvojnaVrstica);
     await prefs.setBool('isCheckedDirektneMize', _isCheckedDirektneMize);
+    await prefs.setBool('isCheckedPrikazSifre', _isCheckedPrikazSifre);
     Navigator.push(
         context, MaterialPageRoute(builder: (context) => const LoginScreen()));
   }
@@ -772,6 +775,27 @@ class _ApiKeyScreenState extends ConsumerState<ApiKeyScreen> {
                             ref
                                 .read(settingsProvider.notifier)
                                 .togglePrikazCene(value ?? false);
+                          },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Expanded(
+                          child: Text("Prikaži šifro artikla:",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                        ),
+                        ApiKeyCheckbox(
+                          value: _isCheckedPrikazSifre,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              _isCheckedPrikazSifre = value ?? false;
+                            });
+                            ref
+                                .read(settingsProvider.notifier)
+                                .togglePrikazSifre(value ?? false);
                           },
                         ),
                       ],

@@ -14,6 +14,7 @@ class ItemCard extends ConsumerWidget {
   final bool isAllLayout;
   final dynamic textSize;
   final double minCardHeight;
+  final String itemCode;
 
   const ItemCard(
       {super.key,
@@ -26,7 +27,8 @@ class ItemCard extends ConsumerWidget {
       required this.cardBackground,
       required this.isAllLayout,
       required this.textSize,
-      required this.minCardHeight});
+      required this.minCardHeight,
+      required this.itemCode});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,6 +36,7 @@ class ItemCard extends ConsumerWidget {
     double paddingOutCardValue = isAllLayout ? 2.0 : 0.0;
     final settings = ref.watch(settingsProvider);
     final prikaziCene = settings['isCheckedPrikazCene'] ?? false;
+    final prikaziSifro = settings['isCheckedPrikazSifre'] ?? false;
 
     return Padding(
       padding: EdgeInsets.all(paddingOutCardValue),
@@ -67,6 +70,13 @@ class ItemCard extends ConsumerWidget {
                 if (prikaziCene)
                   Text(
                     '${itemPrice.toString()} €',
+                    style: TextStyle(fontSize: textSize - 2),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                if (prikaziSifro)
+                  Text(
+                    itemCode,
                     style: TextStyle(fontSize: textSize - 2),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
