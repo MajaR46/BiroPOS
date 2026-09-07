@@ -59,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   List<Blagajna> blagajna = [];
   final BluetoothService _bluetoothService = BluetoothService();
   String? lastRefresh;
-  String verzijaPrograma = '5.31.5';
+  String verzijaPrograma = '5.31.7';
 
   String formattedDate = '';
   String formattedTime = '';
@@ -176,8 +176,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       await box.put('userName', matchedUser.username);
       await box.put('userPassword', matchedUser.password);
 
-      Navigator.pushReplacement(context,
-          MaterialPageRoute(builder: (context) => const BlagajnaScreen()));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const BlagajnaScreen()),
+      );
     } else if (inputPassword == "999") {
       if (Platform.isAndroid) {
         SystemNavigator.pop();
@@ -192,36 +194,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _showEchoDialog(List<String> response) {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text(
-              "Test povezave",
-              style: AppStyles.heading3,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Test povezave", style: AppStyles.heading3),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Stanje: ${response[0].replaceAll('|', '')}'),
+                Text('Datum in čas: ${response[1].replaceAll('|', '')}'),
+                Text('Verzija: ${response[2].replaceAll('|', '')}'),
+              ],
             ),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Stanje: ${response[0].replaceAll('|', '')}'),
-                  Text('Datum in čas: ${response[1].replaceAll('|', '')}'),
-                  Text('Verzija: ${response[2].replaceAll('|', '')}')
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                  style: TextButton.styleFrom(foregroundColor: AppStyles.blue),
-                  onPressed: () {
-                    HapticFeedback.vibrate();
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: AppStyles.blue),
+              onPressed: () {
+                HapticFeedback.vibrate();
 
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("OK"))
-            ],
-          );
-        });
+                Navigator.of(context).pop();
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   static Future<void> testPrinterCompatibility() async {
@@ -302,16 +303,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
         if (tid != null && tid.isNotEmpty) {
           final url = Uri.parse(
-              'https://www.biropos.si/besteron/tid.php?ds=$ds&tid=$tid');
-          unawaited(http.get(url).then((response) {
-            if (response.statusCode == 200) {
-              print("TID klic OK: ${response.body}");
-            } else {
-              print("Napaka pri TID klicu: ${response.statusCode}");
-            }
-          }).catchError((e) {
-            print("Napaka pri TID klicu: $e");
-          }));
+            'https://www.biropos.si/besteron/tid.php?ds=$ds&tid=$tid',
+          );
+          unawaited(
+            http
+                .get(url)
+                .then((response) {
+                  if (response.statusCode == 200) {
+                    print("TID klic OK: ${response.body}");
+                  } else {
+                    print("Napaka pri TID klicu: ${response.statusCode}");
+                  }
+                })
+                .catchError((e) {
+                  print("Napaka pri TID klicu: $e");
+                }),
+          );
         }
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('refreshDate', lastRefresh!);
@@ -322,7 +329,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     } catch (e) {
       ErrorDialogs.showBasicDialog(
-          "Napaka pri osveževanju podatkov $e", context);
+        "Napaka pri osveževanju podatkov $e",
+        context,
+      );
     }
   }
 
@@ -358,23 +367,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   Expanded(
-                      child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Text(
-                      _isOnline ? "Online" : "Offline",
-                      style: AppStyles.paragraph3.copyWith(
-                        color:
-                            _isOnline ? AppStyles.green : AppStyles.brightRed,
-                        fontWeight: FontWeight.bold,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: Text(
+                        _isOnline ? "Online" : "Offline",
+                        style: AppStyles.paragraph3.copyWith(
+                          color: _isOnline
+                              ? AppStyles.green
+                              : AppStyles.brightRed,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                   Expanded(
                     child: Align(
                       alignment: Alignment.topRight,
                       child: Text(formattedTime),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -386,9 +397,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 20),
-                    Text('Prijava',
-                        style: AppStyles.heading1
-                            .copyWith(color: AppStyles.black)),
+                    Text(
+                      'Prijava',
+                      style: AppStyles.heading1.copyWith(
+                        color: AppStyles.black,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -400,28 +414,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                           controller: _logininputcontroller,
                           inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly
+                            FilteringTextInputFormatter.digitsOnly,
                           ],
 
                           style: const TextStyle(
-                              fontSize: 20), // Make input text larger
+                            fontSize: 20,
+                          ), // Make input text larger
                           decoration: InputDecoration(
-                              filled: true,
-                              fillColor: AppStyles.silver
-                                  .withAlpha((0.1 * 255).round()),
-                              suffixIconColor: AppStyles.blue,
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _clearText();
-                                  HapticFeedback.vibrate();
-                                },
-                                focusColor: AppStyles.blue,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(20.0),
-                                borderSide: BorderSide.none,
-                              )),
+                            filled: true,
+                            fillColor: AppStyles.silver.withAlpha(
+                              (0.1 * 255).round(),
+                            ),
+                            suffixIconColor: AppStyles.blue,
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _clearText();
+                                HapticFeedback.vibrate();
+                              },
+                              focusColor: AppStyles.blue,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20.0),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -440,12 +457,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           HapticFeedback.vibrate();
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: AppStyles.blue),
+                          backgroundColor: AppStyles.blue,
+                        ),
                         child: Text(
                           "Osveži",
                           style: AppStyles.heading3.copyWith(
-                              color: AppStyles.white,
-                              fontWeight: FontWeight.bold),
+                            color: AppStyles.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -467,8 +486,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Text(
                               "Test\npovezave",
                               textAlign: TextAlign.center,
-                              style: AppStyles.button2
-                                  .copyWith(color: AppStyles.black),
+                              style: AppStyles.button2.copyWith(
+                                color: AppStyles.black,
+                              ),
                             ),
                           ),
                         ),
@@ -476,16 +496,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Container(
                           decoration: BoxDecoration(
                             color: AppStyles.lightGrey,
-                            borderRadius:
-                                BorderRadius.circular(25), // rounded corners
+                            borderRadius: BorderRadius.circular(
+                              25,
+                            ), // rounded corners
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black
-                                    .withOpacity(0.2), // shadow color
+                                color: Colors.black.withOpacity(
+                                  0.2,
+                                ), // shadow color
                                 spreadRadius: 1, // how wide it spreads
                                 blurRadius: 2, // softness of the shadow
                                 offset: Offset(
-                                    0, 2), // horizontal & vertical offset
+                                  0,
+                                  2,
+                                ), // horizontal & vertical offset
                               ),
                             ],
                           ),
@@ -509,8 +533,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ElevatedButton(
                           onPressed: () {
                             HapticFeedback.vibrate();
-                            Print.printText(
-                                context, ["Programska oprema BiroPOS"], ref);
+                            Print.printText(context, [
+                              "Programska oprema BiroPOS",
+                            ], ref);
                           },
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -521,8 +546,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Text(
                               "Test\ntiskalnika",
                               textAlign: TextAlign.center,
-                              style: AppStyles.button2
-                                  .copyWith(color: AppStyles.black),
+                              style: AppStyles.button2.copyWith(
+                                color: AppStyles.black,
+                              ),
                             ),
                           ),
                         ),
@@ -539,13 +565,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Padding(
               // Add padding if needed above the text
               padding: const EdgeInsets.only(
-                  top: 8.0), // Space between scroll view and text
+                top: 8.0,
+              ), // Space between scroll view and text
               child: Text(
                 'Osveženo: $formattedLastRefresh, verzija: $verzijaPrograma',
-                style: AppStyles.paragraph3
-                    .copyWith(color: AppStyles.black, fontSize: 10),
+                style: AppStyles.paragraph3.copyWith(
+                  color: AppStyles.black,
+                  fontSize: 10,
+                ),
               ),
-            )
+            ),
           ],
         ),
       ),
