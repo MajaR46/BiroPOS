@@ -31,13 +31,16 @@ final filteredItemsProvider2 = Provider<List<dynamic>>((ref) {
 
     // Preverimo dolžino iskalnega besedila pred filtrom po imenu
     if (searchText.length >= 3) {
+      print(
+          "DEBUG: searchText=$searchText, joinedNumbers=$joinedNumbers, searchQuery=$searchQuery");
       if (joinedNumbers.length == 3 && searchQuery.isNotEmpty) {
         final searchQueries = searchQuery
             .toLowerCase()
             .split('|'); // Razdeli niz iskalnih poizvedb
         filteredItems = filteredItems.where((item) {
-          String itemName =
-              item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+          String itemName = item['name'].toLowerCase();
+          print("searchText $searchText");
+
           final words = itemName.split(' ');
 
           // Preveri, ali katerakoli od iskalnih poizvedb ustreza kateri koli besedi
@@ -58,8 +61,7 @@ final filteredItemsProvider2 = Provider<List<dynamic>>((ref) {
         }
 
         filteredItems = filteredItems.where((item) {
-          String itemName =
-              item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+          String itemName = item['name'].toLowerCase();
           List<String> words = itemName.split(' ');
 
           // Remove empty strings from the list of words

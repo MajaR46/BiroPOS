@@ -458,10 +458,8 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
       if (numbers2String.length == 3 && iskalniNizString.isNotEmpty) {
         final searchQueries = iskalniNizString.toLowerCase().split('|');
         filteredItems = filteredItems.where((item) {
-          String itemName =
-              item['name'].toLowerCase().replaceAll(RegExp(r'\d'), '');
+          String itemName = item['name'].toLowerCase();
           final words = itemName.split(' ');
-
           return searchQueries
               .any((query) => words.any((word) => word.startsWith(query)));
         }).toList();
