@@ -600,6 +600,7 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
     final settings = ref.watch(settingsProvider);
     final defaultBarve = settings['isCheckedBarve'] ?? false;
     final isCheckedUsbPrinting = settings['isCheckedUsbPrintanje'] ?? false;
+    final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
 
     var orientation = MediaQuery.of(context).orientation;
     if (isCheckedUsbPrinting) {
@@ -708,7 +709,6 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                 racunArtikliButton: "RAČUN",
                                 navigateToRacun: () {
                                   clearSelectedItem(ref);
-
                                   Navigator.pushReplacement(
                                     context,
                                     PageRouteBuilder(
@@ -734,8 +734,10 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                       context, ref, searchController, _tables);
                                 }*/
                                 ,
-                                navigateToNacinPlacilaScreen:
-                                    _navigateToNacinPlacilaScreen,
+                                navigateToNacinPlacilaScreen: () {
+                                  if (!prikazujSamoNarocila)
+                                    _navigateToNacinPlacilaScreen;
+                                },
                                 controller: searchController,
                                 navigateToOpisDiscountScreen:
                                     _navigateToOpisScreen,
