@@ -194,7 +194,6 @@ class Print {
       }
 
       if (bluetoothPrintanje == true) {
-        await Future.delayed(Duration(seconds: 2));
         await _processBluetoothPrinting(
           context,
           modifiedResponse,
