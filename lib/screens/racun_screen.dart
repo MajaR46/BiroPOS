@@ -354,6 +354,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
     final chosenItems = ref.watch(narociloNotifierProvider);
     final totalSum = ref.watch(narociloNotifierProvider.notifier).totalSum();
     _isOnline = ref.watch(onlineStatusProvider);
+    final settings = ref.watch(settingsProvider);
+    final prikazujSamoNarocila = settings['isCheckedPrikazujNarocila'] ?? false;
 
     var narociloBox = Hive.box('narociloBox');
 
@@ -460,7 +462,8 @@ class _RacunScreenState extends ConsumerState<RacunScreen> {
                       searchController.clear();
                     } else {
                       // PRIMER 3: Nič od zgoraj, navigiramo na plačilo.
-                      _navigateToNacinPlacilaScreen();
+                      if (!prikazujSamoNarocila)
+                        _navigateToNacinPlacilaScreen();
                     }
                   },
                   navigateToOpisDiscountScreen: () =>
