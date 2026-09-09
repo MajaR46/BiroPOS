@@ -735,8 +735,9 @@ class _BlagajnaScreenState extends ConsumerState<BlagajnaScreen> {
                                 }*/
                                 ,
                                 navigateToNacinPlacilaScreen: () {
-                                  if (!prikazujSamoNarocila)
-                                    _navigateToNacinPlacilaScreen;
+                                  if (!prikazujSamoNarocila) {
+                                    _navigateToNacinPlacilaScreen();
+                                  }
                                 },
                                 controller: searchController,
                                 navigateToOpisDiscountScreen:

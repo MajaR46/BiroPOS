@@ -55,7 +55,7 @@ class _KopijaScreenState extends ConsumerState<KopijaScreen> {
       final filteredResponse = Utils.filterEmptyLines(apiResponse);
 
       await Print.printText(context, filteredResponse, ref);
-      await ErrorDialogs.showResponseDialog(apiResponse, context!);
+      // await ErrorDialogs.showResponseDialog(apiResponse, context!);
 
       if (mounted) {
         SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);

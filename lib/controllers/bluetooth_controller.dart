@@ -163,7 +163,7 @@ class BluetoothService {
       final errorMessage = 'Napaka: ${e.toString()}';
 
       //await ErrorDialogs.showBluetoothErrorDialog(context!, response);
-      ErrorDialogs.showResponseDialog(response, context!);
+      // ErrorDialogs.showResponseDialog(response, context!);
       print("PRINT 4");
 
       return errorMessage; // Return error message

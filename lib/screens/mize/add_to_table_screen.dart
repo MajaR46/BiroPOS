@@ -164,10 +164,10 @@ class _AddToTableScreenState extends ConsumerState<AddToTableScreen> {
 
                                   if (!mounted) return;
 
-                                  if (bluetoothPrintanje && tiskajNarocilo) {
+                                  /* if (bluetoothPrintanje && tiskajNarocilo) {
                                     Navigator.pop(context);
                                   }
-
+*/
                                   if (widget.popThreeTimes) {
                                     Navigator.pop(context);
                                   }

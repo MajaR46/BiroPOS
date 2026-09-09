@@ -71,7 +71,7 @@ class Print {
         try {
           await _isBluetoothConnected(context, response);
           final result = await BluetoothService.sendData(response, ref,
-              context: context, addEmptyLines: true);
+              context: context, addEmptyLines: true, showDialog: false);
 
           print("RESULT BLUETOOTH $result");
 
